@@ -21,7 +21,7 @@
 
 <div
   id="modulus-hero-{{ section.id }}"
-  class="modulus-hero color-{{ section.settings.color_scheme.id }}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  class="modulus-hero color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
   style="
     --hero-height: {{ height_value }};
     --hero-heading-size: {{ section.settings.heading_size }}px;
@@ -431,6 +431,17 @@
     {
       "type": "header",
       "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full",        "label": "Full viewport" }
+      ],
+      "default": "full",
+      "info": "Hero usually spans the full viewport edge-to-edge."
     },
     {
       "type": "select",

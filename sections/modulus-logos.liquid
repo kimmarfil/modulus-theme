@@ -5,7 +5,7 @@
 
 <div
   id="modulus-logos-{{ section.id }}"
-  class="modulus-logos color-{{ section.settings.color_scheme.id }}{% if section.settings.monochrome %} modulus-logos--monochrome{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  class="modulus-logos color-{{ section.settings.color_scheme.id }}{% if section.settings.monochrome %} modulus-logos--monochrome{% endif %} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
   style="
     --logos-height: {{ section.settings.logo_height }}px;
     --logos-gap: {{ section.settings.gap }}px;
@@ -147,6 +147,16 @@
     {
       "type": "header",
       "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full",        "label": "Full viewport" }
+      ],
+      "default": "full"
     },
     {
       "type": "range",

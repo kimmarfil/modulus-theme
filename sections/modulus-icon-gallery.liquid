@@ -3,7 +3,7 @@
   Delete before Theme Store submission, or keep behind a dev flag.
 {% endcomment %}
 
-<section class="modulus-icon-gallery color-{{ section.settings.color_scheme.id }}">
+<section class="modulus-icon-gallery color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}">
   <div class="modulus-icon-gallery__inner">
     <h2 class="modulus-icon-gallery__heading">Modulus Icon Set</h2>
     <p class="modulus-icon-gallery__sub">{{ section.settings.note }}</p>
@@ -78,6 +78,16 @@
       "id": "color_scheme",
       "label": "Color scheme",
       "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full",        "label": "Full viewport" }
+      ],
+      "default": "constrained"
     },
     {
       "type": "text",

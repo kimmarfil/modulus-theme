@@ -5,7 +5,7 @@
 
 <div
   id="modulus-banner-{{ section.id }}"
-  class="modulus-banner color-{{ section.settings.color_scheme.id }}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  class="modulus-banner color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
   style="
     --ban-title-size: {{ section.settings.title_size }}px;
     --ban-py: {{ section.settings.padding_y }}px;
@@ -162,6 +162,20 @@
       "step": 4,
       "unit": "px",
       "default": 48
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full",        "label": "Full viewport" }
+      ],
+      "default": "full"
     },
     {
       "type": "header",
