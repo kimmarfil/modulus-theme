@@ -6,7 +6,7 @@
     {% render 'modulus-icon', name: 'cart', size: 20, class: 'my-icon' %}
 
   Accepts:
-    name  (string, required) — one of the icons in snippets/icons/.
+    name  (string, required) — one of the bundled icon names.
                                 Unknown names render nothing silently.
     size  (number, optional) — pixel width + height override. Default 24.
     class (string, optional) — appended to a wrapper <span>.
@@ -28,33 +28,33 @@
     aria-hidden="true"
   >
     {%- case icon_name -%}
-      {%- when 'arrow-right'       -%}{% render 'icons/arrow-right' %}
-      {%- when 'arrow-left'        -%}{% render 'icons/arrow-left' %}
-      {%- when 'arrow-up-right'    -%}{% render 'icons/arrow-up-right' %}
-      {%- when 'arrow-down'        -%}{% render 'icons/arrow-down' %}
-      {%- when 'chevron-down'      -%}{% render 'icons/chevron-down' %}
-      {%- when 'plus'              -%}{% render 'icons/plus' %}
-      {%- when 'minus'             -%}{% render 'icons/minus' %}
-      {%- when 'close'             -%}{% render 'icons/close' %}
-      {%- when 'check'             -%}{% render 'icons/check' %}
-      {%- when 'search'            -%}{% render 'icons/search' %}
-      {%- when 'cart'              -%}{% render 'icons/cart' %}
-      {%- when 'account'           -%}{% render 'icons/account' %}
-      {%- when 'menu'              -%}{% render 'icons/menu' %}
-      {%- when 'heart'             -%}{% render 'icons/heart' %}
-      {%- when 'precision'         -%}{% render 'icons/precision' %}
-      {%- when 'grid'              -%}{% render 'icons/grid' %}
-      {%- when 'layers'            -%}{% render 'icons/layers' %}
-      {%- when 'shield'            -%}{% render 'icons/shield' %}
-      {%- when 'tool'              -%}{% render 'icons/tool' %}
-      {%- when 'package'           -%}{% render 'icons/package' %}
-      {%- when 'target'            -%}{% render 'icons/target' %}
-      {%- when 'compass'           -%}{% render 'icons/compass' %}
-      {%- when 'settings'          -%}{% render 'icons/settings' %}
-      {%- when 'play'              -%}{% render 'icons/play' %}
-      {%- when 'download'          -%}{% render 'icons/download' %}
-      {%- when 'mail'              -%}{% render 'icons/mail' %}
-      {%- when 'phone'             -%}{% render 'icons/phone' %}
+      {%- when 'arrow-right'       -%}{% render 'icon-arrow-right' %}
+      {%- when 'arrow-left'        -%}{% render 'icon-arrow-left' %}
+      {%- when 'arrow-up-right'    -%}{% render 'icon-arrow-up-right' %}
+      {%- when 'arrow-down'        -%}{% render 'icon-arrow-down' %}
+      {%- when 'chevron-down'      -%}{% render 'icon-chevron-down' %}
+      {%- when 'plus'              -%}{% render 'icon-plus' %}
+      {%- when 'minus'             -%}{% render 'icon-minus' %}
+      {%- when 'close'             -%}{% render 'icon-close' %}
+      {%- when 'check'             -%}{% render 'icon-check' %}
+      {%- when 'search'            -%}{% render 'icon-search' %}
+      {%- when 'cart'              -%}{% render 'icon-cart' %}
+      {%- when 'account'           -%}{% render 'icon-account' %}
+      {%- when 'menu'              -%}{% render 'icon-menu' %}
+      {%- when 'heart'             -%}{% render 'icon-heart' %}
+      {%- when 'precision'         -%}{% render 'icon-precision' %}
+      {%- when 'grid'              -%}{% render 'icon-grid' %}
+      {%- when 'layers'            -%}{% render 'icon-layers' %}
+      {%- when 'shield'            -%}{% render 'icon-shield' %}
+      {%- when 'tool'              -%}{% render 'icon-tool' %}
+      {%- when 'package'           -%}{% render 'icon-package' %}
+      {%- when 'target'            -%}{% render 'icon-target' %}
+      {%- when 'compass'           -%}{% render 'icon-compass' %}
+      {%- when 'settings'          -%}{% render 'icon-settings' %}
+      {%- when 'play'              -%}{% render 'icon-play' %}
+      {%- when 'download'          -%}{% render 'icon-download' %}
+      {%- when 'mail'              -%}{% render 'icon-mail' %}
+      {%- when 'phone'             -%}{% render 'icon-phone' %}
     {%- endcase -%}
   </span>
 {%- endif -%}
