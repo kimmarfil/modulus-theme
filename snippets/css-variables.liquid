@@ -13,6 +13,10 @@
   {{ settings.type_primary_font | font_face: font_display: 'swap' }}
   {{ settings.type_primary_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' }}
 
+  {% # Seed default scheme values from the first color scheme, so
+     elements outside any .color-* class still render legibly. %}
+  {%- assign first_scheme = settings.color_schemes | first -%}
+
   :root {
     /* ------ Typography roles ------ */
     --font-heading--family: {{ settings.type_heading_font.family }}, {{ settings.type_heading_font.fallback_families }};
@@ -32,7 +36,7 @@
     --font-primary--style: {{ settings.type_primary_font.style }};
     --font-primary--weight: {{ settings.type_primary_font.weight }};
 
-    {% # Heading H1-H6 aliases so section CSS can address specific levels. %}
+    {% # Heading H1-H6 aliases for per-section CSS. %}
     --font-h1--family: var(--font-heading--family);
     --font-h1--weight: var(--font-heading--weight);
     --font-h1--style: var(--font-heading--style);
@@ -52,12 +56,12 @@
     --page-width: {{ settings.max_page_width }};
     --page-margin: {{ settings.min_page_margin }}px;
 
-    /* ------ Defaults (from Scheme 1 — overridden per-scheme by color-schemes snippet) ------ */
-    --color-background: {{ settings.scheme_1_background | default: settings.background_color }};
-    --color-foreground: {{ settings.scheme_1_foreground | default: settings.foreground_color }};
-    --color-foreground-heading: {{ settings.scheme_1_foreground_heading | default: settings.scheme_1_foreground | default: settings.foreground_color }};
-    --color-foreground-rgb: {{ settings.scheme_1_foreground | default: settings.foreground_color | color_to_rgb | remove: 'rgb(' | remove: ')' | replace: ',', ' ' }};
-    --color-border: {{ settings.scheme_1_border | default: '#e5e5e5' }};
+    /* ------ Defaults (from the first color scheme) ------ */
+    --color-background: {{ first_scheme.settings.background                | default: settings.background_color }};
+    --color-foreground: {{ first_scheme.settings.text                      | default: settings.foreground_color }};
+    --color-foreground-heading: {{ first_scheme.settings.heading           | default: first_scheme.settings.text | default: settings.foreground_color }};
+    --color-foreground-rgb: {{ first_scheme.settings.text                  | default: settings.foreground_color | color_to_rgb | remove: 'rgb(' | remove: ')' | replace: ',', ' ' }};
+    --color-border: {{ first_scheme.settings.border                        | default: '#e5e5e5' }};
 
     --style-border-radius-inputs: {{ settings.input_corner_radius }}px;
   }

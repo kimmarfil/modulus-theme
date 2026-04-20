@@ -3,7 +3,7 @@
   Delete before Theme Store submission, or keep behind a dev flag.
 {% endcomment %}
 
-<section class="modulus-icon-gallery color-{{ section.settings.color_scheme }}">
+<section class="modulus-icon-gallery color-{{ section.settings.color_scheme.id }}">
   <div class="modulus-icon-gallery__inner">
     <h2 class="modulus-icon-gallery__heading">Modulus Icon Set</h2>
     <p class="modulus-icon-gallery__sub">{{ section.settings.note }}</p>
@@ -74,16 +74,9 @@
   "tag": "section",
   "settings": [
     {
-      "type": "select",
+      "type": "color_scheme",
       "id": "color_scheme",
       "label": "Color scheme",
-      "options": [
-        { "value": "scheme-1", "label": "Scheme 1 — Light" },
-        { "value": "scheme-2", "label": "Scheme 2 — Off-white" },
-        { "value": "scheme-3", "label": "Scheme 3 — Sage" },
-        { "value": "scheme-4", "label": "Scheme 4 — Pale blue" },
-        { "value": "scheme-5", "label": "Scheme 5 — Dark" }
-      ],
       "default": "scheme-1"
     },
     {

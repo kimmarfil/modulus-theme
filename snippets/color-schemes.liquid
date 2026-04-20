@@ -1,33 +1,30 @@
 {% comment %}
-  Emits .color-scheme-1 .. .color-scheme-5 CSS classes. Each sets the
+  Emit one .color-{{ scheme.id }} CSS class per scheme defined in
+  settings_schema.json's `color_scheme_group`.  Each class sets the
   full set of --color-* custom properties used throughout the theme.
-  Apply `class="... color-{{ section.settings.color_scheme }}"` to any
-  section root and its children inherit that scheme's palette.
+
+  Apply `class="... color-{{ section.settings.color_scheme }}"` on
+  any section root to scope its children to that scheme.
 {% endcomment %}
 
 {% style %}
-  {% for i in (1..5) %}
-    {% assign bg_key          = 'scheme_' | append: i | append: '_background' %}
-    {% assign fg_key          = 'scheme_' | append: i | append: '_foreground' %}
-    {% assign heading_key     = 'scheme_' | append: i | append: '_foreground_heading' %}
-    {% assign border_key      = 'scheme_' | append: i | append: '_border' %}
-    {% assign btn_bg_key      = 'scheme_' | append: i | append: '_primary_button_bg' %}
-    {% assign btn_text_key    = 'scheme_' | append: i | append: '_primary_button_text' %}
+  {% for scheme in settings.color_schemes %}
+    {%- assign bg      = scheme.settings.background               | default: '#ffffff' -%}
+    {%- assign fg      = scheme.settings.text                     | default: '#060809' -%}
+    {%- assign heading = scheme.settings.heading                  | default: fg -%}
+    {%- assign border  = scheme.settings.border                   | default: '#e5e5e5' -%}
+    {%- assign btn_bg  = scheme.settings.button                   | default: fg -%}
+    {%- assign btn_tx  = scheme.settings.button_label             | default: bg -%}
+    {%- assign link    = scheme.settings.secondary_button_label   | default: fg -%}
 
-    {% assign bg      = settings[bg_key]      | default: '#ffffff' %}
-    {% assign fg      = settings[fg_key]      | default: '#060809' %}
-    {% assign heading = settings[heading_key] | default: fg %}
-    {% assign border  = settings[border_key]  | default: '#e5e5e5' %}
-    {% assign btn_bg  = settings[btn_bg_key]  | default: fg %}
-    {% assign btn_tx  = settings[btn_text_key]| default: bg %}
-
-    .color-scheme-{{ i }} {
+    .color-{{ scheme.id }} {
       --color-background: {{ bg }};
       --color-background-rgb: {{ bg | color_to_rgb | remove: 'rgb(' | remove: ')' | replace: ',', ' ' }};
       --color-foreground: {{ fg }};
       --color-foreground-rgb: {{ fg | color_to_rgb | remove: 'rgb(' | remove: ')' | replace: ',', ' ' }};
       --color-foreground-heading: {{ heading }};
       --color-border: {{ border }};
+      --color-link: {{ link }};
       --color-primary-button-background: {{ btn_bg }};
       --color-primary-button-text: {{ btn_tx }};
       --color-primary-button-border: {{ btn_bg }};

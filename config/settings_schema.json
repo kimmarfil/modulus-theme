@@ -19,7 +19,7 @@
         "id": "type_heading_font",
         "default": "chakra_petch_n6",
         "label": "Heading font",
-        "info": "Used for section headings and titles. Industrial / display-weight by default."
+        "info": "Used for section headings and titles."
       },
       {
         "type": "font_picker",
@@ -33,11 +33,11 @@
         "id": "type_label_font",
         "default": "inter_n5",
         "label": "Label font",
-        "info": "Used for tiny uppercase labels (\u201cSERVICES\u201d, \u201c/01\u201d, button text)."
+        "info": "Used for tiny uppercase labels and button text."
       },
       {
         "type": "header",
-        "content": "Primary font (legacy \u2014 used for fallback)"
+        "content": "Primary font (Skeleton fallback)"
       },
       {
         "type": "font_picker",
@@ -56,18 +56,9 @@
         "id": "max_page_width",
         "label": "Page width",
         "options": [
-          {
-            "value": "90rem",
-            "label": "Narrow (1440px)"
-          },
-          {
-            "value": "100rem",
-            "label": "Standard (1600px)"
-          },
-          {
-            "value": "110rem",
-            "label": "Wide (1760px)"
-          }
+          { "value": "90rem", "label": "Narrow (1440px)" },
+          { "value": "100rem", "label": "Standard (1600px)" },
+          { "value": "110rem", "label": "Wide (1760px)" }
         ],
         "default": "90rem"
       },
@@ -87,213 +78,64 @@
     "name": "Colors",
     "settings": [
       {
-        "type": "paragraph",
-        "content": "Modulus uses a multi-scheme color system. Each section picks its own scheme from its individual settings. Configure the schemes below."
-      }
-    ]
-  },
-  {
-    "name": "Scheme 1 \u2014 Light",
-    "settings": [
-      {
-        "type": "color",
-        "id": "scheme_1_background",
-        "default": "#ffffff",
-        "label": "Background"
-      },
-      {
-        "type": "color",
-        "id": "scheme_1_foreground",
-        "default": "#060809",
-        "label": "Foreground (text)"
-      },
-      {
-        "type": "color",
-        "id": "scheme_1_foreground_heading",
-        "default": "#060809",
-        "label": "Heading color"
-      },
-      {
-        "type": "color",
-        "id": "scheme_1_border",
-        "default": "#e5e5e5",
-        "label": "Border / divider"
-      },
-      {
-        "type": "color",
-        "id": "scheme_1_primary_button_bg",
-        "default": "#060809",
-        "label": "Primary button background"
-      },
-      {
-        "type": "color",
-        "id": "scheme_1_primary_button_text",
-        "default": "#ffffff",
-        "label": "Primary button text"
-      }
-    ]
-  },
-  {
-    "name": "Scheme 2 \u2014 Off-white",
-    "settings": [
-      {
-        "type": "color",
-        "id": "scheme_2_background",
-        "default": "#f2f2f2",
-        "label": "Background"
-      },
-      {
-        "type": "color",
-        "id": "scheme_2_foreground",
-        "default": "#060809",
-        "label": "Foreground (text)"
-      },
-      {
-        "type": "color",
-        "id": "scheme_2_foreground_heading",
-        "default": "#060809",
-        "label": "Heading color"
-      },
-      {
-        "type": "color",
-        "id": "scheme_2_border",
-        "default": "#d9d9d9",
-        "label": "Border / divider"
-      },
-      {
-        "type": "color",
-        "id": "scheme_2_primary_button_bg",
-        "default": "#060809",
-        "label": "Primary button background"
-      },
-      {
-        "type": "color",
-        "id": "scheme_2_primary_button_text",
-        "default": "#ffffff",
-        "label": "Primary button text"
-      }
-    ]
-  },
-  {
-    "name": "Scheme 3 \u2014 Sage",
-    "settings": [
-      {
-        "type": "color",
-        "id": "scheme_3_background",
-        "default": "#eef1ea",
-        "label": "Background"
-      },
-      {
-        "type": "color",
-        "id": "scheme_3_foreground",
-        "default": "#1c2117",
-        "label": "Foreground (text)"
-      },
-      {
-        "type": "color",
-        "id": "scheme_3_foreground_heading",
-        "default": "#1c2117",
-        "label": "Heading color"
-      },
-      {
-        "type": "color",
-        "id": "scheme_3_border",
-        "default": "#c9d0bd",
-        "label": "Border / divider"
-      },
-      {
-        "type": "color",
-        "id": "scheme_3_primary_button_bg",
-        "default": "#1c2117",
-        "label": "Primary button background"
-      },
-      {
-        "type": "color",
-        "id": "scheme_3_primary_button_text",
-        "default": "#ffffff",
-        "label": "Primary button text"
-      }
-    ]
-  },
-  {
-    "name": "Scheme 4 \u2014 Pale blue",
-    "settings": [
-      {
-        "type": "color",
-        "id": "scheme_4_background",
-        "default": "#e1edf5",
-        "label": "Background"
-      },
-      {
-        "type": "color",
-        "id": "scheme_4_foreground",
-        "default": "#0d1e2b",
-        "label": "Foreground (text)"
-      },
-      {
-        "type": "color",
-        "id": "scheme_4_foreground_heading",
-        "default": "#0d1e2b",
-        "label": "Heading color"
-      },
-      {
-        "type": "color",
-        "id": "scheme_4_border",
-        "default": "#b9cadc",
-        "label": "Border / divider"
-      },
-      {
-        "type": "color",
-        "id": "scheme_4_primary_button_bg",
-        "default": "#0d1e2b",
-        "label": "Primary button background"
-      },
-      {
-        "type": "color",
-        "id": "scheme_4_primary_button_text",
-        "default": "#ffffff",
-        "label": "Primary button text"
-      }
-    ]
-  },
-  {
-    "name": "Scheme 5 \u2014 Dark",
-    "settings": [
-      {
-        "type": "color",
-        "id": "scheme_5_background",
-        "default": "#2a2a2a",
-        "label": "Background"
-      },
-      {
-        "type": "color",
-        "id": "scheme_5_foreground",
-        "default": "#f2f2f2",
-        "label": "Foreground (text)"
-      },
-      {
-        "type": "color",
-        "id": "scheme_5_foreground_heading",
-        "default": "#ffffff",
-        "label": "Heading color"
-      },
-      {
-        "type": "color",
-        "id": "scheme_5_border",
-        "default": "#4a4a4a",
-        "label": "Border / divider"
-      },
-      {
-        "type": "color",
-        "id": "scheme_5_primary_button_bg",
-        "default": "#ffffff",
-        "label": "Primary button background"
-      },
-      {
-        "type": "color",
-        "id": "scheme_5_primary_button_text",
-        "default": "#2a2a2a",
-        "label": "Primary button text"
+        "type": "color_scheme_group",
+        "id": "color_schemes",
+        "definition": [
+          {
+            "type": "color",
+            "id": "background",
+            "label": "Background",
+            "default": "#ffffff"
+          },
+          {
+            "type": "color",
+            "id": "text",
+            "label": "Text",
+            "default": "#060809"
+          },
+          {
+            "type": "color",
+            "id": "heading",
+            "label": "Heading",
+            "default": "#060809"
+          },
+          {
+            "type": "color",
+            "id": "border",
+            "label": "Border / divider",
+            "default": "#e5e5e5"
+          },
+          {
+            "type": "color",
+            "id": "button",
+            "label": "Button background",
+            "default": "#060809"
+          },
+          {
+            "type": "color",
+            "id": "button_label",
+            "label": "Button text",
+            "default": "#ffffff"
+          },
+          {
+            "type": "color",
+            "id": "secondary_button_label",
+            "label": "Secondary button text / link",
+            "default": "#060809"
+          }
+        ],
+        "role": {
+          "text": "text",
+          "background": { "solid": "background" },
+          "links": "secondary_button_label",
+          "icons": "text",
+          "primary_button": "button",
+          "on_primary_button": "button_label",
+          "primary_button_border": "button",
+          "secondary_button": "background",
+          "on_secondary_button": "secondary_button_label",
+          "secondary_button_border": "secondary_button_label"
+        }
       }
     ]
   },
@@ -302,7 +144,7 @@
     "settings": [
       {
         "type": "header",
-        "content": "Legacy colors (kept for Skeleton compatibility)"
+        "content": "Legacy colors (Skeleton compatibility)"
       },
       {
         "type": "color",
