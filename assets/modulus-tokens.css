@@ -41,14 +41,19 @@
   --mod-text-label: 11px;
   --mod-text-nav: 13px;
 
-  /* ------ Spacing ------ */
+  /* ------ Spacing ------
+     --mod-section-px mirrors Skeleton's --page-margin (merchant-
+     editable via admin → Theme settings → Layout → Page margin).
+     Sections that opt into `.full-width` use this for horizontal
+     padding so their inner content aligns with Skeleton's
+     constrained-section column at every viewport width. */
   --mod-section-py: 120px;
-  --mod-section-px: 80px;
+  --mod-section-px: var(--page-margin, 24px);
   --mod-gap-sm: 16px;
   --mod-gap-md: 32px;
   --mod-gap-lg: 64px;
   --mod-gap-xl: 96px;
-  --mod-max-width: 1400px;
+  --mod-max-width: calc(var(--page-width, 90rem) - var(--page-margin, 24px) * 2);
 
   /* ------ Motion ------ */
   --mod-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -58,16 +63,17 @@
   --mod-duration-slow: 700ms;
 }
 
+/* --mod-section-px is driven by --page-margin (merchant-configurable),
+   so it already scales if the merchant chooses a smaller margin. We
+   only override vertical padding + gaps on smaller viewports. */
 @media (max-width: 1024px) {
   :root {
-    --mod-section-px: 40px;
     --mod-section-py: 80px;
   }
 }
 
 @media (max-width: 768px) {
   :root {
-    --mod-section-px: 24px;
     --mod-section-py: 64px;
     --mod-gap-md: 24px;
     --mod-gap-lg: 32px;
