@@ -19,9 +19,42 @@
   assign overlay_start = section.settings.overlay_color | color_modify: 'alpha', overlay_alpha
 -%}
 
+{%- if section.settings.transparent_header -%}
+  {% comment %}
+    Signal to the header (built in Phase 6) that it should render
+    transparent over this hero. We add the class immediately to avoid
+    a flash of the opaque header on initial paint, then toggle it off
+    once the user scrolls past the hero.
+  {% endcomment %}
+  <script>
+    document.body.classList.add('modulus-header-transparent');
+    document.addEventListener('DOMContentLoaded', function () {
+      var hero = document.getElementById('modulus-hero-{{ section.id }}');
+      if (!hero) return;
+
+      function update() {
+        var rect = hero.getBoundingClientRect();
+        var headerHeight = parseInt(
+          getComputedStyle(document.body).getPropertyValue('--modulus-header-height') || '80',
+          10
+        );
+        if (rect.bottom > headerHeight) {
+          document.body.classList.add('modulus-header-transparent');
+        } else {
+          document.body.classList.remove('modulus-header-transparent');
+        }
+      }
+
+      update();
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update, { passive: true });
+    });
+  </script>
+{%- endif -%}
+
 <div
   id="modulus-hero-{{ section.id }}"
-  class="modulus-hero color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  class="modulus-hero color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.transparent_header %} modulus-hero--transparent-header{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
   style="
     --hero-height: {{ height_value }};
     --hero-heading-size: {{ section.settings.heading_size }}px;
@@ -138,6 +171,21 @@
     overflow: hidden;
     background: var(--color-background);
     color: var(--color-foreground);
+  }
+
+  /* Transparent-header mode: pull the hero up so it sits beneath
+     the site header. The Modulus header (built in Phase 6) will
+     expose --modulus-header-height; until then, fall back to the
+     approximate 80px Skeleton default. */
+  .modulus-hero--transparent-header {
+    margin-top: calc(var(--modulus-header-height, 80px) * -1);
+  }
+
+  /* When the hero is the first element in the viewport, nudge its
+     inner content down so the header doesn't overlap the scroll
+     indicator or the `location_tag`. */
+  .modulus-hero--transparent-header .modulus-hero__content {
+    padding-top: calc(var(--mod-section-py) + var(--modulus-header-height, 80px));
   }
 
   .modulus-hero__media {
@@ -469,6 +517,13 @@
       "id": "show_scroll_indicator",
       "label": "Show scroll indicator",
       "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "transparent_header",
+      "label": "Transparent header over hero",
+      "info": "Hero extends under the site header. Header turns transparent until the user scrolls past the hero. Best with a dark media background + Scheme 5.",
+      "default": false
     },
     {
       "type": "header",
