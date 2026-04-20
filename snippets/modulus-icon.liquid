@@ -1,0 +1,68 @@
+{% comment %}
+  Render one of Modulus's bundled icons.
+
+  Usage:
+    {% render 'modulus-icon', name: 'arrow-right' %}
+    {% render 'modulus-icon', name: 'cart', size: 20, class: 'my-icon' %}
+
+  Accepts:
+    name  (string, required) — one of the icons in snippets/icons/.
+                                Unknown names render nothing silently.
+    size  (number, optional) — pixel width + height override. Default 24.
+    class (string, optional) — appended to a wrapper <span>.
+
+  All icons use currentColor for stroke/fill, so they inherit the
+  parent element's text color.
+{% endcomment %}
+
+{%- liquid
+  assign icon_name = name | default: ''
+  assign icon_size = size | default: 24
+  assign icon_class = class | default: ''
+-%}
+
+{%- if icon_name != '' -%}
+  <span
+    class="modulus-icon modulus-icon--{{ icon_name }}{% if icon_class != '' %} {{ icon_class }}{% endif %}"
+    style="display:inline-flex;width:{{ icon_size }}px;height:{{ icon_size }}px;line-height:0;"
+    aria-hidden="true"
+  >
+    {%- case icon_name -%}
+      {%- when 'arrow-right'       -%}{% render 'icons/arrow-right' %}
+      {%- when 'arrow-left'        -%}{% render 'icons/arrow-left' %}
+      {%- when 'arrow-up-right'    -%}{% render 'icons/arrow-up-right' %}
+      {%- when 'arrow-down'        -%}{% render 'icons/arrow-down' %}
+      {%- when 'chevron-down'      -%}{% render 'icons/chevron-down' %}
+      {%- when 'plus'              -%}{% render 'icons/plus' %}
+      {%- when 'minus'             -%}{% render 'icons/minus' %}
+      {%- when 'close'             -%}{% render 'icons/close' %}
+      {%- when 'check'             -%}{% render 'icons/check' %}
+      {%- when 'search'            -%}{% render 'icons/search' %}
+      {%- when 'cart'              -%}{% render 'icons/cart' %}
+      {%- when 'account'           -%}{% render 'icons/account' %}
+      {%- when 'menu'              -%}{% render 'icons/menu' %}
+      {%- when 'heart'             -%}{% render 'icons/heart' %}
+      {%- when 'precision'         -%}{% render 'icons/precision' %}
+      {%- when 'grid'              -%}{% render 'icons/grid' %}
+      {%- when 'layers'            -%}{% render 'icons/layers' %}
+      {%- when 'shield'            -%}{% render 'icons/shield' %}
+      {%- when 'tool'              -%}{% render 'icons/tool' %}
+      {%- when 'package'           -%}{% render 'icons/package' %}
+      {%- when 'target'            -%}{% render 'icons/target' %}
+      {%- when 'compass'           -%}{% render 'icons/compass' %}
+      {%- when 'settings'          -%}{% render 'icons/settings' %}
+      {%- when 'play'              -%}{% render 'icons/play' %}
+      {%- when 'download'          -%}{% render 'icons/download' %}
+      {%- when 'mail'              -%}{% render 'icons/mail' %}
+      {%- when 'phone'             -%}{% render 'icons/phone' %}
+    {%- endcase -%}
+  </span>
+{%- endif -%}
+
+{% style %}
+  .modulus-icon > svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+{% endstyle %}
