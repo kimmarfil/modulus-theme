@@ -1,0 +1,288 @@
+{% comment %}
+  Modulus Split — full-width 50/50 image + text side-by-side.
+  Image side can be left or right.
+{% endcomment %}
+
+<div
+  id="modulus-split-{{ section.id }}"
+  class="modulus-split color-{{ section.settings.color_scheme.id }}{% if section.settings.image_position == 'right' %} modulus-split--image-right{% endif %} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --split-py: {{ section.settings.padding_y }}px;
+    --split-px: {{ section.settings.padding_x }}px;
+    --split-image-opacity: {{ section.settings.image_opacity | divided_by: 100.0 }};
+    --split-image-filter: {% if section.settings.image_grayscale %}grayscale(1){% else %}none{% endif %};
+  "
+>
+  <div class="modulus-split__grid">
+    <div class="modulus-split__image">
+      {%- if section.settings.image != blank -%}
+        <img
+          src="{{ section.settings.image | image_url: width: 1200 }}"
+          srcset="
+            {{ section.settings.image | image_url: width: 600 }} 600w,
+            {{ section.settings.image | image_url: width: 900 }} 900w,
+            {{ section.settings.image | image_url: width: 1200 }} 1200w
+          "
+          sizes="(max-width: 1024px) 100vw, 50vw"
+          alt="{{ section.settings.image.alt | escape }}"
+          width="{{ section.settings.image.width }}"
+          height="{{ section.settings.image.height }}"
+          loading="lazy"
+        >
+      {%- else -%}
+        {{ 'lifestyle-1' | placeholder_svg_tag: 'modulus-split__placeholder' }}
+      {%- endif -%}
+    </div>
+
+    <div class="modulus-split__content" data-mod-reveal>
+      {%- if section.settings.label_text != blank -%}
+        {% render 'modulus-section-label',
+          text: section.settings.label_text,
+          number: section.settings.label_number
+        %}
+      {%- endif -%}
+
+      {%- if section.settings.heading != blank -%}
+        <{{ section.settings.heading_tag }} class="modulus-split__heading">
+          {{ section.settings.heading }}
+        </{{ section.settings.heading_tag }}>
+      {%- endif -%}
+
+      {%- if section.settings.body_text != blank -%}
+        <div class="modulus-split__body">
+          {{ section.settings.body_text }}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.caption_label != blank or section.settings.caption_text != blank -%}
+        <div class="modulus-split__caption">
+          {%- if section.settings.caption_label != blank -%}
+            <div class="modulus-split__caption-label">{{ section.settings.caption_label }}</div>
+          {%- endif -%}
+          {%- if section.settings.caption_text != blank -%}
+            <div class="modulus-split__caption-text">{{ section.settings.caption_text }}</div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-split {
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  .modulus-split__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 520px;
+  }
+
+  .modulus-split__image {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .modulus-split__image img,
+  .modulus-split__placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: var(--split-image-opacity, 1);
+    filter: var(--split-image-filter, none);
+  }
+
+  .modulus-split--image-right .modulus-split__image {
+    order: 2;
+  }
+
+  .modulus-split--image-right .modulus-split__content {
+    order: 1;
+  }
+
+  .modulus-split__content {
+    padding: var(--split-py, var(--mod-section-py)) var(--split-px, var(--mod-section-px));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .modulus-split__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4vw, 56px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0 0 24px;
+  }
+
+  .modulus-split__heading p {
+    margin: 0;
+  }
+
+  .modulus-split__body {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.1vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.75;
+    max-width: 480px;
+  }
+
+  .modulus-split__body p { margin: 0 0 1em; }
+  .modulus-split__body p:last-child { margin-bottom: 0; }
+
+  .modulus-split__caption {
+    margin-top: var(--mod-gap-md);
+    padding-top: var(--mod-gap-md);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .modulus-split__caption-label {
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .modulus-split__caption-text {
+    font-family: var(--font-body--family);
+    font-size: 13px;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    line-height: 1.6;
+    max-width: 420px;
+  }
+
+  .modulus-split__caption-text p { margin: 0; }
+
+  @media (max-width: 1024px) {
+    .modulus-split__grid {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+    .modulus-split__image {
+      aspect-ratio: 16 / 9;
+      order: -1 !important;
+    }
+    .modulus-split__content {
+      order: 1 !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modulus-split__content {
+      padding: var(--mod-section-py) var(--mod-section-px);
+    }
+    .modulus-split__heading {
+      font-size: clamp(24px, 7vw, 36px);
+    }
+    .modulus-split__image {
+      aspect-ratio: 4 / 3;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Split",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Image" },
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "Image position",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "range",
+      "id": "image_opacity",
+      "label": "Image opacity",
+      "min": 20, "max": 100, "step": 5, "unit": "%",
+      "default": 100
+    },
+    { "type": "checkbox", "id": "image_grayscale", "label": "Grayscale image", "default": false },
+
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label" },
+    { "type": "text", "id": "label_number", "label": "Section number" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>Built for how you actually work.</p>"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "Heading tag",
+      "options": [
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "richtext",
+      "id": "body_text",
+      "label": "Body text",
+      "default": "<p>A focused paragraph that pairs the image on the left (or right) with a single idea. Photo + thought.</p>"
+    },
+    {
+      "type": "text",
+      "id": "caption_label",
+      "label": "Caption label (optional)",
+      "info": "Small uppercase label below body"
+    },
+    { "type": "richtext", "id": "caption_text", "label": "Caption text (optional)" },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-2" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Content vertical padding",
+      "min": 40, "max": 200, "step": 4, "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_x",
+      "label": "Content horizontal padding",
+      "min": 24, "max": 120, "step": 4, "unit": "px",
+      "default": 80
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [{ "name": "Modulus Split" }],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

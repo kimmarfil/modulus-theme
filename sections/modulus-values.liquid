@@ -1,0 +1,215 @@
+{% comment %}
+  Modulus Values — grid of numbered principle/value cards.
+  Each card: big number + title + short description.
+{% endcomment %}
+
+<div
+  id="modulus-values-{{ section.id }}"
+  class="modulus-values color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --val-columns: {{ section.settings.columns }};
+    --val-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-values__inner">
+    {%- if section.settings.label_text != blank -%}
+      <div data-mod-reveal>
+        {% render 'modulus-section-label',
+          text: section.settings.label_text,
+          number: section.settings.label_number
+        %}
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.heading != blank -%}
+      <div class="modulus-values__heading" data-mod-reveal>
+        {{ section.settings.heading }}
+      </div>
+    {%- endif -%}
+
+    <div class="modulus-values__grid" data-mod-reveal data-mod-reveal-delay="80">
+      {%- for block in section.blocks -%}
+        {%- assign padded_index = forloop.index | prepend: '00' | slice: -2, 2 -%}
+        <div class="modulus-values__card" {{ block.shopify_attributes }}>
+          <span class="modulus-values__card-number">{{ block.settings.number | default: padded_index }}</span>
+          {%- if block.settings.title != blank -%}
+            <h3 class="modulus-values__card-title">{{ block.settings.title }}</h3>
+          {%- endif -%}
+          {%- if block.settings.description != blank -%}
+            <div class="modulus-values__card-desc">{{ block.settings.description }}</div>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-values {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--val-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-values__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-values__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4vw, 56px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 var(--mod-gap-lg);
+  }
+
+  .modulus-values__heading p { margin: 0; }
+
+  .modulus-values__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--val-columns, 3), 1fr);
+    gap: 1px;
+    background: var(--color-border);
+  }
+
+  .modulus-values__card {
+    background: var(--color-background);
+    padding: 40px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .modulus-values__card-number {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(32px, 4vw, 48px);
+    color: rgb(var(--color-foreground-rgb) / 0.25);
+    line-height: 1;
+    margin-bottom: var(--mod-gap-md);
+  }
+
+  h3.modulus-values__card-title {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(18px, 2vw, 26px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+
+  .modulus-values__card-desc {
+    font-family: var(--font-body--family);
+    font-size: clamp(14px, 1.05vw, 16px);
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    line-height: 1.7;
+    margin-top: auto;
+  }
+
+  .modulus-values__card-desc p { margin: 0; }
+
+  @media (max-width: 1024px) {
+    .modulus-values__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modulus-values__heading {
+      font-size: clamp(24px, 7vw, 36px);
+    }
+    .modulus-values__grid {
+      grid-template-columns: 1fr;
+    }
+    .modulus-values__card {
+      padding: 32px 24px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Values",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Values" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "03" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>What we stand for.</p>"
+    },
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-2" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Columns",
+      "min": 2, "max": 4, "step": 1,
+      "default": 3
+    },
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "value",
+      "name": "Value card",
+      "settings": [
+        {
+          "type": "text",
+          "id": "number",
+          "label": "Number",
+          "info": "Leave blank to auto-number (01, 02, …)"
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Principle" },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>One or two sentences that explain what this principle means in practice.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Modulus Values",
+      "blocks": [
+        { "type": "value", "settings": { "title": "Craft" } },
+        { "type": "value", "settings": { "title": "Precision" } },
+        { "type": "value", "settings": { "title": "Restraint" } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

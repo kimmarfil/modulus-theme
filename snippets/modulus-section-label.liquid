@@ -1,0 +1,21 @@
+{%- comment -%}
+  Modulus section label — small ticker-style label that appears above
+  a section's heading, e.g. "[ 01 ] ABOUT US".
+
+  Usage:
+    {% render 'modulus-section-label', text: 'About', number: '01' %}
+
+  Accepts:
+    text   (string, required) — label body (displayed uppercase)
+    number (string, optional) — number tag, default '01'
+{%- endcomment -%}
+
+{%- liquid
+  assign label_number = number | default: '01'
+-%}
+
+{%- if text != blank -%}
+  <span class="modulus-label">
+    [ {{ label_number }} ] {{ text | upcase }}
+  </span>
+{%- endif -%}

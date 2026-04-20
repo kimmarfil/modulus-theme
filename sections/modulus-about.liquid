@@ -1,0 +1,195 @@
+{% comment %}
+  Modulus About — two-column intro section (heading left, body + CTA right).
+{% endcomment %}
+
+<div
+  id="modulus-about-{{ section.id }}"
+  class="modulus-about color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --about-heading-size: {{ section.settings.heading_size }}px;
+    --about-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-about__inner">
+    {%- if section.settings.label_text != blank -%}
+      <div data-mod-reveal>
+        {% render 'modulus-section-label',
+          text: section.settings.label_text,
+          number: section.settings.label_number
+        %}
+      </div>
+    {%- endif -%}
+
+    <div class="modulus-about__grid">
+      <div data-mod-reveal data-mod-reveal-delay="80">
+        {%- if section.settings.heading != blank -%}
+          <{{ section.settings.heading_tag }} class="modulus-about__heading">
+            {{ section.settings.heading }}
+          </{{ section.settings.heading_tag }}>
+        {%- endif -%}
+      </div>
+
+      <div data-mod-reveal data-mod-reveal-delay="160">
+        {%- if section.settings.body_text != blank -%}
+          <div class="modulus-about__body">
+            {{ section.settings.body_text }}
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.button_label != blank -%}
+          <div class="modulus-about__cta">
+            <a href="{{ section.settings.button_link | default: '#' }}" class="mod-btn mod-btn--ghost-dark">
+              <span>{{ section.settings.button_label }}</span>
+              <span class="mod-btn__arrow" aria-hidden="true">{% render 'modulus-icon', name: 'arrow-right', size: 14 %}</span>
+            </a>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-about {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--about-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-about__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-about__grid {
+    display: grid;
+    grid-template-columns: 55fr 45fr;
+    gap: var(--mod-gap-lg);
+    align-items: start;
+  }
+
+  :is(h2, h3).modulus-about__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: var(--about-heading-size, clamp(32px, 5vw, 64px));
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-about__heading p {
+    margin: 0;
+  }
+
+  .modulus-about__body {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.1vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.75;
+    max-width: 440px;
+  }
+
+  .modulus-about__body p {
+    margin: 0 0 1em;
+  }
+
+  .modulus-about__body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .modulus-about__cta {
+    margin-top: var(--mod-gap-md);
+  }
+
+  @media (max-width: 1024px) {
+    .modulus-about__grid {
+      grid-template-columns: 1fr;
+      gap: var(--mod-gap-md);
+    }
+    .modulus-about__body {
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    :is(h2, h3).modulus-about__heading {
+      font-size: clamp(28px, 8vw, 40px);
+    }
+    .modulus-about__grid {
+      gap: 20px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus About",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "About" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "01" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>Engineered for the Exceptional.</p>"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "Heading tag",
+      "options": [
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "richtext",
+      "id": "body_text",
+      "label": "Body text",
+      "default": "<p>A short intro about your brand, process, or point of view. Keep it focused — one paragraph that a visitor can read in under 15 seconds.</p>"
+    },
+    { "type": "text", "id": "button_label", "label": "Button label" },
+    { "type": "url", "id": "button_link", "label": "Button link" },
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-2" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    { "type": "header", "content": "Typography" },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size (desktop)",
+      "min": 32, "max": 100, "step": 2, "unit": "px",
+      "default": 64
+    },
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [{ "name": "Modulus About" }],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

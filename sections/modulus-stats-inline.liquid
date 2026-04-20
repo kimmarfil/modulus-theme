@@ -1,0 +1,156 @@
+{% comment %}
+  Modulus Stats Inline — single horizontal row of stats, separated
+  by thin dividers. Compact alternative to the full Stats section.
+{% endcomment %}
+
+<div
+  id="modulus-stats-inline-{{ section.id }}"
+  class="modulus-stats-inline color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="--si-py: {{ section.settings.padding_y }}px;"
+>
+  <div class="modulus-stats-inline__inner">
+    <div class="modulus-stats-inline__row" data-mod-reveal>
+      {%- for block in section.blocks -%}
+        <div class="modulus-stats-inline__item" {{ block.shopify_attributes }}>
+          <span class="modulus-stats-inline__number">{{ block.settings.stat_value }}</span>
+          {%- if block.settings.stat_label != blank -%}
+            <span class="modulus-stats-inline__label">{{ block.settings.stat_label }}</span>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-stats-inline {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--si-py, 60px) var(--mod-section-px);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-stats-inline__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-stats-inline__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+  }
+
+  .modulus-stats-inline__item {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 0 48px;
+    border-left: 1px solid var(--color-border);
+  }
+
+  .modulus-stats-inline__item:first-child {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .modulus-stats-inline__item:last-child {
+    padding-right: 0;
+  }
+
+  .modulus-stats-inline__number {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(40px, 5vw, 72px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .modulus-stats-inline__label {
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
+
+  @media (max-width: 768px) {
+    .modulus-stats-inline__row {
+      flex-direction: column;
+    }
+    .modulus-stats-inline__item {
+      border-left: none;
+      border-top: 1px solid var(--color-border);
+      padding: 20px 0;
+      gap: 16px;
+      width: 100%;
+      justify-content: space-between;
+    }
+    .modulus-stats-inline__item:first-child {
+      border-top: none;
+      padding-top: 0;
+    }
+    .modulus-stats-inline__number {
+      font-size: clamp(32px, 10vw, 48px);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Stats Inline",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-2" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 20, "max": 120, "step": 4, "unit": "px",
+      "default": 60
+    },
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "Stat",
+      "settings": [
+        { "type": "text", "id": "stat_value", "label": "Value", "default": "18" },
+        { "type": "text", "id": "stat_label", "label": "Label", "default": "Years" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Modulus Stats Inline",
+      "blocks": [
+        { "type": "stat", "settings": { "stat_value": "18", "stat_label": "Years" } },
+        { "type": "stat", "settings": { "stat_value": "40+", "stat_label": "Partners" } },
+        { "type": "stat", "settings": { "stat_value": "6", "stat_label": "Industries" } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

@@ -1,0 +1,235 @@
+{% comment %}
+  Modulus Benefits — two-column layout.
+  Left: label + heading. Right: numbered list of benefit rows
+  (number · title · description), each with a top divider.
+{% endcomment %}
+
+<div
+  id="modulus-benefits-{{ section.id }}"
+  class="modulus-benefits color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --ben-heading-size: {{ section.settings.heading_size }}px;
+    --ben-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-benefits__inner">
+    <div class="modulus-benefits__grid">
+      <div data-mod-reveal>
+        {%- if section.settings.label_text != blank -%}
+          {% render 'modulus-section-label',
+            text: section.settings.label_text,
+            number: section.settings.label_number
+          %}
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="modulus-benefits__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+      </div>
+
+      <ul class="modulus-benefits__list">
+        {%- for block in section.blocks -%}
+          {%- assign padded_index = forloop.index | prepend: '00' | slice: -2, 2 -%}
+          <li class="modulus-benefits__item" data-mod-reveal data-mod-reveal-delay="{{ forloop.index0 | times: 80 }}" {{ block.shopify_attributes }}>
+            <span class="modulus-benefits__item-number">{{ padded_index }}</span>
+            <h3 class="modulus-benefits__item-title">{{ block.settings.title }}</h3>
+            {%- if block.settings.description != blank -%}
+              <div class="modulus-benefits__item-desc">{{ block.settings.description }}</div>
+            {%- endif -%}
+          </li>
+        {%- endfor -%}
+      </ul>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-benefits {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--ben-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-benefits__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-benefits__grid {
+    display: grid;
+    grid-template-columns: 40fr 60fr;
+    gap: var(--mod-gap-lg);
+    align-items: start;
+  }
+
+  h2.modulus-benefits__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: var(--ben-heading-size, clamp(32px, 5vw, 64px));
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-benefits__heading p { margin: 0; }
+
+  .modulus-benefits__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .modulus-benefits__item {
+    display: grid;
+    grid-template-columns: 40px 1fr auto;
+    gap: 24px;
+    align-items: baseline;
+    padding: 24px 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .modulus-benefits__item:last-child {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-benefits__item-number {
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    letter-spacing: 0.12em;
+  }
+
+  h3.modulus-benefits__item-title {
+    font-family: var(--font-body--family);
+    font-weight: 500;
+    font-size: clamp(18px, 2vw, 24px);
+    color: var(--color-foreground);
+    line-height: 1.4;
+    letter-spacing: 0;
+    text-transform: none;
+    margin: 0;
+  }
+
+  .modulus-benefits__item-desc {
+    font-family: var(--font-body--family);
+    font-size: clamp(14px, 1.05vw, 16px);
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+    line-height: 1.6;
+    max-width: 280px;
+    text-align: right;
+  }
+
+  .modulus-benefits__item-desc p { margin: 0; }
+
+  @media (max-width: 1024px) {
+    .modulus-benefits__grid {
+      grid-template-columns: 1fr;
+      gap: var(--mod-gap-md);
+    }
+    .modulus-benefits__item {
+      grid-template-columns: 32px 1fr;
+      gap: 16px;
+    }
+    .modulus-benefits__item-desc {
+      grid-column: 2;
+      text-align: left;
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    h2.modulus-benefits__heading {
+      font-size: clamp(24px, 7vw, 36px);
+    }
+    .modulus-benefits__item {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 20px 0;
+    }
+    h3.modulus-benefits__item-title {
+      font-size: 18px;
+    }
+    .modulus-benefits__item-desc {
+      grid-column: 1;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Benefits",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Benefits" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "04" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>What you get.</p>"
+    },
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-2" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    { "type": "header", "content": "Typography" },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size (desktop)",
+      "min": 32, "max": 100, "step": 2, "unit": "px",
+      "default": 64
+    },
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "benefit",
+      "name": "Benefit",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "Benefit title" },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>One line explaining this benefit.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Modulus Benefits",
+      "blocks": [
+        { "type": "benefit", "settings": { "title": "Precision engineering" } },
+        { "type": "benefit", "settings": { "title": "Material excellence" } },
+        { "type": "benefit", "settings": { "title": "End-to-end ownership" } },
+        { "type": "benefit", "settings": { "title": "Uncompromising quality" } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

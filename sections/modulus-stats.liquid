@@ -1,0 +1,264 @@
+{% comment %}
+  Modulus Stats — Lazarev-style layout:
+  Row 1: heading (left) + body text (right)
+  Row 2: spacer (left) + 2×2 stat grid (right)
+{% endcomment %}
+
+<div
+  id="modulus-stats-{{ section.id }}"
+  class="modulus-stats color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --stats-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-stats__inner">
+    <div class="modulus-stats__top">
+      <div data-mod-reveal>
+        {%- if section.settings.label_text != blank -%}
+          {% render 'modulus-section-label',
+            text: section.settings.label_text,
+            number: section.settings.label_number
+          %}
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <div class="modulus-stats__heading">
+            {{ section.settings.heading }}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- if section.settings.body_text != blank -%}
+        <div data-mod-reveal data-mod-reveal-delay="80">
+          <div class="modulus-stats__body">
+            {{ section.settings.body_text }}
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="modulus-stats__bottom">
+      <div class="modulus-stats__spacer" aria-hidden="true"></div>
+      <div class="modulus-stats__grid">
+        {%- for block in section.blocks -%}
+          <div class="modulus-stats__cell" data-mod-reveal data-mod-reveal-delay="{{ forloop.index0 | times: 80 | plus: 160 }}" {{ block.shopify_attributes }}>
+            {%- if block.settings.stat_unit != blank -%}
+              <div class="modulus-stats__meta">
+                <span class="modulus-stats__unit-label">[ {{ block.settings.stat_unit }} ]</span>
+              </div>
+            {%- endif -%}
+            <div class="modulus-stats__number">{{ block.settings.stat_value }}</div>
+            {%- if block.settings.stat_label != blank -%}
+              <div class="modulus-stats__label">{{ block.settings.stat_label }}</div>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-stats {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--stats-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-stats__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-stats__top {
+    display: grid;
+    grid-template-columns: 55fr 45fr;
+    gap: var(--mod-gap-lg);
+    align-items: end;
+    min-height: 280px;
+    padding-bottom: var(--mod-gap-xl);
+  }
+
+  .modulus-stats__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4vw, 56px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0;
+    max-width: 50rem;
+  }
+
+  .modulus-stats__heading p { margin: 0; }
+
+  .modulus-stats__body {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.1vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.75;
+  }
+
+  .modulus-stats__body p { margin: 0 0 1em; }
+  .modulus-stats__body p:last-child { margin-bottom: 0; }
+
+  .modulus-stats__bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .modulus-stats__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .modulus-stats__cell {
+    padding: 32px 24px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .modulus-stats__cell:nth-child(odd) {
+    border-right: 1px solid var(--color-border);
+  }
+
+  .modulus-stats__meta {
+    margin-bottom: 16px;
+    min-height: 18px;
+  }
+
+  .modulus-stats__unit-label {
+    font-family: var(--font-label--family);
+    font-size: 10px;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .modulus-stats__number {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(48px, 7vw, 96px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .modulus-stats__label {
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+
+  @media (max-width: 1024px) {
+    .modulus-stats__top {
+      grid-template-columns: 1fr;
+      gap: var(--mod-gap-md);
+      min-height: auto;
+      padding-bottom: var(--mod-gap-lg);
+    }
+    .modulus-stats__bottom {
+      grid-template-columns: 1fr;
+    }
+    .modulus-stats__spacer { display: none; }
+  }
+
+  @media (max-width: 768px) {
+    .modulus-stats__heading {
+      font-size: clamp(24px, 7vw, 36px);
+    }
+    .modulus-stats__cell {
+      padding: 24px 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modulus-stats__grid {
+      grid-template-columns: 1fr;
+    }
+    .modulus-stats__cell:nth-child(odd) {
+      border-right: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Stats",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "By the numbers" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "02" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading (left column)",
+      "default": "<p>Measured by outcomes, not promises.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "body_text",
+      "label": "Body text (right column, above stats)",
+      "default": "<p>Short supporting copy for the stats below.</p>"
+    },
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-2" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "Stat",
+      "limit": 4,
+      "settings": [
+        { "type": "text", "id": "stat_value", "label": "Stat value", "default": "50" },
+        {
+          "type": "text",
+          "id": "stat_unit",
+          "label": "Unit tag",
+          "info": "Shown as [ unit ] above the number",
+          "default": "clients"
+        },
+        { "type": "text", "id": "stat_label", "label": "Label (below number)", "default": "Projects delivered" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Modulus Stats",
+      "blocks": [
+        { "type": "stat", "settings": { "stat_value": "50",  "stat_unit": "clients", "stat_label": "Brands served" } },
+        { "type": "stat", "settings": { "stat_value": "12k", "stat_unit": "units", "stat_label": "Produced last year" } },
+        { "type": "stat", "settings": { "stat_value": "99%", "stat_unit": "rate", "stat_label": "On-time delivery" } },
+        { "type": "stat", "settings": { "stat_value": "15y", "stat_unit": "track record", "stat_label": "In industry" } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}
