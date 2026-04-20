@@ -1,0 +1,197 @@
+{% comment %}
+  Modulus Banner — full-width credibility / announcement strip.
+  A single row: optional logo + title on the left, description on the right.
+{% endcomment %}
+
+<div
+  id="modulus-banner-{{ section.id }}"
+  class="modulus-banner color-{{ section.settings.color_scheme.id }}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --ban-title-size: {{ section.settings.title_size }}px;
+    --ban-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-banner__inner" data-mod-reveal>
+    <div class="modulus-banner__left">
+      {%- if section.settings.logo != blank -%}
+        <img
+          class="modulus-banner__logo"
+          src="{{ section.settings.logo | image_url: width: 400 }}"
+          alt="{{ section.settings.logo.alt | escape | default: section.settings.title }}"
+          width="{{ section.settings.logo.width }}"
+          height="{{ section.settings.logo.height }}"
+          loading="lazy"
+        >
+      {%- endif -%}
+      {%- if section.settings.title != blank -%}
+        <span class="modulus-banner__title">{{ section.settings.title }}</span>
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.description != blank -%}
+      <div class="modulus-banner__desc">
+        {{ section.settings.description }}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-banner {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--ban-py, 48px) var(--mod-section-px);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-banner__inner {
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--mod-gap-lg);
+  }
+
+  .modulus-banner__left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .modulus-banner__logo {
+    height: 48px;
+    width: auto;
+    flex-shrink: 0;
+  }
+
+  .modulus-banner__title {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: var(--ban-title-size, clamp(32px, 5vw, 56px));
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  .modulus-banner__desc {
+    font-family: var(--font-body--family);
+    font-size: clamp(14px, 1.1vw, 16px);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.6;
+    max-width: 420px;
+    text-align: right;
+  }
+
+  .modulus-banner__desc p {
+    margin: 0;
+  }
+
+  @media (max-width: 1024px) {
+    .modulus-banner__inner {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .modulus-banner__title {
+      white-space: normal;
+    }
+    .modulus-banner__desc {
+      text-align: left;
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modulus-banner {
+      padding: 32px var(--mod-section-px);
+    }
+    .modulus-banner__title {
+      font-size: clamp(24px, 7vw, 36px);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Banner",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo / badge image"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Certified Quality"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>A short statement about your standard, certification, or credibility signal.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "title_size",
+      "label": "Title size (desktop)",
+      "min": 24,
+      "max": 80,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 20,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "header",
+      "content": "Advanced"
+    },
+    {
+      "type": "text",
+      "id": "custom_class",
+      "label": "Custom CSS class"
+    }
+  ],
+  "presets": [
+    { "name": "Modulus Banner" }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

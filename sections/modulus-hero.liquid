@@ -1,0 +1,493 @@
+{% comment %}
+  Modulus Hero — full-viewport hero with background image/video,
+  overlay gradient, headline + body + CTA.
+{% endcomment %}
+
+{%- liquid
+  case section.settings.section_height
+    when 'full-screen'
+      assign height_value = '100dvh'
+    when 'large'
+      assign height_value = '80dvh'
+    when 'medium'
+      assign height_value = '60dvh'
+    else
+      assign height_value = '100dvh'
+  endcase
+
+  assign overlay_alpha = section.settings.overlay_opacity | divided_by: 100.0
+  assign overlay_start = section.settings.overlay_color | color_modify: 'alpha', overlay_alpha
+-%}
+
+<div
+  id="modulus-hero-{{ section.id }}"
+  class="modulus-hero color-{{ section.settings.color_scheme.id }}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --hero-height: {{ height_value }};
+    --hero-heading-size: {{ section.settings.heading_size }}px;
+    --hero-media-opacity: {{ section.settings.image_opacity | divided_by: 100.0 }};
+    --hero-media-filter: {% if section.settings.image_grayscale %}grayscale(1){% else %}none{% endif %};
+    --hero-content-align: {{ section.settings.content_alignment }};
+  "
+>
+  {%- comment -%} Media layer {%- endcomment -%}
+  <div class="modulus-hero__media" aria-hidden="true">
+    {%- if section.settings.media_type == 'video' and section.settings.video_url != blank -%}
+      <video
+        autoplay
+        muted
+        loop
+        playsinline
+        {%- if section.settings.background_image != blank %}
+          poster="{{ section.settings.background_image | image_url: width: 1920 }}"
+        {%- endif %}
+      >
+        <source src="{{ section.settings.video_url }}" type="video/mp4">
+      </video>
+    {%- elsif section.settings.background_image != blank -%}
+      <img
+        src="{{ section.settings.background_image | image_url: width: 1920 }}"
+        srcset="
+          {{ section.settings.background_image | image_url: width: 640 }} 640w,
+          {{ section.settings.background_image | image_url: width: 960 }} 960w,
+          {{ section.settings.background_image | image_url: width: 1280 }} 1280w,
+          {{ section.settings.background_image | image_url: width: 1920 }} 1920w,
+          {{ section.settings.background_image | image_url: width: 2560 }} 2560w
+        "
+        sizes="100vw"
+        alt="{{ section.settings.background_image.alt | escape }}"
+        width="{{ section.settings.background_image.width }}"
+        height="{{ section.settings.background_image.height }}"
+        loading="eager"
+        fetchpriority="high"
+      >
+    {%- else -%}
+      {{ 'lifestyle-1' | placeholder_svg_tag: 'modulus-hero__placeholder' }}
+    {%- endif -%}
+
+    {%- if section.settings.overlay_direction != 'none' -%}
+      <div
+        class="modulus-hero__overlay"
+        style="
+          {%- case section.settings.overlay_direction -%}
+            {%- when 'left-to-right' -%}
+              background: linear-gradient(to right, {{ overlay_start }} 40%, transparent);
+            {%- when 'right-to-left' -%}
+              background: linear-gradient(to left, {{ overlay_start }} 40%, transparent);
+            {%- when 'top-to-bottom' -%}
+              background: linear-gradient(to bottom, {{ overlay_start }}, transparent);
+            {%- when 'bottom-to-top' -%}
+              background: linear-gradient(to top, {{ overlay_start }} 30%, transparent);
+          {%- endcase -%}
+        "
+      ></div>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} Content layer {%- endcomment -%}
+  <div class="modulus-hero__content">
+    <div class="modulus-hero__grid">
+      <div class="modulus-hero__left" data-mod-reveal>
+        {%- if section.settings.location_tag != blank -%}
+          <span class="modulus-hero__location">{{ section.settings.location_tag }}</span>
+        {%- endif -%}
+
+        {%- if section.settings.heading != blank -%}
+          <{{ section.settings.heading_tag }} class="modulus-hero__heading">
+            {{ section.settings.heading }}
+          </{{ section.settings.heading_tag }}>
+        {%- endif -%}
+
+        {%- if section.settings.button_label != blank -%}
+          <div class="modulus-hero__buttons">
+            <a
+              href="{{ section.settings.button_link | default: '#' }}"
+              class="mod-btn mod-btn--ghost-light"
+            >
+              <span>{{ section.settings.button_label }}</span>
+              <span class="mod-btn__arrow" aria-hidden="true">{% render 'modulus-icon', name: 'arrow-right', size: 14 %}</span>
+            </a>
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- if section.settings.body_text != blank -%}
+        <div class="modulus-hero__right" data-mod-reveal data-mod-reveal-delay="160">
+          <div class="modulus-hero__body">
+            {{ section.settings.body_text }}
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if section.settings.show_scroll_indicator -%}
+    <div class="modulus-hero__scroll" aria-hidden="true">
+      <span>Scroll</span>
+      <span class="modulus-hero__scroll-arrow">{% render 'modulus-icon', name: 'arrow-down', size: 14 %}</span>
+    </div>
+  {%- endif -%}
+</div>
+
+{% stylesheet %}
+  .modulus-hero {
+    position: relative;
+    width: 100%;
+    height: var(--hero-height, 100dvh);
+    max-height: 100dvh;
+    overflow: hidden;
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+
+  .modulus-hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  .modulus-hero__media img,
+  .modulus-hero__media video,
+  .modulus-hero__placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: var(--hero-media-opacity, 1);
+    filter: var(--hero-media-filter, none);
+  }
+
+  .modulus-hero__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .modulus-hero__content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
+    padding: var(--mod-section-py) var(--mod-section-px);
+  }
+
+  .modulus-hero__grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--mod-gap-lg);
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-hero__location {
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    letter-spacing: 0.12em;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.25);
+    padding: 4px 10px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-bottom: var(--mod-gap-sm);
+    text-transform: uppercase;
+  }
+
+  :is(h1, h2, h3).modulus-hero__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: var(--hero-heading-size, var(--mod-text-hero));
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+
+  .modulus-hero__heading p {
+    margin: 0;
+  }
+
+  .modulus-hero__left {
+    flex: 1 1 60%;
+  }
+
+  .modulus-hero__right {
+    flex: 0 0 auto;
+    max-width: 320px;
+  }
+
+  .modulus-hero__body {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.1vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.8);
+    line-height: 1.7;
+  }
+
+  .modulus-hero__body p {
+    margin: 0 0 0.75em;
+  }
+
+  .modulus-hero__body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .modulus-hero__buttons {
+    margin-top: var(--mod-gap-md);
+  }
+
+  .modulus-hero__scroll {
+    position: absolute;
+    bottom: 32px;
+    right: var(--mod-section-px);
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .modulus-hero__scroll-arrow {
+    animation: modulus-hero-scroll-bounce 2s infinite;
+  }
+
+  @keyframes modulus-hero-scroll-bounce {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(4px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .modulus-hero__scroll-arrow {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .modulus-hero__grid {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--mod-gap-md);
+    }
+    .modulus-hero__right {
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modulus-hero__content {
+      padding: 0 var(--mod-section-px) 48px;
+    }
+    .modulus-hero__right {
+      display: none;
+    }
+    .modulus-hero__scroll {
+      display: none;
+    }
+    .modulus-hero__location {
+      font-size: 10px;
+    }
+    :is(h1, h2, h3).modulus-hero__heading {
+      font-size: clamp(36px, 10vw, 56px);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Hero",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "location_tag",
+      "label": "Location tag",
+      "info": "Small uppercase label above the headline."
+    },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>Industrial<br>Precision.</p>"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "Heading tag",
+      "options": [
+        { "value": "h1", "label": "H1" },
+        { "value": "h2", "label": "H2" }
+      ],
+      "default": "h1"
+    },
+    {
+      "type": "richtext",
+      "id": "body_text",
+      "label": "Body text (right column)",
+      "default": "<p>Engineered for performance. Built to specification. Every detail refined.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Explore"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Media"
+    },
+    {
+      "type": "select",
+      "id": "media_type",
+      "label": "Media type",
+      "options": [
+        { "value": "image", "label": "Image" },
+        { "value": "video", "label": "Video (MP4 URL)" }
+      ],
+      "default": "image"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image"
+    },
+    {
+      "type": "text",
+      "id": "video_url",
+      "label": "Video URL (MP4)",
+      "info": "Direct MP4 URL for background video"
+    },
+    {
+      "type": "range",
+      "id": "image_opacity",
+      "label": "Media opacity",
+      "min": 20,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "checkbox",
+      "id": "image_grayscale",
+      "label": "Grayscale media",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "overlay_direction",
+      "label": "Overlay direction",
+      "options": [
+        { "value": "left-to-right", "label": "Left to right" },
+        { "value": "right-to-left", "label": "Right to left" },
+        { "value": "top-to-bottom", "label": "Top to bottom" },
+        { "value": "bottom-to-top", "label": "Bottom to top" },
+        { "value": "none",          "label": "None" }
+      ],
+      "default": "bottom-to-top"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Overlay opacity",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 65
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "info": "Dark scheme works best when there's a photo background.",
+      "default": "scheme-5"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Overlay color",
+      "info": "Tint applied over the media (gradient). Independent of color scheme.",
+      "default": "#060809"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "section_height",
+      "label": "Section height",
+      "options": [
+        { "value": "full-screen", "label": "Full screen (100vh)" },
+        { "value": "large",       "label": "Large (80vh)" },
+        { "value": "medium",      "label": "Medium (60vh)" }
+      ],
+      "default": "full-screen"
+    },
+    {
+      "type": "select",
+      "id": "content_alignment",
+      "label": "Content alignment",
+      "options": [
+        { "value": "start",  "label": "Left" },
+        { "value": "center", "label": "Center" }
+      ],
+      "default": "start"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_scroll_indicator",
+      "label": "Show scroll indicator",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Typography"
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "label": "Heading size (desktop)",
+      "min": 48,
+      "max": 160,
+      "step": 4,
+      "unit": "px",
+      "default": 112
+    },
+    {
+      "type": "header",
+      "content": "Advanced"
+    },
+    {
+      "type": "text",
+      "id": "custom_class",
+      "label": "Custom CSS class"
+    }
+  ],
+  "presets": [
+    { "name": "Modulus Hero" }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

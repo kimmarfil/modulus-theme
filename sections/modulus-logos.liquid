@@ -1,0 +1,219 @@
+{% comment %}
+  Modulus Logos — partner / trust / member logo row.
+  Logos can optionally be monochrome-bleached to match the scheme.
+{% endcomment %}
+
+<div
+  id="modulus-logos-{{ section.id }}"
+  class="modulus-logos color-{{ section.settings.color_scheme.id }}{% if section.settings.monochrome %} modulus-logos--monochrome{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --logos-height: {{ section.settings.logo_height }}px;
+    --logos-gap: {{ section.settings.gap }}px;
+  "
+>
+  <div class="modulus-logos__inner" data-mod-reveal>
+    {%- if section.settings.label != blank -%}
+      <span class="modulus-logos__label">{{ section.settings.label }}</span>
+    {%- endif -%}
+
+    {%- for block in section.blocks -%}
+      {%- if block.settings.image != blank -%}
+        {%- capture img_tag -%}
+          <img
+            src="{{ block.settings.image | image_url: width: 200 }}"
+            alt="{{ block.settings.alt_text | escape | default: block.settings.image.alt | escape }}"
+            width="{{ block.settings.image.width }}"
+            height="{{ block.settings.image.height }}"
+            loading="lazy"
+          >
+        {%- endcapture -%}
+
+        {%- if block.settings.link != blank -%}
+          <a href="{{ block.settings.link }}" class="modulus-logos__item" {{ block.shopify_attributes }}>{{ img_tag }}</a>
+        {%- else -%}
+          <span class="modulus-logos__item" {{ block.shopify_attributes }}>{{ img_tag }}</span>
+        {%- endif -%}
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-logos {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: 48px var(--mod-section-px);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-logos__inner {
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--logos-gap, 48px);
+  }
+
+  .modulus-logos__label {
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    margin-right: 16px;
+  }
+
+  .modulus-logos__item {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+  }
+
+  .modulus-logos__item img {
+    height: var(--logos-height, 28px);
+    width: auto;
+    transition: opacity var(--mod-duration-fast) var(--mod-ease),
+                filter var(--mod-duration-fast) var(--mod-ease);
+  }
+
+  /* Monochrome mode: match the logos to the scheme's foreground colour. */
+  .modulus-logos--monochrome .modulus-logos__item img {
+    filter: grayscale(1) brightness(0);
+    opacity: 0.55;
+  }
+
+  .modulus-logos--monochrome .modulus-logos__item:hover img {
+    opacity: 1;
+  }
+
+  /* On a dark scheme, monochrome logos need to go white, not black. */
+  .modulus-logos--monochrome.color-scheme-5 .modulus-logos__item img,
+  .modulus-logos--monochrome[class*="dark"] .modulus-logos__item img {
+    filter: grayscale(1) brightness(0) invert(1);
+  }
+
+  @media (max-width: 768px) {
+    .modulus-logos__inner {
+      gap: 32px;
+    }
+    .modulus-logos__item img {
+      height: calc(var(--logos-height, 28px) * 0.85);
+    }
+    .modulus-logos__label {
+      width: 100%;
+      text-align: center;
+      margin-right: 0;
+      margin-bottom: 4px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Logos",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "label",
+      "label": "Label (optional)",
+      "default": "Trusted by",
+      "info": "Small uppercase label shown before the logos."
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-2"
+    },
+    {
+      "type": "checkbox",
+      "id": "monochrome",
+      "label": "Monochrome logos",
+      "info": "Bleaches logos to match the scheme's foreground color.",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "logo_height",
+      "label": "Logo height",
+      "min": 16,
+      "max": 64,
+      "step": 2,
+      "unit": "px",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap between logos",
+      "min": 24,
+      "max": 96,
+      "step": 4,
+      "unit": "px",
+      "default": 48
+    },
+    {
+      "type": "header",
+      "content": "Advanced"
+    },
+    {
+      "type": "text",
+      "id": "custom_class",
+      "label": "Custom CSS class"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Logo",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Logo image"
+        },
+        {
+          "type": "text",
+          "id": "alt_text",
+          "label": "Alt text"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link (optional)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Modulus Logos",
+      "blocks": [
+        { "type": "logo" },
+        { "type": "logo" },
+        { "type": "logo" },
+        { "type": "logo" }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}
