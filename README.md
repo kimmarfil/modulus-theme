@@ -1,160 +1,62 @@
-<h1 align="center" style="position: relative;">
-  <br>
-    <img src="./assets/shoppy-x-ray.svg" alt="logo" width="200">
-  <br>
-  Shopify Skeleton Theme
-</h1>
+# Modulus Theme
 
-A minimal, carefully structured Shopify theme designed to help you quickly get started. Designed with modularity, maintainability, and Shopify's best practices in mind.
+An industrial-editorial Shopify theme for precision manufacturers, design-led brands, and B2B catalogues. Built on [Shopify Skeleton Theme](https://github.com/Shopify/skeleton-theme) (MIT).
 
-<p align="center">
-  <a href="./LICENSE.md"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
-  <a href="./actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Shopify/skeleton-theme/actions/workflows/ci.yml/badge.svg"></a>
-</p>
+> Pre-v1. In active development. Not yet listed on the Shopify Theme Store.
 
-## Getting started
+## Philosophy
 
-### Prerequisites
+Modulus merges industrial precision with Scandinavian restraint. Every element pulls its weight. Sections are composable, typography is opinionated, colour is scheme-based, and motion is purposeful.
 
-Before starting, ensure you have the latest Shopify CLI installed:
+## Design system
 
-- [Shopify CLI](https://shopify.dev/docs/api/shopify-cli) – helps you download, upload, preview themes, and streamline your workflows
+- **Typography:** Chakra Petch (headings, by default) · Manrope (body) · Inter (labels). Each is merchant-configurable via admin → Theme settings → Typography.
+- **Colours:** 5 preset schemes (Light, Off-white, Sage, Pale blue, Dark) — each section picks its own. Every scheme is independently editable in admin.
+- **Motion:** subtle scroll-reveals; respects `prefers-reduced-motion`.
+- **Components:** ghost buttons, section labels (ticker-style), inner containers.
 
-If you use VS Code:
+## Project structure
 
-- [Shopify Liquid VS Code Extension](https://shopify.dev/docs/storefronts/themes/tools/shopify-liquid-vscode) – provides syntax highlighting, linting, inline documentation, and auto-completion specifically designed for Liquid templates
-
-### Clone
-
-Clone this repository using Git or Shopify CLI:
-
-```bash
-git clone git@github.com:Shopify/skeleton-theme.git
-# or
-shopify theme init
+```
+assets/        CSS, JS, images, icons
+blocks/        Reusable, nestable UI blocks
+config/        Global settings schema & data
+layout/        Page wrappers (theme.liquid, password.liquid)
+locales/       i18n translation files
+sections/      Full-width modular page sections
+snippets/      Reusable Liquid fragments
+templates/     JSON templates composing sections into pages
 ```
 
-### Preview
-
-Preview this theme using Shopify CLI:
+## Development
 
 ```bash
-shopify theme dev
+# Authenticate once
+shopify auth login
+
+# Push to a dev store as an unpublished preview theme
+shopify theme push --unpublished --theme "Modulus (dev)" --store YOUR-STORE.myshopify.com
+
+# Or run live dev mode with hot reload
+shopify theme dev --store YOUR-STORE.myshopify.com
 ```
-
-## Theme architecture
-
-```bash
-.
-├── assets          # Stores static assets (CSS, JS, images, fonts, etc.)
-├── blocks          # Reusable, nestable, customizable UI components
-├── config          # Global theme settings and customization options
-├── layout          # Top-level wrappers for pages (layout templates)
-├── locales         # Translation files for theme internationalization
-├── sections        # Modular full-width page components
-├── snippets        # Reusable Liquid code or HTML fragments
-└── templates       # Templates combining sections to define page structures
-```
-
-To learn more, refer to the [theme architecture documentation](https://shopify.dev/docs/storefronts/themes/architecture).
-
-### Templates
-
-[Templates](https://shopify.dev/docs/storefronts/themes/architecture/templates#template-types) control what's rendered on each type of page in a theme.
-
-The Skeleton Theme scaffolds [JSON templates](https://shopify.dev/docs/storefronts/themes/architecture/templates/json-templates) to make it easy for merchants to customize their store.
-
-None of the template types are required, and not all of them are included in the Skeleton Theme. Refer to the [template types reference](https://shopify.dev/docs/storefronts/themes/architecture/templates#template-types) for a full list.
-
-### Sections
-
-[Sections](https://shopify.dev/docs/storefronts/themes/architecture/sections) are Liquid files that allow you to create reusable modules of content that can be customized by merchants. They can also include blocks which allow merchants to add, remove, and reorder content within a section.
-
-Sections are made customizable by including a `{% schema %}` in the body. For more information, refer to the [section schema documentation](https://shopify.dev/docs/storefronts/themes/architecture/sections/section-schema).
-
-### Blocks
-
-[Blocks](https://shopify.dev/docs/storefronts/themes/architecture/blocks) let developers create flexible layouts by breaking down sections into smaller, reusable pieces of Liquid. Each block has its own set of settings, and can be added, removed, and reordered within a section.
-
-Blocks are made customizable by including a `{% schema %}` in the body. For more information, refer to the [block schema documentation](https://shopify.dev/docs/storefronts/themes/architecture/blocks/theme-blocks/schema).
-
-## Schemas
-
-When developing components defined by schema settings, we recommend these guidelines to simplify your code:
-
-- **Single property settings**: For settings that correspond to a single CSS property, use CSS variables:
-
-  ```liquid
-  <div class="collection" style="--gap: {{ block.settings.gap }}px">
-    ...
-  </div>
-
-  {% stylesheet %}
-    .collection {
-      gap: var(--gap);
-    }
-  {% endstylesheet %}
-
-  {% schema %}
-  {
-    "settings": [{
-      "type": "range",
-      "label": "gap",
-      "id": "gap",
-      "min": 0,
-      "max": 100,
-      "unit": "px",
-      "default": 0,
-    }]
-  }
-  {% endschema %}
-  ```
-
-- **Multiple property settings**: For settings that control multiple CSS properties, use CSS classes:
-
-  ```liquid
-  <div class="collection {{ block.settings.layout }}">
-    ...
-  </div>
-
-  {% stylesheet %}
-    .collection--full-width {
-      /* multiple styles */
-    }
-    .collection--narrow {
-      /* multiple styles */
-    }
-  {% endstylesheet %}
-
-  {% schema %}
-  {
-    "settings": [{
-      "type": "select",
-      "id": "layout",
-      "label": "layout",
-      "values": [
-        { "value": "collection--full-width", "label": "t:options.full" },
-        { "value": "collection--narrow", "label": "t:options.narrow" }
-      ]
-    }]
-  }
-  {% endschema %}
-  ```
-
-## CSS & JavaScript
-
-For CSS and JavaScript, we recommend using the [`{% stylesheet %}`](https://shopify.dev/docs/api/liquid/tags#stylesheet) and [`{% javascript %}`](https://shopify.dev/docs/api/liquid/tags/javascript) tags. They can be included multiple times, but the code will only appear once.
-
-### `critical.css`
-
-The Skeleton Theme explicitly separates essential CSS necessary for every page into a dedicated `critical.css` file.
-
-## Contributing
-
-We're excited for your contributions to the Skeleton Theme! This repository aims to remain as lean, lightweight, and fundamental as possible, and we kindly ask your contributions to align with this intention.
-
-Visit our [CONTRIBUTING.md](./CONTRIBUTING.md) for a detailed overview of our process, guidelines, and recommendations.
 
 ## License
 
-Skeleton Theme is open-sourced under the [MIT](./LICENSE.md) License.
+MIT. See `LICENSE.md`.
+
+"Modulus" as a theme name is reserved for this project. The codebase is freely usable under MIT; the brand name + published listing is not.
+
+## Roadmap
+
+- **Phase 1** ✅ Design token system, colour schemes, typography.
+- **Phase 2** — generic icon set.
+- **Phase 3** — 23 core sections (hero, footer, product hero, collection grid, specs, testimonials, etc.).
+- **Phase 4** — snippets + JS (filter bar, reveal, drawer).
+- **Phase 5** — Skeleton scaffolding (cart, account, blog, search).
+- **Phase 6** — header, navigation, mobile drawer.
+- **Phase 7** — full i18n across sections + locales.
+- **Phase 8** — theme editor UX polish + merchant settings.
+- **Phase 9** — demo data + presets for Theme Store preview.
+- **Phase 10** — Theme Store requirements pass (WCAG, Lighthouse, theme-check).
+- **Phase 11** — Theme Store submission (pending Shopify reopening submissions).
