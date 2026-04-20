@@ -1,5 +1,5 @@
 {% style %}
-  {% # Load font face declarations for each typographic role. %}
+  {% comment %} Load font face declarations for each typographic role. {% endcomment %}
   {{ settings.type_heading_font | font_face: font_display: 'swap' }}
   {{ settings.type_heading_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' }}
 
@@ -9,12 +9,14 @@
 
   {{ settings.type_label_font | font_face: font_display: 'swap' }}
 
-  {% # Legacy primary font (Skeleton compatibility). %}
+  {% comment %} Legacy primary font (Skeleton compatibility). {% endcomment %}
   {{ settings.type_primary_font | font_face: font_display: 'swap' }}
   {{ settings.type_primary_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' }}
 
-  {% # Seed default scheme values from the first color scheme, so
-     elements outside any .color-* class still render legibly. %}
+  {% comment %}
+    Seed default scheme values from the first color scheme, so
+    elements outside any .color-* class still render legibly.
+  {% endcomment %}
   {%- assign first_scheme = settings.color_schemes | first -%}
 
   :root {
@@ -31,12 +33,12 @@
     --font-label--weight: {{ settings.type_label_font.weight }};
     --font-label--style: {{ settings.type_label_font.style }};
 
-    {% # Skeleton-native primary font (used by base.css / body) %}
+    {% comment %} Skeleton-native primary font (used by base.css / body). {% endcomment %}
     --font-primary--family: {{ settings.type_primary_font.family }}, {{ settings.type_primary_font.fallback_families }};
     --font-primary--style: {{ settings.type_primary_font.style }};
     --font-primary--weight: {{ settings.type_primary_font.weight }};
 
-    {% # Heading H1-H6 aliases for per-section CSS. %}
+    {% comment %} Heading H1-H6 aliases for per-section CSS. {% endcomment %}
     --font-h1--family: var(--font-heading--family);
     --font-h1--weight: var(--font-heading--weight);
     --font-h1--style: var(--font-heading--style);
