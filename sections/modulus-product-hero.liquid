@@ -1,0 +1,674 @@
+{% comment %}
+  Modulus Product Hero — two-column product page hero:
+  Left: image gallery (main + thumb strip).
+  Right: vendor/type · title · short description · price · variant picker · qty · add-to-cart.
+
+  Only rendered on product templates. On non-product pages it silently no-ops.
+{% endcomment %}
+
+{%- liquid
+  if product == blank or product == empty
+    assign render_empty = true
+  else
+    assign render_empty = false
+    assign current_variant = product.selected_or_first_available_variant
+  endif
+-%}
+
+{%- unless render_empty -%}
+<section
+  id="modulus-product-hero-{{ section.id }}"
+  class="modulus-product-hero color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --ph-aspect: {{ section.settings.image_aspect }};
+    --ph-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-product-hero__inner">
+    <div class="modulus-product-hero__grid">
+
+      {% comment %} ===== GALLERY (left) ===== {% endcomment %}
+      <div class="modulus-product-hero__gallery" data-mod-reveal>
+        <div class="modulus-product-hero__main">
+          {%- if product.featured_image != blank -%}
+            <img
+              id="mph-main-{{ section.id }}"
+              src="{{ product.featured_image | image_url: width: 1200 }}"
+              srcset="
+                {{ product.featured_image | image_url: width: 600 }} 600w,
+                {{ product.featured_image | image_url: width: 900 }} 900w,
+                {{ product.featured_image | image_url: width: 1200 }} 1200w
+              "
+              sizes="(max-width: 1024px) 100vw, 55vw"
+              alt="{{ product.featured_image.alt | escape | default: product.title }}"
+              width="{{ product.featured_image.width }}"
+              height="{{ product.featured_image.height }}"
+              loading="eager"
+              fetchpriority="high"
+            >
+          {%- else -%}
+            {{ 'product-1' | placeholder_svg_tag: 'modulus-product-hero__placeholder' }}
+          {%- endif -%}
+        </div>
+
+        {%- if product.images.size > 1 -%}
+          <ul class="modulus-product-hero__thumbs">
+            {%- for image in product.images limit: 8 -%}
+              <li>
+                <button
+                  type="button"
+                  class="modulus-product-hero__thumb{% if forloop.first %} is-active{% endif %}"
+                  data-image-url="{{ image | image_url: width: 1200 }}"
+                  aria-label="View image {{ forloop.index }}"
+                >
+                  <img
+                    src="{{ image | image_url: width: 200 }}"
+                    alt="{{ image.alt | escape }}"
+                    width="100"
+                    height="100"
+                    loading="lazy"
+                  >
+                </button>
+              </li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+      </div>
+
+      {% comment %} ===== INFO PANEL (right) ===== {% endcomment %}
+      <div class="modulus-product-hero__info" data-mod-reveal data-mod-reveal-delay="120">
+
+        {%- if product.vendor != blank or product.type != blank -%}
+          <p class="modulus-product-hero__vendor">
+            {%- if product.vendor != blank -%}{{ product.vendor }}{%- endif -%}
+            {%- if product.vendor != blank and product.type != blank %} / {% endif -%}
+            {%- if product.type != blank -%}{{ product.type }}{%- endif -%}
+          </p>
+        {%- endif -%}
+
+        <h1 class="modulus-product-hero__title">{{ product.title }}</h1>
+
+        {%- if section.settings.short_description_override != blank -%}
+          <div class="modulus-product-hero__short-desc">
+            {{ section.settings.short_description_override }}
+          </div>
+        {%- elsif product.description != blank -%}
+          <div class="modulus-product-hero__short-desc">
+            {{ product.description | split: '</p>' | first | append: '</p>' }}
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.show_price -%}
+          <div class="modulus-product-hero__price" data-mph-price>
+            {{ current_variant.price | money }}
+            {%- if product.compare_at_price > product.price -%}
+              <span class="modulus-product-hero__price-compare">
+                <s>{{ product.compare_at_price | money }}</s>
+              </span>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+
+        {%- form 'product', product, class: 'modulus-product-hero__form' -%}
+          <input type="hidden" name="id" value="{{ current_variant.id }}" id="mph-variant-id-{{ section.id }}">
+
+          {%- unless product.has_only_default_variant -%}
+            <div class="modulus-product-hero__variants">
+              {%- for option in product.options_with_values -%}
+                <div class="modulus-product-hero__option">
+                  <span class="modulus-product-hero__option-label">{{ option.name }}</span>
+                  <div class="modulus-product-hero__option-values" role="radiogroup" aria-label="{{ option.name }}">
+                    {%- for value in option.values -%}
+                      <label class="modulus-product-hero__option-btn{% if option.selected_value == value %} is-active{% endif %}">
+                        <input
+                          type="radio"
+                          name="mph-option-{{ option.name | handleize }}-{{ section.id }}"
+                          value="{{ value | escape }}"
+                          data-option-position="{{ option.position }}"
+                          {% if option.selected_value == value %}checked{% endif %}
+                          class="visually-hidden"
+                        >
+                        {{ value }}
+                      </label>
+                    {%- endfor -%}
+                  </div>
+                </div>
+              {%- endfor -%}
+            </div>
+          {%- endunless -%}
+
+          {%- if section.settings.show_quantity -%}
+            <div class="modulus-product-hero__quantity">
+              <label class="modulus-product-hero__qty-label" for="mph-quantity-{{ section.id }}">Qty</label>
+              <div class="modulus-product-hero__qty-control">
+                <button type="button" class="modulus-product-hero__qty-btn" data-action="decrease" aria-label="Decrease quantity">
+                  {% render 'modulus-icon', name: 'minus', size: 14 %}
+                </button>
+                <input
+                  type="number"
+                  class="modulus-product-hero__qty-input"
+                  name="quantity"
+                  id="mph-quantity-{{ section.id }}"
+                  value="1"
+                  min="1"
+                >
+                <button type="button" class="modulus-product-hero__qty-btn" data-action="increase" aria-label="Increase quantity">
+                  {% render 'modulus-icon', name: 'plus', size: 14 %}
+                </button>
+              </div>
+            </div>
+          {%- endif -%}
+
+          <div class="modulus-product-hero__buttons">
+            <button
+              type="submit"
+              name="add"
+              class="modulus-product-hero__cta modulus-product-hero__cta--primary"
+              {% unless current_variant.available %}disabled{% endunless %}
+            >
+              <span>
+                {%- if current_variant.available -%}
+                  {{ section.settings.add_to_cart_label | default: 'Add to cart' }}
+                {%- else -%}
+                  Sold out
+                {%- endif -%}
+              </span>
+              {%- if current_variant.available -%}
+                {% render 'modulus-icon', name: 'arrow-right', size: 14 %}
+              {%- endif -%}
+            </button>
+          </div>
+        {%- endform -%}
+
+        {%- if section.settings.trust_strip_line1 != blank or section.settings.trust_strip_line2 != blank or section.settings.trust_strip_line3 != blank -%}
+          <ul class="modulus-product-hero__trust">
+            {%- if section.settings.trust_strip_line1 != blank -%}
+              <li>{% render 'modulus-icon', name: 'check', size: 14 %} {{ section.settings.trust_strip_line1 }}</li>
+            {%- endif -%}
+            {%- if section.settings.trust_strip_line2 != blank -%}
+              <li>{% render 'modulus-icon', name: 'shield', size: 14 %} {{ section.settings.trust_strip_line2 }}</li>
+            {%- endif -%}
+            {%- if section.settings.trust_strip_line3 != blank -%}
+              <li>{% render 'modulus-icon', name: 'package', size: 14 %} {{ section.settings.trust_strip_line3 }}</li>
+            {%- endif -%}
+          </ul>
+        {%- endif -%}
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var section = document.getElementById('modulus-product-hero-{{ section.id }}');
+    if (!section) return;
+
+    // Thumbnail swap
+    var mainImg = section.querySelector('#mph-main-{{ section.id }}');
+    var thumbs = section.querySelectorAll('.modulus-product-hero__thumb');
+    thumbs.forEach(function (thumb) {
+      thumb.addEventListener('click', function () {
+        var url = this.getAttribute('data-image-url');
+        if (url && mainImg) {
+          mainImg.src = url;
+          mainImg.srcset = '';
+        }
+        thumbs.forEach(function (t) { t.classList.remove('is-active'); });
+        this.classList.add('is-active');
+      });
+    });
+
+    // Quantity stepper
+    var qtyInput = section.querySelector('#mph-quantity-{{ section.id }}');
+    if (qtyInput) {
+      section.querySelectorAll('.modulus-product-hero__qty-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var action = this.getAttribute('data-action');
+          var current = parseInt(qtyInput.value, 10) || 1;
+          var min = parseInt(qtyInput.min || '1', 10);
+          var next = action === 'increase' ? current + 1 : current - 1;
+          if (next < min) next = min;
+          qtyInput.value = next;
+        });
+      });
+    }
+
+    // Variant picker — swap variant id + price
+    var radios = section.querySelectorAll('.modulus-product-hero__option-btn input[type="radio"]');
+    var variantInput = section.querySelector('#mph-variant-id-{{ section.id }}');
+    var priceEl = section.querySelector('[data-mph-price]');
+    var productVariants = {{ product.variants | json }};
+
+    function formatMoney (cents) {
+      // Simple fallback formatter; Shopify's live theme will swap in a
+      // properly localized one via Shopify.formatMoney in Phase 10.
+      return '$' + (cents / 100).toFixed(2);
+    }
+
+    function findMatchingVariant (selected) {
+      return productVariants.find(function (v) {
+        return v.options.every(function (opt, i) { return opt === selected[i]; });
+      });
+    }
+
+    radios.forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        var labels = this.closest('.modulus-product-hero__option-values')
+          .querySelectorAll('.modulus-product-hero__option-btn');
+        labels.forEach(function (l) { l.classList.remove('is-active'); });
+        this.closest('.modulus-product-hero__option-btn').classList.add('is-active');
+
+        var selected = [];
+        section.querySelectorAll('.modulus-product-hero__option-values').forEach(function (group) {
+          var checked = group.querySelector('input:checked');
+          if (checked) selected.push(checked.value);
+        });
+
+        var matched = findMatchingVariant(selected);
+        if (matched) {
+          if (variantInput) variantInput.value = matched.id;
+          if (priceEl) priceEl.textContent = formatMoney(matched.price);
+        }
+      });
+    });
+  })();
+</script>
+{%- endunless -%}
+
+{% stylesheet %}
+  .modulus-product-hero {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--ph-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-product-hero__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-product-hero__grid {
+    display: grid;
+    grid-template-columns: 55fr 45fr;
+    gap: var(--mod-gap-lg);
+  }
+
+  /* ---- Gallery ---- */
+  .modulus-product-hero__main {
+    position: relative;
+    aspect-ratio: var(--ph-aspect, 4 / 5);
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.04);
+  }
+
+  .modulus-product-hero__main img,
+  .modulus-product-hero__placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .modulus-product-hero__thumbs {
+    display: flex;
+    gap: 8px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .modulus-product-hero__thumb {
+    width: 80px;
+    height: 80px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color var(--mod-duration-fast) var(--mod-ease);
+  }
+
+  .modulus-product-hero__thumb.is-active {
+    border-color: var(--color-foreground);
+  }
+
+  .modulus-product-hero__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ---- Info panel ---- */
+  .modulus-product-hero__info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .modulus-product-hero__vendor {
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  h1.modulus-product-hero__title {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 3.5vw, 48px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-product-hero__short-desc {
+    font-family: var(--font-body--family);
+    font-size: clamp(14px, 1.05vw, 16px);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.7;
+  }
+
+  .modulus-product-hero__short-desc p { margin: 0; }
+
+  .modulus-product-hero__price {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(20px, 2vw, 28px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .modulus-product-hero__price-compare {
+    font-family: var(--font-body--family);
+    font-size: 14px;
+    color: rgb(var(--color-foreground-rgb) / 0.5);
+  }
+
+  /* ---- Variants ---- */
+  .modulus-product-hero__variants {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .modulus-product-hero__option-label {
+    display: block;
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .modulus-product-hero__option-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .modulus-product-hero__option-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    padding: 10px 16px;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.3);
+    background: transparent;
+    color: var(--color-foreground);
+    font-family: var(--font-body--family);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color var(--mod-duration-fast) var(--mod-ease),
+                background var(--mod-duration-fast) var(--mod-ease);
+  }
+
+  .modulus-product-hero__option-btn:hover {
+    border-color: var(--color-foreground);
+  }
+
+  .modulus-product-hero__option-btn.is-active {
+    background: var(--color-foreground);
+    color: var(--color-background);
+    border-color: var(--color-foreground);
+  }
+
+  /* ---- Qty ---- */
+  .modulus-product-hero__quantity {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .modulus-product-hero__qty-label {
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .modulus-product-hero__qty-control {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.3);
+  }
+
+  .modulus-product-hero__qty-btn {
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    color: var(--color-foreground);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--mod-duration-fast) var(--mod-ease);
+  }
+
+  .modulus-product-hero__qty-btn:hover {
+    background: rgb(var(--color-foreground-rgb) / 0.06);
+  }
+
+  .modulus-product-hero__qty-input {
+    width: 56px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    color: var(--color-foreground);
+    font-family: var(--font-body--family);
+    font-size: 14px;
+    text-align: center;
+    -moz-appearance: textfield;
+  }
+
+  .modulus-product-hero__qty-input::-webkit-outer-spin-button,
+  .modulus-product-hero__qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* ---- Buttons ---- */
+  .modulus-product-hero__buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .modulus-product-hero__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px 28px;
+    font-family: var(--font-label--family);
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid;
+    transition: background var(--mod-duration-base) var(--mod-ease),
+                color var(--mod-duration-base) var(--mod-ease);
+    flex: 1 1 auto;
+  }
+
+  .modulus-product-hero__cta--primary {
+    background: var(--color-primary-button-background, var(--color-foreground));
+    color: var(--color-primary-button-text, var(--color-background));
+    border-color: var(--color-primary-button-border, var(--color-foreground));
+  }
+
+  .modulus-product-hero__cta--primary:hover {
+    background: var(--color-primary-button-hover-background, var(--color-background));
+    color: var(--color-primary-button-hover-text, var(--color-foreground));
+    border-color: var(--color-primary-button-hover-border, var(--color-foreground));
+  }
+
+  .modulus-product-hero__cta:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ---- Trust strip ---- */
+  .modulus-product-hero__trust {
+    list-style: none;
+    padding: 16px 0 0;
+    margin: 8px 0 0;
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: var(--font-body--family);
+    font-size: 13px;
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+  }
+
+  .modulus-product-hero__trust li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* ---- Responsive ---- */
+  @media (max-width: 1024px) {
+    .modulus-product-hero__grid {
+      grid-template-columns: 1fr;
+      gap: var(--mod-gap-md);
+    }
+  }
+
+  @media (max-width: 768px) {
+    h1.modulus-product-hero__title {
+      font-size: clamp(24px, 7vw, 36px);
+    }
+    .modulus-product-hero__thumb {
+      width: 64px;
+      height: 64px;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Product Hero",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    {
+      "type": "richtext",
+      "id": "short_description_override",
+      "label": "Short description override",
+      "info": "Leave blank to use the first paragraph of the product description."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_price",
+      "label": "Show price",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quantity",
+      "label": "Show quantity selector",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "add_to_cart_label",
+      "label": "Add-to-cart button label",
+      "default": "Add to cart"
+    },
+    { "type": "header", "content": "Trust strip (optional)" },
+    {
+      "type": "text",
+      "id": "trust_strip_line1",
+      "label": "Line 1",
+      "default": "Free shipping on orders $150+"
+    },
+    {
+      "type": "text",
+      "id": "trust_strip_line2",
+      "label": "Line 2",
+      "default": "30-day return policy"
+    },
+    {
+      "type": "text",
+      "id": "trust_strip_line3",
+      "label": "Line 3",
+      "default": "Ships within 2 business days"
+    },
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "select",
+      "id": "image_aspect",
+      "label": "Image aspect ratio",
+      "options": [
+        { "value": "1 / 1", "label": "Square (1:1)" },
+        { "value": "4 / 5", "label": "Portrait (4:5)" },
+        { "value": "3 / 4", "label": "Taller portrait (3:4)" },
+        { "value": "16 / 9", "label": "Landscape (16:9)" }
+      ],
+      "default": "4 / 5"
+    },
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 96
+    },
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [
+    { "name": "Modulus Product Hero" }
+  ],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

@@ -1,0 +1,246 @@
+{% comment %}
+  Modulus Feature Row — spec-sheet style feature list.
+  Each row: number + title + subtitle (left), description (right).
+{% endcomment %}
+
+<div
+  id="modulus-feature-row-{{ section.id }}"
+  class="modulus-feature-row color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="--fr-py: {{ section.settings.padding_y }}px;"
+>
+  <div class="modulus-feature-row__inner">
+    {%- if section.settings.label_text != blank -%}
+      <div data-mod-reveal>
+        {% render 'modulus-section-label',
+          text: section.settings.label_text,
+          number: section.settings.label_number
+        %}
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.heading != blank -%}
+      <div class="modulus-feature-row__heading" data-mod-reveal>
+        {{ section.settings.heading }}
+      </div>
+    {%- endif -%}
+
+    <div class="modulus-feature-row__list">
+      {%- for block in section.blocks -%}
+        {%- assign padded_index = forloop.index | prepend: '00' | slice: -2, 2 -%}
+        <div class="modulus-feature-row__item" data-mod-reveal data-mod-reveal-delay="{{ forloop.index0 | times: 80 }}" {{ block.shopify_attributes }}>
+          <div class="modulus-feature-row__left">
+            <span class="modulus-feature-row__number">/{{ padded_index }}</span>
+            <div class="modulus-feature-row__title-group">
+              {%- if block.settings.title != blank -%}
+                <h3 class="modulus-feature-row__title">{{ block.settings.title }}</h3>
+              {%- endif -%}
+              {%- if block.settings.subtitle != blank -%}
+                <span class="modulus-feature-row__subtitle">{{ block.settings.subtitle }}</span>
+              {%- endif -%}
+            </div>
+          </div>
+          <div class="modulus-feature-row__right">
+            {%- if block.settings.description != blank -%}
+              <div class="modulus-feature-row__desc">{{ block.settings.description }}</div>
+            {%- endif -%}
+          </div>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-feature-row {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--fr-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-feature-row__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-feature-row__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4vw, 56px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 var(--mod-gap-lg);
+  }
+
+  .modulus-feature-row__heading p { margin: 0; }
+
+  .modulus-feature-row__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .modulus-feature-row__item {
+    display: grid;
+    grid-template-columns: 40fr 60fr;
+    gap: var(--mod-gap-lg);
+    padding: 40px 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .modulus-feature-row__item:last-child {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-feature-row__left {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  .modulus-feature-row__number {
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    letter-spacing: 0.12em;
+    flex-shrink: 0;
+    padding-top: 6px;
+  }
+
+  .modulus-feature-row__title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  h3.modulus-feature-row__title {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(20px, 2.5vw, 32px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    text-transform: none;
+    margin: 0;
+  }
+
+  .modulus-feature-row__subtitle {
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .modulus-feature-row__right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .modulus-feature-row__desc {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.1vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.75;
+  }
+
+  .modulus-feature-row__desc p { margin: 0 0 1em; }
+  .modulus-feature-row__desc p:last-child { margin-bottom: 0; }
+
+  @media (max-width: 1024px) {
+    .modulus-feature-row__item {
+      grid-template-columns: 1fr;
+      gap: 16px;
+      padding: 32px 0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modulus-feature-row__heading {
+      font-size: clamp(24px, 7vw, 36px);
+    }
+    h3.modulus-feature-row__title {
+      font-size: clamp(18px, 5vw, 24px);
+    }
+    .modulus-feature-row__item {
+      padding: 24px 0;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Feature Row",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Features" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "02" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>Built on proven systems.</p>"
+    },
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-2" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "feature",
+      "name": "Feature",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Title", "default": "Feature name" },
+        {
+          "type": "text",
+          "id": "subtitle",
+          "label": "Subtitle / tag",
+          "info": "Small uppercase label below the title."
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>A focused paragraph explaining this feature.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Modulus Feature Row",
+      "blocks": [
+        { "type": "feature", "settings": { "title": "Precision", "subtitle": "Core principle" } },
+        { "type": "feature", "settings": { "title": "Materials", "subtitle": "Sourced carefully" } },
+        { "type": "feature", "settings": { "title": "Longevity", "subtitle": "Built to last" } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

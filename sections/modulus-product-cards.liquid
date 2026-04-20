@@ -1,0 +1,424 @@
+{% comment %}
+  Modulus Product Cards — grid or horizontal scroll of product cards.
+
+  Source modes:
+    'collection' — pull first N products from a merchant-selected collection
+                   (the Shopify-standard approach for featured-product sections)
+    'manual'     — each card is a manually-added block with image + title + link
+                   (useful for category tiles or concept cards)
+{% endcomment %}
+
+{%- liquid
+  assign mode = section.settings.source_mode
+  assign limit = section.settings.products_to_show
+  assign source_collection = collections[section.settings.collection]
+-%}
+
+<div
+  id="modulus-product-cards-{{ section.id }}"
+  class="modulus-product-cards color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --cards-columns: {{ section.settings.columns }};
+    --cards-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-product-cards__inner">
+    {%- if section.settings.label_text != blank or section.settings.heading != blank -%}
+      <div class="modulus-product-cards__header" data-mod-reveal>
+        {%- if section.settings.label_text != blank -%}
+          {% render 'modulus-section-label',
+            text: section.settings.label_text,
+            number: section.settings.label_number
+          %}
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="modulus-product-cards__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="modulus-product-cards__grid{% if section.settings.layout_mode == 'scroll' %} modulus-product-cards__grid--scroll{% endif %}" data-mod-reveal data-mod-reveal-delay="80">
+
+      {%- if mode == 'collection' and source_collection.products.size > 0 -%}
+        {%- for product in source_collection.products limit: limit -%}
+          {%- assign padded_index = forloop.index | prepend: '00' | slice: -2, 2 -%}
+          <a href="{{ product.url }}" class="modulus-product-cards__card" aria-label="View {{ product.title | escape }}">
+            <div class="modulus-product-cards__card-image">
+              {%- if product.featured_image != blank -%}
+                <img
+                  src="{{ product.featured_image | image_url: width: 800 }}"
+                  srcset="
+                    {{ product.featured_image | image_url: width: 400 }} 400w,
+                    {{ product.featured_image | image_url: width: 600 }} 600w,
+                    {{ product.featured_image | image_url: width: 800 }} 800w
+                  "
+                  sizes="(max-width: 749px) 100vw, 33vw"
+                  alt="{{ product.featured_image.alt | escape | default: product.title }}"
+                  width="{{ product.featured_image.width }}"
+                  height="{{ product.featured_image.height }}"
+                  loading="lazy"
+                >
+              {%- else -%}
+                {{ 'product-1' | placeholder_svg_tag: 'modulus-product-cards__placeholder' }}
+              {%- endif -%}
+            </div>
+            <div class="modulus-product-cards__card-overlay" aria-hidden="true"></div>
+            <span class="modulus-product-cards__card-number">[ {{ padded_index }} ]</span>
+            <div class="modulus-product-cards__card-content">
+              <h3 class="modulus-product-cards__card-title">{{ product.title }}</h3>
+              {%- if product.price != blank -%}
+                <span class="modulus-product-cards__card-price">{{ product.price | money }}</span>
+              {%- endif -%}
+              <span class="modulus-product-cards__card-btn" aria-hidden="true">
+                {% render 'modulus-icon', name: 'arrow-up-right', size: 16 %}
+              </span>
+            </div>
+          </a>
+        {%- endfor -%}
+
+      {%- elsif mode == 'manual' -%}
+        {%- for block in section.blocks -%}
+          {%- assign padded_index = forloop.index | prepend: '00' | slice: -2, 2 -%}
+          {%- assign card_tag = 'div' -%}
+          {%- if block.settings.link != blank -%}{%- assign card_tag = 'a' -%}{%- endif -%}
+          <{{ card_tag }}
+            {% if card_tag == 'a' %}href="{{ block.settings.link }}" aria-label="View {{ block.settings.title | escape }}"{% endif %}
+            class="modulus-product-cards__card"
+            {{ block.shopify_attributes }}
+          >
+            <div class="modulus-product-cards__card-image">
+              {%- if block.settings.image != blank -%}
+                <img
+                  src="{{ block.settings.image | image_url: width: 800 }}"
+                  srcset="
+                    {{ block.settings.image | image_url: width: 400 }} 400w,
+                    {{ block.settings.image | image_url: width: 600 }} 600w,
+                    {{ block.settings.image | image_url: width: 800 }} 800w
+                  "
+                  sizes="(max-width: 749px) 100vw, 33vw"
+                  alt="{{ block.settings.image.alt | escape | default: block.settings.title }}"
+                  width="{{ block.settings.image.width }}"
+                  height="{{ block.settings.image.height }}"
+                  loading="lazy"
+                >
+              {%- else -%}
+                {{ 'product-1' | placeholder_svg_tag: 'modulus-product-cards__placeholder' }}
+              {%- endif -%}
+            </div>
+            <div class="modulus-product-cards__card-overlay" aria-hidden="true"></div>
+            <span class="modulus-product-cards__card-number">[ {{ padded_index }} ]</span>
+            <div class="modulus-product-cards__card-content">
+              {%- if block.settings.title != blank -%}
+                <h3 class="modulus-product-cards__card-title">{{ block.settings.title }}</h3>
+              {%- endif -%}
+              <span class="modulus-product-cards__card-btn" aria-hidden="true">
+                {% render 'modulus-icon', name: 'arrow-up-right', size: 16 %}
+              </span>
+            </div>
+          </{{ card_tag }}>
+        {%- endfor -%}
+
+      {%- else -%}
+        <div class="modulus-product-cards__empty">
+          <p>Pick a collection in the section settings, or switch to manual mode to author cards directly.</p>
+        </div>
+      {%- endif -%}
+
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-product-cards {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--cards-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-product-cards__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-product-cards__header {
+    margin-bottom: var(--mod-gap-lg);
+  }
+
+  h2.modulus-product-cards__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4vw, 56px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-product-cards__heading p { margin: 0; }
+
+  .modulus-product-cards__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cards-columns, 3), 1fr);
+    gap: 2px;
+  }
+
+  .modulus-product-cards__grid--scroll {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .modulus-product-cards__grid--scroll::-webkit-scrollbar { display: none; }
+
+  .modulus-product-cards__grid--scroll .modulus-product-cards__card {
+    flex: 0 0 auto;
+    min-width: 280px;
+    width: calc(33.333% - 2px);
+    scroll-snap-align: start;
+  }
+
+  .modulus-product-cards__card {
+    position: relative;
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.05);
+    aspect-ratio: 3 / 4;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .modulus-product-cards__card-image,
+  .modulus-product-cards__card-image > .modulus-product-cards__placeholder {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .modulus-product-cards__card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 600ms var(--mod-ease);
+  }
+
+  .modulus-product-cards__card:hover .modulus-product-cards__card-image img {
+    transform: scale(1.03);
+  }
+
+  .modulus-product-cards__card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(0 0 0 / 0.55) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .modulus-product-cards__card-number {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    color: rgb(255 255 255 / 0.75);
+    letter-spacing: 0.15em;
+    z-index: 2;
+  }
+
+  .modulus-product-cards__card-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 24px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    z-index: 2;
+    color: #fff;
+  }
+
+  h3.modulus-product-cards__card-title {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(16px, 1.6vw, 22px);
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    margin: 0 0 4px;
+    color: #fff;
+  }
+
+  .modulus-product-cards__card-price {
+    font-family: var(--font-body--family);
+    font-size: 13px;
+    color: rgb(255 255 255 / 0.8);
+  }
+
+  .modulus-product-cards__card-btn {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(255 255 255 / 0.5);
+    background: transparent;
+    color: #fff;
+    transition: background var(--mod-duration-base) var(--mod-ease),
+                color var(--mod-duration-base) var(--mod-ease);
+    flex-shrink: 0;
+  }
+
+  .modulus-product-cards__card:hover .modulus-product-cards__card-btn {
+    background: #fff;
+    color: #000;
+  }
+
+  .modulus-product-cards__empty {
+    padding: 64px 24px;
+    text-align: center;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    border: 1px dashed var(--color-border);
+  }
+
+  @media (max-width: 1024px) {
+    .modulus-product-cards__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .modulus-product-cards__grid--scroll .modulus-product-cards__card {
+      width: calc(50% - 2px);
+    }
+  }
+
+  @media (max-width: 768px) {
+    h2.modulus-product-cards__heading {
+      font-size: clamp(24px, 7vw, 36px);
+    }
+    .modulus-product-cards__grid--scroll .modulus-product-cards__card {
+      width: 78%;
+      min-width: 240px;
+    }
+    .modulus-product-cards__card-content {
+      padding: 16px 18px;
+    }
+    .modulus-product-cards__card-btn {
+      width: 30px;
+      height: 30px;
+    }
+    .modulus-product-cards__header {
+      margin-bottom: var(--mod-gap-md);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .modulus-product-cards__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Product Cards",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Products" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "04" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>Featured products.</p>"
+    },
+    { "type": "header", "content": "Source" },
+    {
+      "type": "select",
+      "id": "source_mode",
+      "label": "Card source",
+      "options": [
+        { "value": "collection", "label": "Collection (pull from Shopify)" },
+        { "value": "manual", "label": "Manual (author cards as blocks)" }
+      ],
+      "default": "collection"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Products to show",
+      "min": 2, "max": 12, "step": 1,
+      "default": 6
+    },
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-2" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "select",
+      "id": "layout_mode",
+      "label": "Layout mode",
+      "options": [
+        { "value": "grid", "label": "Grid" },
+        { "value": "scroll", "label": "Horizontal scroll" }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Columns (grid mode)",
+      "min": 2, "max": 4, "step": 1,
+      "default": 3
+    },
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Card (manual mode)",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Card title" },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Modulus Product Cards",
+      "settings": {
+        "source_mode": "collection"
+      }
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

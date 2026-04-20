@@ -1,0 +1,400 @@
+{% comment %}
+  Modulus Specs — definition-list of product specifications with
+  optional technical drawing alongside. Inspired by editorial
+  product catalogues (Verescence, Sigma).
+
+  On product pages, the drawing image + caption can be pulled from
+  product metafields so each product shows its own:
+    custom.technical_drawing   (file: image)
+    custom.drawing_caption      (single line text, e.g. part number)
+    custom.part_number          (single line text — auto-prepended row)
+    custom.dimensions           (single line text — auto-prepended row)
+
+  Merchants define those metafields once in Shopify admin; each
+  product fills them in. See docs/PRODUCT-METAFIELDS.md.
+{% endcomment %}
+
+<div
+  id="modulus-specs-{{ section.id }}"
+  class="modulus-specs color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="--spec-py: {{ section.settings.padding_y }}px;"
+>
+  <div class="modulus-specs__inner">
+    {%- if section.settings.label_text != blank -%}
+      <div data-mod-reveal>
+        {% render 'modulus-section-label',
+          text: section.settings.label_text,
+          number: section.settings.label_number
+        %}
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.heading != blank -%}
+      <div class="modulus-specs__heading" data-mod-reveal>
+        {{ section.settings.heading }}
+      </div>
+    {%- endif -%}
+
+    {%- liquid
+      assign drawing = blank
+      assign drawing_caption = section.settings.drawing_caption
+      assign part_number = blank
+      assign dimensions = blank
+
+      if product != blank
+        assign mf_drawing = product.metafields.custom.technical_drawing
+        if mf_drawing.value != blank
+          if mf_drawing.value.preview_image
+            assign drawing = mf_drawing.value.preview_image
+          else
+            assign drawing = mf_drawing.value
+          endif
+        endif
+
+        assign part_number = product.metafields.custom.part_number
+        if part_number == blank
+          assign part_number = product.metafields.custom.drawing_caption
+        endif
+        if part_number == blank and product.sku != blank
+          assign part_number = product.sku
+        endif
+
+        assign dimensions = product.metafields.custom.dimensions
+
+        if drawing_caption == blank
+          assign drawing_caption = part_number
+        endif
+      endif
+
+      if drawing == blank
+        assign drawing = section.settings.drawing_image
+      endif
+
+      assign has_drawing = false
+      if drawing != blank
+        assign has_drawing = true
+      endif
+    -%}
+
+    <div class="modulus-specs__body{% if has_drawing %} has-drawing modulus-specs__body--drawing-{{ section.settings.drawing_position }}{% endif %}">
+      {%- if has_drawing -%}
+        <figure class="modulus-specs__drawing" data-mod-reveal>
+          <img
+            src="{{ drawing | image_url: width: 900 }}"
+            srcset="
+              {{ drawing | image_url: width: 480 }} 480w,
+              {{ drawing | image_url: width: 720 }} 720w,
+              {{ drawing | image_url: width: 900 }} 900w,
+              {{ drawing | image_url: width: 1200 }} 1200w
+            "
+            sizes="(max-width: 768px) 100vw, 40vw"
+            alt="{{ drawing.alt | escape | default: drawing_caption | default: product.title | default: 'Technical drawing' }}"
+            width="{{ drawing.width }}"
+            height="{{ drawing.height }}"
+            loading="lazy"
+          >
+          {%- if drawing_caption != blank -%}
+            <figcaption class="modulus-specs__drawing-caption">
+              {{ drawing_caption }}
+            </figcaption>
+          {%- endif -%}
+        </figure>
+      {%- endif -%}
+
+      <div class="modulus-specs__list" data-mod-reveal data-mod-reveal-delay="80">
+        {%- if section.settings.show_part_number and part_number != blank -%}
+          <div class="modulus-specs__row">
+            <div class="modulus-specs__label">
+              {{ section.settings.part_number_label | default: 'Part number' }}
+            </div>
+            <div class="modulus-specs__value">{{ part_number }}</div>
+          </div>
+        {%- endif -%}
+
+        {%- if section.settings.show_dimensions and dimensions != blank -%}
+          <div class="modulus-specs__row">
+            <div class="modulus-specs__label">
+              {{ section.settings.dimensions_label | default: 'Dimensions' }}
+            </div>
+            <div class="modulus-specs__value">{{ dimensions }}</div>
+          </div>
+        {%- endif -%}
+
+        {%- for block in section.blocks -%}
+          <div class="modulus-specs__row" {{ block.shopify_attributes }}>
+            <div class="modulus-specs__label">{{ block.settings.label }}</div>
+            <div class="modulus-specs__value">{{ block.settings.value }}</div>
+          </div>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-specs {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--spec-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-specs__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-specs__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4vw, 56px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 var(--mod-gap-lg);
+  }
+
+  .modulus-specs__heading p { margin: 0; }
+
+  .modulus-specs__body.has-drawing {
+    display: grid;
+    grid-template-columns: minmax(0, 40%) minmax(0, 1fr);
+    gap: var(--mod-gap-lg);
+    align-items: start;
+  }
+
+  .modulus-specs__body--drawing-right {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 40%);
+  }
+
+  .modulus-specs__body--drawing-right .modulus-specs__drawing {
+    order: 2;
+  }
+
+  .modulus-specs__drawing {
+    margin: 0;
+    padding: 24px;
+    background: rgb(var(--color-foreground-rgb) / 0.03);
+    border: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 24px;
+  }
+
+  .modulus-specs__drawing img {
+    width: 100%;
+    height: auto;
+    max-height: 60vh;
+    object-fit: contain;
+    display: block;
+  }
+
+  .modulus-specs__drawing-caption {
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .modulus-specs__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .modulus-specs__row {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    border-top: 1px solid var(--color-border);
+    padding: 24px 0;
+  }
+
+  .modulus-specs__row:last-child {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-specs__label {
+    font-family: var(--font-label--family);
+    font-size: 11px;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding-top: 4px;
+  }
+
+  .modulus-specs__value {
+    font-family: var(--font-body--family);
+    font-size: clamp(14px, 1.05vw, 16px);
+    color: var(--color-foreground);
+    line-height: 1.6;
+  }
+
+  .modulus-specs__value p { margin: 0 0 0.5em; }
+  .modulus-specs__value p:last-child { margin-bottom: 0; }
+
+  @media (max-width: 1024px) {
+    .modulus-specs__row {
+      grid-template-columns: 180px 1fr;
+    }
+    .modulus-specs__body.has-drawing,
+    .modulus-specs__body--drawing-right {
+      grid-template-columns: minmax(0, 45%) minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .modulus-specs__heading {
+      font-size: clamp(24px, 7vw, 36px);
+    }
+    .modulus-specs__row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 20px 0;
+    }
+    .modulus-specs__body.has-drawing,
+    .modulus-specs__body--drawing-right {
+      grid-template-columns: 1fr;
+      gap: var(--mod-gap-md);
+    }
+    .modulus-specs__body--drawing-right .modulus-specs__drawing {
+      order: 0;
+    }
+    .modulus-specs__drawing {
+      position: static;
+      padding: 20px;
+    }
+    .modulus-specs__drawing img {
+      max-height: 45vh;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Specs",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Specs" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "03" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading"
+    },
+    {
+      "type": "header",
+      "content": "Part number (product pages)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_part_number",
+      "label": "Show part number row",
+      "info": "Auto-pulls from product metafield `custom.part_number`, falls back to `custom.drawing_caption`, then product SKU.",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "part_number_label",
+      "label": "Row label",
+      "default": "Part number"
+    },
+    {
+      "type": "header",
+      "content": "Dimensions (product pages)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dimensions",
+      "label": "Show dimensions row",
+      "info": "Auto-pulls from product metafield `custom.dimensions` (single-line text).",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "dimensions_label",
+      "label": "Row label",
+      "default": "Dimensions"
+    },
+    {
+      "type": "header",
+      "content": "Technical drawing (optional)"
+    },
+    {
+      "type": "image_picker",
+      "id": "drawing_image",
+      "label": "Drawing image (fallback)",
+      "info": "On product pages the `custom.technical_drawing` file metafield wins. This is the fallback for non-product pages."
+    },
+    {
+      "type": "text",
+      "id": "drawing_caption",
+      "label": "Drawing caption (fallback)",
+      "info": "Small label under the drawing. On product pages, metafield or SKU wins."
+    },
+    {
+      "type": "select",
+      "id": "drawing_position",
+      "label": "Drawing position (desktop)",
+      "options": [
+        { "value": "left", "label": "Left of specs" },
+        { "value": "right", "label": "Right of specs" }
+      ],
+      "default": "left"
+    },
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-2" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "spec",
+      "name": "Spec row",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label", "default": "Specification" },
+        { "type": "richtext", "id": "value", "label": "Value" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Modulus Specs",
+      "blocks": [
+        { "type": "spec", "settings": { "label": "Material" } },
+        { "type": "spec", "settings": { "label": "Minimum order" } },
+        { "type": "spec", "settings": { "label": "Lead time" } },
+        { "type": "spec", "settings": { "label": "Certifications" } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}
