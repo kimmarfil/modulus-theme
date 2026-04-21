@@ -1,0 +1,368 @@
+{% comment %}
+  Modulus Testimonials — editorial pull-quotes.
+  Layout options:
+    - grid       : 2 or 3 column quote cards
+    - single     : one oversized feature quote centered
+    - stack      : vertical stack of large quotes with dividers
+{% endcomment %}
+
+<div
+  id="modulus-testimonials-{{ section.id }}"
+  class="modulus-testimonials modulus-testimonials--{{ section.settings.layout }} color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --tm-columns: {{ section.settings.columns }};
+    --tm-quote-size: {{ section.settings.quote_size }}px;
+    --tm-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-testimonials__inner">
+    {%- if section.settings.label_text != blank or section.settings.heading != blank -%}
+      <div class="modulus-testimonials__head" data-mod-reveal>
+        {%- if section.settings.label_text != blank -%}
+          {% render 'modulus-section-label',
+            text: section.settings.label_text,
+            number: section.settings.label_number
+          %}
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="modulus-testimonials__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="modulus-testimonials__list">
+      {%- for block in section.blocks -%}
+        <figure
+          class="modulus-testimonials__item"
+          data-mod-reveal
+          data-mod-reveal-delay="{{ forloop.index0 | times: 100 }}"
+          {{ block.shopify_attributes }}
+        >
+          <span class="modulus-testimonials__mark" aria-hidden="true">&ldquo;</span>
+
+          {%- if block.settings.quote != blank -%}
+            <blockquote class="modulus-testimonials__quote">
+              {{ block.settings.quote }}
+            </blockquote>
+          {%- endif -%}
+
+          {%- if block.settings.author != blank
+            or block.settings.role != blank
+            or block.settings.avatar != blank
+          -%}
+            <figcaption class="modulus-testimonials__cite">
+              {%- if block.settings.avatar != blank -%}
+                <img
+                  class="modulus-testimonials__avatar"
+                  src="{{ block.settings.avatar | image_url: width: 120 }}"
+                  srcset="
+                    {{ block.settings.avatar | image_url: width: 80 }} 80w,
+                    {{ block.settings.avatar | image_url: width: 120 }} 120w,
+                    {{ block.settings.avatar | image_url: width: 200 }} 200w
+                  "
+                  sizes="48px"
+                  alt="{{ block.settings.avatar.alt | default: block.settings.author | escape }}"
+                  loading="lazy"
+                  width="{{ block.settings.avatar.width }}"
+                  height="{{ block.settings.avatar.height }}"
+                >
+              {%- endif -%}
+              <span class="modulus-testimonials__cite-text">
+                {%- if block.settings.author != blank -%}
+                  <span class="modulus-testimonials__author">{{ block.settings.author | escape }}</span>
+                {%- endif -%}
+                {%- if block.settings.role != blank -%}
+                  <span class="modulus-testimonials__role">{{ block.settings.role | escape }}</span>
+                {%- endif -%}
+              </span>
+            </figcaption>
+          {%- endif -%}
+        </figure>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-testimonials {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--tm-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-testimonials__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-testimonials__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+    margin-bottom: var(--mod-gap-xl);
+    max-width: 720px;
+  }
+
+  h2.modulus-testimonials__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4vw, 56px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-testimonials__heading p { margin: 0; }
+
+  /* ---- list layouts ---- */
+
+  .modulus-testimonials--grid .modulus-testimonials__list {
+    display: grid;
+    grid-template-columns: repeat(var(--tm-columns, 3), 1fr);
+    gap: 1px;
+    background: var(--color-border);
+  }
+
+  .modulus-testimonials--grid .modulus-testimonials__item {
+    background: var(--color-background);
+    padding: 40px 32px;
+  }
+
+  .modulus-testimonials--stack .modulus-testimonials__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modulus-testimonials--stack .modulus-testimonials__item {
+    padding: 48px 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .modulus-testimonials--stack .modulus-testimonials__item:last-child {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-testimonials--single .modulus-testimonials__list {
+    display: block;
+    text-align: center;
+  }
+
+  .modulus-testimonials--single .modulus-testimonials__item {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* ---- item internals ---- */
+
+  .modulus-testimonials__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-md);
+    margin: 0;
+  }
+
+  .modulus-testimonials__mark {
+    font-family: var(--font-heading--family);
+    font-size: 72px;
+    line-height: 0.6;
+    color: rgb(var(--color-foreground-rgb) / 0.2);
+    display: block;
+  }
+
+  .modulus-testimonials--single .modulus-testimonials__mark {
+    font-size: 140px;
+  }
+
+  blockquote.modulus-testimonials__quote {
+    font-family: var(--font-heading--family);
+    font-weight: 500;
+    font-size: var(--tm-quote-size, clamp(18px, 1.8vw, 24px));
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.45;
+    letter-spacing: -0.005em;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .modulus-testimonials--single blockquote.modulus-testimonials__quote {
+    font-size: clamp(24px, 3vw, 40px);
+    line-height: 1.3;
+  }
+
+  .modulus-testimonials__quote p { margin: 0; }
+  .modulus-testimonials__quote p + p { margin-top: 0.8em; }
+
+  .modulus-testimonials__cite {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: auto;
+    padding-top: var(--mod-gap-sm);
+  }
+
+  .modulus-testimonials--single .modulus-testimonials__cite {
+    justify-content: center;
+  }
+
+  .modulus-testimonials__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    display: block;
+    background: rgb(var(--color-foreground-rgb) / 0.08);
+  }
+
+  .modulus-testimonials__cite-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1.3;
+  }
+
+  .modulus-testimonials__author {
+    font-family: var(--font-body--family);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-foreground-heading, var(--color-foreground));
+    letter-spacing: 0.02em;
+  }
+
+  .modulus-testimonials__role {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  /* ---- responsive ---- */
+
+  @media (max-width: 1024px) {
+    .modulus-testimonials--grid .modulus-testimonials__list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modulus-testimonials--grid .modulus-testimonials__list {
+      grid-template-columns: 1fr;
+    }
+    .modulus-testimonials--grid .modulus-testimonials__item {
+      padding: 32px 24px;
+    }
+    .modulus-testimonials--stack .modulus-testimonials__item {
+      padding: 32px 0;
+    }
+    .modulus-testimonials__head {
+      margin-bottom: var(--mod-gap-lg);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Testimonials",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Testimonials" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "05" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>What our customers say.</p>"
+    },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "grid", "label": "Grid" },
+        { "value": "stack", "label": "Vertical stack" },
+        { "value": "single", "label": "Single feature quote" }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Columns (grid only)",
+      "min": 2, "max": 4, "step": 1,
+      "default": 3
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+
+    { "type": "header", "content": "Typography" },
+    {
+      "type": "range",
+      "id": "quote_size",
+      "label": "Quote font size (grid & stack)",
+      "min": 14, "max": 32, "step": 1, "unit": "px",
+      "default": 22
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "Testimonial",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "quote",
+          "label": "Quote",
+          "default": "<p>A short, punchy endorsement from a customer. Two or three sentences keeps it readable and honest.</p>"
+        },
+        { "type": "text", "id": "author", "label": "Author name", "default": "Jane Doe" },
+        { "type": "text", "id": "role", "label": "Role / company", "default": "Founder, Studio" },
+        { "type": "image_picker", "id": "avatar", "label": "Avatar (optional)" }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Modulus Testimonials",
+      "blocks": [
+        { "type": "testimonial" },
+        { "type": "testimonial", "settings": { "author": "John Smith", "role": "Director, Workshop" } },
+        { "type": "testimonial", "settings": { "author": "Aiko Tanaka", "role": "Designer" } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

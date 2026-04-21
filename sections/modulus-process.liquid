@@ -1,0 +1,377 @@
+{% comment %}
+  Modulus Process — numbered how-we-work timeline.
+  Layout options:
+    - horizontal : side-by-side steps with connector line (desktop)
+    - vertical   : stacked steps with left connector rail
+{% endcomment %}
+
+<div
+  id="modulus-process-{{ section.id }}"
+  class="modulus-process modulus-process--{{ section.settings.layout }} color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --pr-columns: {{ section.blocks.size | at_least: 1 }};
+    --pr-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-process__inner">
+    {%- if section.settings.label_text != blank or section.settings.heading != blank or section.settings.intro != blank -%}
+      <div class="modulus-process__head" data-mod-reveal>
+        {%- if section.settings.label_text != blank -%}
+          {% render 'modulus-section-label',
+            text: section.settings.label_text,
+            number: section.settings.label_number
+          %}
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="modulus-process__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.intro != blank -%}
+          <div class="modulus-process__intro">{{ section.settings.intro }}</div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <ol class="modulus-process__steps">
+      {%- for block in section.blocks -%}
+        {%- assign padded_index = forloop.index | prepend: '00' | slice: -2, 2 -%}
+        <li
+          class="modulus-process__step"
+          data-mod-reveal
+          data-mod-reveal-delay="{{ forloop.index0 | times: 100 }}"
+          {{ block.shopify_attributes }}
+        >
+          <div class="modulus-process__marker">
+            {%- if block.settings.icon != 'none' -%}
+              <span class="modulus-process__icon">
+                {% render 'modulus-icon', name: block.settings.icon, size: 20 %}
+              </span>
+            {%- else -%}
+              <span class="modulus-process__number">{{ block.settings.number | default: padded_index }}</span>
+            {%- endif -%}
+          </div>
+
+          <div class="modulus-process__body">
+            {%- if block.settings.kicker != blank -%}
+              <span class="modulus-process__kicker">{{ block.settings.kicker | escape }}</span>
+            {%- endif -%}
+            {%- if block.settings.title != blank -%}
+              <h3 class="modulus-process__step-title">{{ block.settings.title | escape }}</h3>
+            {%- endif -%}
+            {%- if block.settings.description != blank -%}
+              <div class="modulus-process__step-desc">{{ block.settings.description }}</div>
+            {%- endif -%}
+          </div>
+        </li>
+      {%- endfor -%}
+    </ol>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-process {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--pr-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-process__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-process__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+    margin-bottom: var(--mod-gap-xl);
+    max-width: 760px;
+  }
+
+  h2.modulus-process__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4vw, 56px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-process__heading p { margin: 0; }
+
+  .modulus-process__intro {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.1vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    line-height: 1.7;
+    max-width: 560px;
+  }
+
+  .modulus-process__intro p { margin: 0; }
+  .modulus-process__intro p + p { margin-top: 0.6em; }
+
+  .modulus-process__steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .modulus-process__step {
+    display: grid;
+    gap: 20px;
+  }
+
+  .modulus-process__marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background: var(--color-background);
+    color: var(--color-foreground);
+    flex-shrink: 0;
+  }
+
+  .modulus-process__number {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: 18px;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  .modulus-process__icon {
+    display: inline-flex;
+  }
+
+  .modulus-process__body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modulus-process__kicker {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  h3.modulus-process__step-title {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(18px, 1.8vw, 26px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+
+  .modulus-process__step-desc {
+    font-family: var(--font-body--family);
+    font-size: 15px;
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.65;
+  }
+
+  .modulus-process__step-desc p { margin: 0; }
+  .modulus-process__step-desc p + p { margin-top: 0.6em; }
+
+  /* ---- horizontal layout ---- */
+
+  .modulus-process--horizontal .modulus-process__steps {
+    display: grid;
+    grid-template-columns: repeat(var(--pr-columns, 4), 1fr);
+    gap: var(--mod-gap-lg);
+    position: relative;
+  }
+
+  .modulus-process--horizontal .modulus-process__steps::before {
+    content: '';
+    position: absolute;
+    top: 28px;
+    left: 28px;
+    right: 28px;
+    height: 1px;
+    background: var(--color-border);
+    z-index: 0;
+  }
+
+  .modulus-process--horizontal .modulus-process__step {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .modulus-process--horizontal .modulus-process__marker {
+    margin: 0;
+  }
+
+  /* ---- vertical layout ---- */
+
+  .modulus-process--vertical .modulus-process__steps {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-lg);
+    position: relative;
+  }
+
+  .modulus-process--vertical .modulus-process__steps::before {
+    content: '';
+    position: absolute;
+    top: 56px;
+    bottom: 56px;
+    left: 27px;
+    width: 1px;
+    background: var(--color-border);
+    z-index: 0;
+  }
+
+  .modulus-process--vertical .modulus-process__step {
+    grid-template-columns: 56px 1fr;
+    align-items: flex-start;
+    gap: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---- responsive ---- */
+
+  @media (max-width: 900px) {
+    .modulus-process--horizontal .modulus-process__steps {
+      grid-template-columns: 1fr;
+      gap: var(--mod-gap-md);
+    }
+    .modulus-process--horizontal .modulus-process__steps::before { display: none; }
+    .modulus-process--horizontal .modulus-process__step {
+      grid-template-columns: 56px 1fr;
+      align-items: flex-start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modulus-process__head { margin-bottom: var(--mod-gap-lg); }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Process",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Process" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "06" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>How we work.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "Intro paragraph",
+      "default": "<p>A short overview of the steps a customer or partner moves through. Keep it to two or three sentences.</p>"
+    },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "horizontal", "label": "Horizontal (stacks on mobile)" },
+        { "value": "vertical", "label": "Vertical timeline" }
+      ],
+      "default": "horizontal"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Step",
+      "settings": [
+        {
+          "type": "text",
+          "id": "number",
+          "label": "Number",
+          "info": "Leave blank to auto-number (01, 02, …). Overridden if an icon is chosen."
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon (replaces number)",
+          "options": [
+            { "value": "none", "label": "None — use number" },
+            { "value": "compass", "label": "Compass" },
+            { "value": "target", "label": "Target" },
+            { "value": "grid", "label": "Grid" },
+            { "value": "layers", "label": "Layers" },
+            { "value": "tool", "label": "Tool" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "package", "label": "Package" },
+            { "value": "settings", "label": "Settings" },
+            { "value": "precision", "label": "Precision" },
+            { "value": "check", "label": "Check" }
+          ],
+          "default": "none"
+        },
+        { "type": "text", "id": "kicker", "label": "Kicker (optional)", "default": "Phase 01" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Discover" },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>One or two sentences on what happens during this step.</p>"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "Modulus Process",
+      "blocks": [
+        { "type": "step", "settings": { "kicker": "Phase 01", "title": "Discover" } },
+        { "type": "step", "settings": { "kicker": "Phase 02", "title": "Design" } },
+        { "type": "step", "settings": { "kicker": "Phase 03", "title": "Build" } },
+        { "type": "step", "settings": { "kicker": "Phase 04", "title": "Deliver" } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

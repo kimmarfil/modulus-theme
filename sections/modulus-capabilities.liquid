@@ -1,0 +1,417 @@
+{% comment %}
+  Modulus Capabilities — grid of capability/service cards with icons.
+  Each card: icon + title + description + optional link.
+{% endcomment %}
+
+<div
+  id="modulus-capabilities-{{ section.id }}"
+  class="modulus-capabilities modulus-capabilities--{{ section.settings.card_style }} color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --cap-columns: {{ section.settings.columns }};
+    --cap-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-capabilities__inner">
+    {%- if section.settings.label_text != blank or section.settings.heading != blank or section.settings.intro != blank -%}
+      <div class="modulus-capabilities__head" data-mod-reveal>
+        <div class="modulus-capabilities__head-lead">
+          {%- if section.settings.label_text != blank -%}
+            {% render 'modulus-section-label',
+              text: section.settings.label_text,
+              number: section.settings.label_number
+            %}
+          {%- endif -%}
+          {%- if section.settings.heading != blank -%}
+            <h2 class="modulus-capabilities__heading">{{ section.settings.heading }}</h2>
+          {%- endif -%}
+        </div>
+        {%- if section.settings.intro != blank -%}
+          <div class="modulus-capabilities__intro">{{ section.settings.intro }}</div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="modulus-capabilities__grid">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign has_link = false
+          if block.settings.link_url != blank and block.settings.link_label != blank
+            assign has_link = true
+          endif
+        -%}
+        <div
+          class="modulus-capabilities__card"
+          data-mod-reveal
+          data-mod-reveal-delay="{{ forloop.index0 | times: 80 }}"
+          {{ block.shopify_attributes }}
+        >
+          {%- if block.settings.icon != 'none' -%}
+            <div class="modulus-capabilities__icon">
+              {% render 'modulus-icon', name: block.settings.icon, size: 28 %}
+            </div>
+          {%- endif -%}
+
+          {%- if block.settings.title != blank -%}
+            <h3 class="modulus-capabilities__card-title">{{ block.settings.title | escape }}</h3>
+          {%- endif -%}
+
+          {%- if block.settings.description != blank -%}
+            <div class="modulus-capabilities__card-desc">{{ block.settings.description }}</div>
+          {%- endif -%}
+
+          {%- if block.settings.tags != blank -%}
+            <ul class="modulus-capabilities__tags">
+              {%- assign tag_list = block.settings.tags | split: ',' -%}
+              {%- for tag in tag_list -%}
+                {%- assign trimmed = tag | strip -%}
+                {%- if trimmed != blank -%}
+                  <li class="modulus-capabilities__tag">{{ trimmed | escape }}</li>
+                {%- endif -%}
+              {%- endfor -%}
+            </ul>
+          {%- endif -%}
+
+          {%- if has_link -%}
+            <a class="modulus-capabilities__card-link" href="{{ block.settings.link_url }}">
+              <span>{{ block.settings.link_label | escape }}</span>
+              <span class="modulus-capabilities__card-link-arrow" aria-hidden="true">
+                {% render 'modulus-icon', name: 'arrow-up-right', size: 14 %}
+              </span>
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-capabilities {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--cap-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-capabilities__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-capabilities__head {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--mod-gap-lg);
+    align-items: end;
+    margin-bottom: var(--mod-gap-xl);
+  }
+
+  .modulus-capabilities__head-lead {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+  }
+
+  h2.modulus-capabilities__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4.5vw, 64px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-capabilities__heading p { margin: 0; }
+
+  .modulus-capabilities__intro {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.1vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.7;
+    max-width: 480px;
+    justify-self: end;
+  }
+
+  .modulus-capabilities__intro p { margin: 0; }
+  .modulus-capabilities__intro p + p { margin-top: 0.6em; }
+
+  /* ---- grid ---- */
+
+  .modulus-capabilities__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cap-columns, 3), 1fr);
+    gap: var(--mod-gap-md);
+  }
+
+  /* ---- card base ---- */
+
+  .modulus-capabilities__card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 32px;
+  }
+
+  h3.modulus-capabilities__card-title {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(18px, 1.7vw, 24px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+
+  .modulus-capabilities__card-desc {
+    font-family: var(--font-body--family);
+    font-size: 15px;
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.65;
+  }
+
+  .modulus-capabilities__card-desc p { margin: 0; }
+  .modulus-capabilities__card-desc p + p { margin-top: 0.6em; }
+
+  .modulus-capabilities__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    color: var(--color-foreground);
+    margin-bottom: 4px;
+  }
+
+  .modulus-capabilities__tags {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .modulus-capabilities__tag {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1px solid var(--color-border);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+  }
+
+  .modulus-capabilities__card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: auto;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    align-self: flex-start;
+    padding: 8px 0 4px;
+  }
+
+  .modulus-capabilities__card-link-arrow {
+    display: inline-flex;
+    transition: transform 0.2s ease;
+  }
+
+  .modulus-capabilities__card-link:hover .modulus-capabilities__card-link-arrow {
+    transform: translate(2px, -2px);
+  }
+
+  /* ---- card style: bordered ---- */
+
+  .modulus-capabilities--bordered .modulus-capabilities__card {
+    border: 1px solid var(--color-border);
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .modulus-capabilities--bordered .modulus-capabilities__card:hover {
+    border-color: var(--color-foreground);
+  }
+
+  /* ---- card style: divided (1px gap grid) ---- */
+
+  .modulus-capabilities--divided .modulus-capabilities__grid {
+    gap: 1px;
+    background: var(--color-border);
+  }
+
+  .modulus-capabilities--divided .modulus-capabilities__card {
+    background: var(--color-background);
+  }
+
+  /* ---- card style: plain ---- */
+
+  .modulus-capabilities--plain .modulus-capabilities__card {
+    padding: 0;
+  }
+
+  .modulus-capabilities--plain .modulus-capabilities__grid {
+    gap: var(--mod-gap-lg) var(--mod-gap-md);
+  }
+
+  /* ---- responsive ---- */
+
+  @media (max-width: 1024px) {
+    .modulus-capabilities__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .modulus-capabilities__head {
+      grid-template-columns: 1fr;
+      align-items: flex-start;
+    }
+    .modulus-capabilities__intro {
+      justify-self: flex-start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modulus-capabilities__grid {
+      grid-template-columns: 1fr;
+    }
+    .modulus-capabilities--bordered .modulus-capabilities__card,
+    .modulus-capabilities--divided .modulus-capabilities__card {
+      padding: 24px;
+    }
+    .modulus-capabilities__head { margin-bottom: var(--mod-gap-lg); }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Capabilities",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Capabilities" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "07" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>What we do.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "Intro (right column, optional)",
+      "default": "<p>A short paragraph framing the capabilities below. Keep it tight.</p>"
+    },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "card_style",
+      "label": "Card style",
+      "options": [
+        { "value": "bordered", "label": "Bordered cards" },
+        { "value": "divided", "label": "Divided (hairline grid)" },
+        { "value": "plain", "label": "Plain" }
+      ],
+      "default": "bordered"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Columns (desktop)",
+      "min": 2, "max": 4, "step": 1,
+      "default": 3
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "capability",
+      "name": "Capability",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "compass", "label": "Compass" },
+            { "value": "target", "label": "Target" },
+            { "value": "grid", "label": "Grid" },
+            { "value": "layers", "label": "Layers" },
+            { "value": "tool", "label": "Tool" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "package", "label": "Package" },
+            { "value": "settings", "label": "Settings" },
+            { "value": "precision", "label": "Precision" },
+            { "value": "check", "label": "Check" },
+            { "value": "play", "label": "Play" },
+            { "value": "download", "label": "Download" }
+          ],
+          "default": "target"
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Capability" },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>A short description of what this capability covers.</p>"
+        },
+        {
+          "type": "text",
+          "id": "tags",
+          "label": "Tags (comma-separated, optional)",
+          "default": "Research, Strategy"
+        },
+        { "type": "text", "id": "link_label", "label": "Link label" },
+        { "type": "url", "id": "link_url", "label": "Link URL" }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [
+    {
+      "name": "Modulus Capabilities",
+      "blocks": [
+        { "type": "capability", "settings": { "icon": "compass", "title": "Strategy" } },
+        { "type": "capability", "settings": { "icon": "grid", "title": "Design" } },
+        { "type": "capability", "settings": { "icon": "tool", "title": "Build" } },
+        { "type": "capability", "settings": { "icon": "package", "title": "Deliver" } },
+        { "type": "capability", "settings": { "icon": "shield", "title": "Support" } },
+        { "type": "capability", "settings": { "icon": "target", "title": "Optimize" } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

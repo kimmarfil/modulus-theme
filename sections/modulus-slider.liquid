@@ -1,0 +1,450 @@
+{% comment %}
+  Modulus Slider — horizontal scroll-snap carousel of editorial cards.
+  Each card: image + eyebrow + title + description + optional link.
+  Uses native CSS scroll-snap + arrow controls (vanilla JS, no deps).
+{% endcomment %}
+
+<modulus-slider
+  id="modulus-slider-{{ section.id }}"
+  class="modulus-slider color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --sl-card-width: {{ section.settings.card_width }}px;
+    --sl-gap: {{ section.settings.gap }}px;
+    --sl-image-ratio: {{ section.settings.image_ratio }};
+    --sl-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-slider__inner">
+    <div class="modulus-slider__head" data-mod-reveal>
+      <div class="modulus-slider__head-text">
+        {%- if section.settings.label_text != blank -%}
+          {% render 'modulus-section-label',
+            text: section.settings.label_text,
+            number: section.settings.label_number
+          %}
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="modulus-slider__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+      </div>
+
+      {%- if section.blocks.size > 1 -%}
+        <div class="modulus-slider__controls" aria-label="Slider controls">
+          <button type="button" class="modulus-slider__arrow" data-slider-prev aria-label="Previous slide">
+            {% render 'modulus-icon', name: 'arrow-left', size: 16 %}
+          </button>
+          <button type="button" class="modulus-slider__arrow" data-slider-next aria-label="Next slide">
+            {% render 'modulus-icon', name: 'arrow-right', size: 16 %}
+          </button>
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div
+      class="modulus-slider__track"
+      data-slider-track
+      tabindex="0"
+      role="region"
+      aria-label="{{ section.settings.label_text | default: 'Slider' | escape }}"
+    >
+      {%- for block in section.blocks -%}
+        <article class="modulus-slider__card" {{ block.shopify_attributes }}>
+          {%- if block.settings.image != blank -%}
+            <div class="modulus-slider__media">
+              <img
+                src="{{ block.settings.image | image_url: width: 800 }}"
+                srcset="
+                  {{ block.settings.image | image_url: width: 400 }} 400w,
+                  {{ block.settings.image | image_url: width: 800 }} 800w,
+                  {{ block.settings.image | image_url: width: 1200 }} 1200w
+                "
+                sizes="(min-width: 1024px) 33vw, 80vw"
+                alt="{{ block.settings.image.alt | default: block.settings.title | escape }}"
+                loading="lazy"
+                width="{{ block.settings.image.width }}"
+                height="{{ block.settings.image.height }}"
+              >
+            </div>
+          {%- else -%}
+            <div class="modulus-slider__media modulus-slider__media--placeholder">
+              {{ 'image' | placeholder_svg_tag: 'modulus-slider__placeholder-svg' }}
+            </div>
+          {%- endif -%}
+
+          <div class="modulus-slider__body">
+            {%- if block.settings.eyebrow != blank -%}
+              <span class="modulus-slider__eyebrow">{{ block.settings.eyebrow | escape }}</span>
+            {%- endif -%}
+            {%- if block.settings.title != blank -%}
+              <h3 class="modulus-slider__card-title">{{ block.settings.title | escape }}</h3>
+            {%- endif -%}
+            {%- if block.settings.description != blank -%}
+              <div class="modulus-slider__card-desc">{{ block.settings.description }}</div>
+            {%- endif -%}
+            {%- if block.settings.link_label != blank -%}
+              <a class="modulus-slider__card-link" href="{{ block.settings.link_url | default: '#' }}">
+                <span>{{ block.settings.link_label | escape }}</span>
+                <span class="modulus-slider__card-link-arrow" aria-hidden="true">
+                  {% render 'modulus-icon', name: 'arrow-up-right', size: 14 %}
+                </span>
+              </a>
+            {%- endif -%}
+          </div>
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</modulus-slider>
+
+{% stylesheet %}
+  .modulus-slider {
+    display: block;
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--sl-py, var(--mod-section-py)) 0;
+  }
+
+  .modulus-slider__inner {
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+    padding: 0 var(--mod-section-px);
+  }
+
+  .modulus-slider__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--mod-gap-lg);
+    margin-bottom: var(--mod-gap-lg);
+  }
+
+  .modulus-slider__head-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+    max-width: 720px;
+  }
+
+  h2.modulus-slider__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4vw, 56px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-slider__heading p { margin: 0; }
+
+  .modulus-slider__controls {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .modulus-slider__arrow {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--color-foreground);
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background var(--mod-duration-base, 0.2s) ease,
+                color var(--mod-duration-base, 0.2s) ease,
+                border-color var(--mod-duration-base, 0.2s) ease;
+  }
+
+  .modulus-slider__arrow:hover {
+    background: var(--color-foreground);
+    color: var(--color-background);
+    border-color: var(--color-foreground);
+  }
+
+  .modulus-slider__arrow:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: transparent;
+    color: var(--color-foreground);
+    border-color: var(--color-border);
+  }
+
+  .modulus-slider__arrow:focus-visible {
+    outline: 2px solid var(--color-foreground);
+    outline-offset: 3px;
+  }
+
+  .modulus-slider__track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: var(--sl-card-width, 380px);
+    gap: var(--sl-gap, 24px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 4px;
+  }
+
+  .modulus-slider__track::-webkit-scrollbar { display: none; }
+
+  .modulus-slider__track:focus-visible {
+    outline: 2px solid var(--color-foreground);
+    outline-offset: 4px;
+  }
+
+  .modulus-slider__card {
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-md);
+    background: var(--color-background);
+  }
+
+  .modulus-slider__media {
+    aspect-ratio: var(--sl-image-ratio, 4 / 5);
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.06);
+  }
+
+  .modulus-slider__media img,
+  .modulus-slider__media svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+
+  .modulus-slider__card:hover .modulus-slider__media img {
+    transform: scale(1.03);
+  }
+
+  .modulus-slider__media--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgb(var(--color-foreground-rgb) / 0.35);
+  }
+
+  .modulus-slider__body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modulus-slider__eyebrow {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+  }
+
+  h3.modulus-slider__card-title {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(18px, 1.6vw, 24px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.25;
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+
+  .modulus-slider__card-desc {
+    font-family: var(--font-body--family);
+    font-size: 15px;
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.6;
+  }
+
+  .modulus-slider__card-desc p { margin: 0; }
+  .modulus-slider__card-desc p + p { margin-top: 0.6em; }
+
+  .modulus-slider__card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    align-self: flex-start;
+    padding-bottom: 4px;
+  }
+
+  .modulus-slider__card-link-arrow {
+    display: inline-flex;
+    transition: transform 0.2s ease;
+  }
+
+  .modulus-slider__card-link:hover .modulus-slider__card-link-arrow {
+    transform: translate(2px, -2px);
+  }
+
+  @media (max-width: 768px) {
+    .modulus-slider__track {
+      grid-auto-columns: min(var(--sl-card-width, 380px), 82vw);
+      gap: 16px;
+    }
+    .modulus-slider__head {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: var(--mod-gap-md);
+      margin-bottom: var(--mod-gap-md);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .modulus-slider__track { scroll-behavior: auto; }
+    .modulus-slider__media img { transition: none; }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('modulus-slider')) {
+    customElements.define('modulus-slider', class ModulusSlider extends HTMLElement {
+      connectedCallback() {
+        this.track = this.querySelector('[data-slider-track]');
+        if (!this.track) return;
+        this.prevBtn = this.querySelector('[data-slider-prev]');
+        this.nextBtn = this.querySelector('[data-slider-next]');
+        if (this.prevBtn) this.prevBtn.addEventListener('click', () => this.scrollByCard(-1));
+        if (this.nextBtn) this.nextBtn.addEventListener('click', () => this.scrollByCard(1));
+        this.track.addEventListener('scroll', () => this.updateDisabled(), { passive: true });
+        this.updateDisabled();
+      }
+
+      scrollByCard(direction) {
+        const card = this.track.querySelector('.modulus-slider__card');
+        if (!card) return;
+        const gap = parseFloat(getComputedStyle(this.track).columnGap || getComputedStyle(this.track).gap || '0');
+        const step = card.getBoundingClientRect().width + (isNaN(gap) ? 0 : gap);
+        this.track.scrollBy({ left: step * direction, behavior: 'smooth' });
+      }
+
+      updateDisabled() {
+        if (!this.prevBtn || !this.nextBtn) return;
+        const { scrollLeft, scrollWidth, clientWidth } = this.track;
+        this.prevBtn.disabled = scrollLeft <= 2;
+        this.nextBtn.disabled = scrollLeft + clientWidth >= scrollWidth - 2;
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Modulus Slider",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Featured" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "04" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>Selected work.</p>"
+    },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "range",
+      "id": "card_width",
+      "label": "Card width (desktop)",
+      "min": 240, "max": 560, "step": 20, "unit": "px",
+      "default": 380
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap between cards",
+      "min": 8, "max": 64, "step": 4, "unit": "px",
+      "default": 24
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image aspect ratio",
+      "options": [
+        { "value": "1 / 1", "label": "Square (1:1)" },
+        { "value": "4 / 5", "label": "Portrait (4:5)" },
+        { "value": "3 / 4", "label": "Portrait (3:4)" },
+        { "value": "4 / 3", "label": "Landscape (4:3)" },
+        { "value": "16 / 9", "label": "Wide (16:9)" }
+      ],
+      "default": "4 / 5"
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Chapter 01" },
+        { "type": "text", "id": "title", "label": "Title", "default": "Slide title" },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>A short supporting sentence.</p>"
+        },
+        { "type": "text", "id": "link_label", "label": "Link label" },
+        { "type": "url", "id": "link_url", "label": "Link URL" }
+      ]
+    }
+  ],
+  "max_blocks": 16,
+  "presets": [
+    {
+      "name": "Modulus Slider",
+      "blocks": [
+        { "type": "slide", "settings": { "title": "First slide", "eyebrow": "Chapter 01" } },
+        { "type": "slide", "settings": { "title": "Second slide", "eyebrow": "Chapter 02" } },
+        { "type": "slide", "settings": { "title": "Third slide", "eyebrow": "Chapter 03" } },
+        { "type": "slide", "settings": { "title": "Fourth slide", "eyebrow": "Chapter 04" } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

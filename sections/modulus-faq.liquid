@@ -1,0 +1,399 @@
+{% comment %}
+  Modulus FAQ — accordion Q&A using native <details>/<summary>.
+  Layout options:
+    - split : left column = label + heading, right column = accordion
+    - stack : heading on top, accordion below full-width
+{% endcomment %}
+
+<div
+  id="modulus-faq-{{ section.id }}"
+  class="modulus-faq modulus-faq--{{ section.settings.layout }} color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --faq-py: {{ section.settings.padding_y }}px;
+  "
+  {% if section.settings.allow_multiple_open == false %}data-faq-exclusive{% endif %}
+>
+  <div class="modulus-faq__inner">
+    <div class="modulus-faq__grid">
+      <div class="modulus-faq__head" data-mod-reveal>
+        {%- if section.settings.label_text != blank -%}
+          {% render 'modulus-section-label',
+            text: section.settings.label_text,
+            number: section.settings.label_number
+          %}
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="modulus-faq__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.intro != blank -%}
+          <div class="modulus-faq__intro">{{ section.settings.intro }}</div>
+        {%- endif -%}
+        {%- if section.settings.cta_label != blank -%}
+          <div class="modulus-faq__cta">
+            <a href="{{ section.settings.cta_link | default: '#' }}" class="mod-btn mod-btn--ghost-dark">
+              <span>{{ section.settings.cta_label | escape }}</span>
+              <span class="mod-btn__arrow" aria-hidden="true">{% render 'modulus-icon', name: 'arrow-right', size: 14 %}</span>
+            </a>
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="modulus-faq__list">
+        {%- for block in section.blocks -%}
+          <details
+            class="modulus-faq__item"
+            data-mod-reveal
+            data-mod-reveal-delay="{{ forloop.index0 | times: 60 }}"
+            {% if block.settings.open_by_default %}open{% endif %}
+            {{ block.shopify_attributes }}
+          >
+            <summary class="modulus-faq__summary">
+              <span class="modulus-faq__question">{{ block.settings.question | escape }}</span>
+              <span class="modulus-faq__toggle" aria-hidden="true">
+                <span class="modulus-faq__toggle-icon modulus-faq__toggle-icon--plus">
+                  {% render 'modulus-icon', name: 'plus', size: 14 %}
+                </span>
+                <span class="modulus-faq__toggle-icon modulus-faq__toggle-icon--minus">
+                  {% render 'modulus-icon', name: 'minus', size: 14 %}
+                </span>
+              </span>
+            </summary>
+            <div class="modulus-faq__answer">
+              {{ block.settings.answer }}
+            </div>
+          </details>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-faq {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--faq-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-faq__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  /* ---- split layout ---- */
+
+  .modulus-faq--split .modulus-faq__grid {
+    display: grid;
+    grid-template-columns: 40fr 60fr;
+    gap: var(--mod-gap-xl);
+    align-items: start;
+  }
+
+  /* ---- stack layout ---- */
+
+  .modulus-faq--stack .modulus-faq__grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-xl);
+  }
+
+  .modulus-faq--stack .modulus-faq__head {
+    max-width: 760px;
+  }
+
+  /* ---- head ---- */
+
+  .modulus-faq__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+    position: sticky;
+    top: 100px;
+  }
+
+  .modulus-faq--stack .modulus-faq__head {
+    position: static;
+  }
+
+  h2.modulus-faq__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4.5vw, 64px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-faq__heading p { margin: 0; }
+
+  .modulus-faq__intro {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.05vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.65;
+    max-width: 420px;
+  }
+
+  .modulus-faq__intro p { margin: 0; }
+  .modulus-faq__intro p + p { margin-top: 0.6em; }
+
+  .modulus-faq__cta {
+    margin-top: var(--mod-gap-sm);
+  }
+
+  /* ---- accordion list ---- */
+
+  .modulus-faq__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modulus-faq__item {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .modulus-faq__item:last-child {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-faq__summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 24px 0;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .modulus-faq__summary::-webkit-details-marker { display: none; }
+  .modulus-faq__summary::marker { content: ''; }
+
+  .modulus-faq__summary:focus-visible {
+    outline: 2px solid var(--color-foreground);
+    outline-offset: 4px;
+  }
+
+  .modulus-faq__question {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(16px, 1.3vw, 20px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.35;
+    letter-spacing: -0.002em;
+    flex: 1;
+  }
+
+  .modulus-faq__toggle {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    flex-shrink: 0;
+    color: var(--color-foreground);
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .modulus-faq__item:hover .modulus-faq__toggle {
+    background: var(--color-foreground);
+    color: var(--color-background);
+    border-color: var(--color-foreground);
+  }
+
+  .modulus-faq__toggle-icon {
+    position: absolute;
+    display: inline-flex;
+  }
+
+  .modulus-faq__toggle {
+    position: relative;
+  }
+
+  .modulus-faq__toggle-icon--minus { display: none; }
+
+  .modulus-faq__item[open] .modulus-faq__toggle-icon--plus { display: none; }
+  .modulus-faq__item[open] .modulus-faq__toggle-icon--minus { display: inline-flex; }
+
+  .modulus-faq__answer {
+    font-family: var(--font-body--family);
+    font-size: 15px;
+    color: rgb(var(--color-foreground-rgb) / 0.8);
+    line-height: 1.7;
+    padding: 0 48px 28px 0;
+    max-width: 720px;
+  }
+
+  .modulus-faq__answer p { margin: 0; }
+  .modulus-faq__answer p + p { margin-top: 0.8em; }
+  .modulus-faq__answer ul, .modulus-faq__answer ol { margin: 0.4em 0 0.4em 1.2em; padding: 0; }
+  .modulus-faq__answer li + li { margin-top: 0.3em; }
+  .modulus-faq__answer a {
+    color: var(--color-foreground);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ---- responsive ---- */
+
+  @media (max-width: 1024px) {
+    .modulus-faq--split .modulus-faq__grid {
+      grid-template-columns: 1fr;
+      gap: var(--mod-gap-lg);
+    }
+    .modulus-faq__head {
+      position: static;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modulus-faq__summary { padding: 20px 0; gap: 16px; }
+    .modulus-faq__answer { padding: 0 0 24px 0; }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (function() {
+    function initExclusive(root) {
+      if (root.dataset.faqBound === '1') return;
+      root.dataset.faqBound = '1';
+      var items = root.querySelectorAll('.modulus-faq__item');
+      items.forEach(function(item) {
+        item.addEventListener('toggle', function() {
+          if (!item.open) return;
+          items.forEach(function(other) {
+            if (other !== item && other.open) other.open = false;
+          });
+        });
+      });
+    }
+
+    function boot() {
+      document.querySelectorAll('.modulus-faq[data-faq-exclusive]').forEach(initExclusive);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', boot);
+    } else {
+      boot();
+    }
+
+    document.addEventListener('shopify:section:load', function(e) {
+      e.target.querySelectorAll('.modulus-faq[data-faq-exclusive]').forEach(initExclusive);
+    });
+  })();
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Modulus FAQ",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "FAQ" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "08" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>Questions, answered.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "intro",
+      "label": "Intro",
+      "default": "<p>Can't find what you're looking for? Get in touch.</p>"
+    },
+    { "type": "text", "id": "cta_label", "label": "CTA label" },
+    { "type": "url", "id": "cta_link", "label": "CTA link" },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "split", "label": "Split (heading left, FAQ right)" },
+        { "value": "stack", "label": "Stacked" }
+      ],
+      "default": "split"
+    },
+    {
+      "type": "checkbox",
+      "id": "allow_multiple_open",
+      "label": "Allow multiple open at once",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "qa",
+      "name": "Question",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Question",
+          "default": "What is Modulus?"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Answer",
+          "default": "<p>A short, clear answer. Two to four sentences works best — link out for deeper content.</p>"
+        },
+        {
+          "type": "checkbox",
+          "id": "open_by_default",
+          "label": "Open by default",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "max_blocks": 24,
+  "presets": [
+    {
+      "name": "Modulus FAQ",
+      "blocks": [
+        { "type": "qa", "settings": { "question": "What is Modulus?" } },
+        { "type": "qa", "settings": { "question": "How do I install a Shopify theme?" } },
+        { "type": "qa", "settings": { "question": "Do you offer refunds?" } },
+        { "type": "qa", "settings": { "question": "What does support include?" } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}
