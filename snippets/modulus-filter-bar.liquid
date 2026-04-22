@@ -1,0 +1,102 @@
+{%- comment -%}
+  Horizontal filter bar — top of the collection grid.
+
+  Accepts:
+    collection            — the current collection (used for real filters)
+    submit_label          — text on the submit CTA (default 'Filter')
+    search_placeholder    — placeholder for the search input
+    show_search           — boolean (default true)
+{%- endcomment -%}
+
+{%- assign submit_label = submit_label | default: 'Filter' -%}
+{%- assign search_placeholder = search_placeholder | default: 'Search by product name' -%}
+{%- if show_search == nil -%}{%- assign show_search = true -%}{%- endif -%}
+
+{%- assign active_count = 0 -%}
+{%- for filter in collection.filters -%}
+  {%- assign active_count = active_count | plus: filter.active_values.size -%}
+{%- endfor -%}
+
+{%- assign real_total = 0 -%}
+{%- for filter in collection.filters -%}
+  {%- unless filter.type == 'price_range' or filter.type == 'range' -%}
+    {%- if filter.values.size > 0 -%}{%- assign real_total = real_total | plus: 1 -%}{%- endif -%}
+  {%- endunless -%}
+{%- endfor -%}
+
+{%- if real_total > 0 -%}
+  {%- assign current_sort = collection.sort_by | default: collection.default_sort_by -%}
+
+  <div class="modulus-filter-bar" data-mod-filter-bar>
+    <form
+      method="get"
+      action="{{ collection.url }}"
+      class="modulus-filter-bar__form"
+      data-mod-filter-form
+    >
+      <input type="hidden" name="sort_by" value="{{ current_sort }}">
+
+      <div class="modulus-filter-bar__row">
+
+        {%- if show_search -%}
+          <div class="modulus-filter-bar__search">
+            {% render 'modulus-icon', name: 'search', size: 16 %}
+            <input
+              type="search"
+              class="modulus-filter-bar__search-input"
+              placeholder="{{ search_placeholder | escape }}"
+              data-mod-filter-search
+              autocomplete="off"
+              aria-label="{{ search_placeholder | escape }}"
+            >
+          </div>
+        {%- endif -%}
+
+        <div class="modulus-filter-bar__dropdowns modulus-filter-bar__dropdowns--primary">
+          {%- comment -%}
+            Render ALL dropdowns here. JS measures width + moves overflow
+            into the secondary row.
+          {%- endcomment -%}
+          {%- for filter in collection.filters -%}
+            {%- unless filter.type == 'price_range' or filter.type == 'range' -%}
+              {%- if filter.values.size > 0 -%}
+                {%- render 'modulus-filter-dropdown', filter: filter, id_prefix: 'mfb-p' -%}
+              {%- endif -%}
+            {%- endunless -%}
+          {%- endfor -%}
+        </div>
+
+        {%- if real_total > 1 -%}
+          <button
+            type="button"
+            class="modulus-filter-bar__more"
+            data-mod-filter-more
+            aria-expanded="false"
+            aria-label="Show more filters"
+            style="display:none"
+          >
+            <span class="modulus-filter-bar__more-icon" aria-hidden="true">+</span>
+          </button>
+        {%- endif -%}
+
+        <button type="submit" class="modulus-filter-bar__submit">
+          <span class="modulus-filter-bar__submit-label">
+            {{ submit_label }}
+            {%- if active_count > 0 %} ({{ active_count }}){% endif -%}
+          </span>
+          {% render 'modulus-icon', name: 'arrow-right', size: 12 %}
+        </button>
+
+      </div>
+
+      {%- if real_total > 1 -%}
+        <div
+          class="modulus-filter-bar__dropdowns modulus-filter-bar__dropdowns--secondary"
+          data-mod-filter-secondary
+          hidden
+        ></div>
+      {%- endif -%}
+
+    </form>
+  </div>
+{%- endif -%}

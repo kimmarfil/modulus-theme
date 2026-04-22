@@ -1,0 +1,34 @@
+{%- comment -%}
+  Renders active-filter chips with per-chip remove + "Clear all".
+
+  Accepts:
+    filters        — collection.filters (Liquid object)
+    collection_url — URL to reset filters (used by Clear all)
+{%- endcomment -%}
+
+{%- assign total_active = 0 -%}
+{%- for filter in filters -%}
+  {%- assign total_active = total_active | plus: filter.active_values.size -%}
+{%- endfor -%}
+
+{%- if total_active > 0 -%}
+  <div class="modulus-filter-chips" role="region" aria-label="Active filters">
+    <ul class="modulus-filter-chips__list" role="list">
+      {%- for filter in filters -%}
+        {%- for value in filter.active_values -%}
+          <li class="modulus-filter-chips__item">
+            <a href="{{ value.url_to_remove }}" class="modulus-filter-chips__chip" rel="nofollow">
+              <span class="modulus-filter-chips__chip-group">{{ filter.label | escape }}:</span>
+              <span class="modulus-filter-chips__chip-value">{{ value.label | escape }}</span>
+              {% render 'modulus-icon', name: 'close', size: 10 %}
+              <span class="visually-hidden">Remove filter</span>
+            </a>
+          </li>
+        {%- endfor -%}
+      {%- endfor -%}
+    </ul>
+    {%- if collection_url != blank -%}
+      <a href="{{ collection_url }}" class="modulus-filter-chips__clear" rel="nofollow">Clear all</a>
+    {%- endif -%}
+  </div>
+{%- endif -%}

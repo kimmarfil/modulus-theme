@@ -1,0 +1,180 @@
+{% comment %}
+  Modulus Collection Hero — minimal centered hero for collection pages.
+  Heading + description + optional CTA (e.g. "Download catalogue").
+{% endcomment %}
+
+{%- liquid
+  assign heading_text = section.settings.heading_override
+  if heading_text == blank
+    assign heading_text = collection.title
+  endif
+
+  assign description_html = section.settings.description_override
+  if description_html == blank
+    assign description_html = collection.description
+  endif
+-%}
+
+<div
+  id="modulus-collection-hero-{{ section.id }}"
+  class="modulus-collection-hero color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --ch-py-top: {{ section.settings.padding_top }}px;
+    --ch-py-bottom: {{ section.settings.padding_bottom }}px;
+    --ch-max-width: {{ section.settings.content_max_width }}px;
+  "
+>
+  <div class="modulus-collection-hero__inner" data-mod-reveal>
+    {%- if heading_text != blank -%}
+      <h1 class="modulus-collection-hero__heading">{{ heading_text }}</h1>
+    {%- endif -%}
+
+    {%- if description_html != blank -%}
+      <div class="modulus-collection-hero__description">{{ description_html }}</div>
+    {%- endif -%}
+
+    {%- if section.settings.cta_label != blank and section.settings.cta_link != blank -%}
+      <a
+        class="modulus-collection-hero__cta"
+        href="{{ section.settings.cta_link }}"
+        {% if section.settings.cta_new_tab %}target="_blank" rel="noopener"{% endif %}
+      >
+        <span>{{ section.settings.cta_label }}</span>
+        {% render 'modulus-icon', name: 'arrow-down', size: 14 %}
+      </a>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-collection-hero {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--ch-py-top, 120px) var(--mod-section-px) var(--ch-py-bottom, 48px);
+  }
+
+  .modulus-collection-hero__inner {
+    max-width: var(--ch-max-width, 720px);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    text-align: center;
+  }
+
+  .modulus-collection-hero__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    margin: 0;
+    font-size: clamp(40px, 6vw, 72px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--color-foreground-heading, var(--color-foreground));
+  }
+
+  .modulus-collection-hero__description {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.15vw, 17px);
+    line-height: 1.65;
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    max-width: 60ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .modulus-collection-hero__description p { margin: 0 0 0.75em; }
+  .modulus-collection-hero__description p:last-child { margin-bottom: 0; }
+
+  .modulus-collection-hero__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-label--family);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--color-foreground);
+    text-decoration: none;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--color-foreground);
+    transition: color var(--mod-duration-fast) var(--mod-ease),
+                border-color var(--mod-duration-fast) var(--mod-ease),
+                gap var(--mod-duration-fast) var(--mod-ease);
+    margin-top: 8px;
+  }
+
+  .modulus-collection-hero__cta:hover {
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    border-color: rgb(var(--color-foreground-rgb) / 0.6);
+    gap: 14px;
+  }
+
+  @media (max-width: 768px) {
+    .modulus-collection-hero {
+      padding-top: 80px;
+      padding-bottom: 32px;
+    }
+    .modulus-collection-hero__inner { gap: 20px; }
+    .modulus-collection-hero__heading {
+      font-size: clamp(32px, 9vw, 48px);
+    }
+    .modulus-collection-hero__description { font-size: 15px; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Collection Hero",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "heading_override", "label": "Heading override", "info": "Leave blank to use the collection name." },
+    { "type": "richtext", "id": "description_override", "label": "Description override", "info": "Leave blank to use the collection description." },
+    { "type": "header", "content": "CTA (optional)" },
+    { "type": "text", "id": "cta_label", "label": "CTA label" },
+    { "type": "url", "id": "cta_link", "label": "CTA link" },
+    { "type": "checkbox", "id": "cta_new_tab", "label": "Open in new tab", "default": true },
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "range",
+      "id": "content_max_width",
+      "label": "Content max width",
+      "min": 640, "max": 1400, "step": 20, "unit": "px",
+      "default": 720
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 24, "max": 160, "step": 4, "unit": "px",
+      "default": 48
+    },
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [{ "name": "Modulus Collection Hero" }],
+  "enabled_on": {
+    "templates": ["collection"]
+  }
+}
+{% endschema %}

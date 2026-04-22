@@ -1,0 +1,59 @@
+{%- comment -%}
+  Renders a single filter group as a dropdown button + popover panel.
+
+  Accepts:
+    filter    — a storefront `collection.filters` entry (type 'list' or 'boolean')
+    id_prefix — unique prefix for checkbox input ids (to avoid collisions)
+{%- endcomment -%}
+
+{%- if filter.values.size > 0 -%}
+  <div
+    class="modulus-filter-dd{% if filter.active_values.size > 0 %} has-active{% endif %}"
+    data-mod-filter-dd
+  >
+    <button
+      type="button"
+      class="modulus-filter-dd__trigger"
+      data-mod-filter-trigger
+      aria-expanded="false"
+      aria-haspopup="true"
+    >
+      <span class="modulus-filter-dd__label">{{ filter.label | escape }}</span>
+      {%- if filter.active_values.size > 0 -%}
+        <span class="modulus-filter-dd__count" aria-label="{{ filter.active_values.size }} selected">
+          {{ filter.active_values.size }}
+        </span>
+      {%- endif -%}
+      {% render 'modulus-icon', name: 'chevron-down', size: 14 %}
+    </button>
+
+    <div class="modulus-filter-dd__panel" data-mod-filter-panel hidden>
+      <div class="modulus-filter-dd__panel-inner">
+        <span class="modulus-filter-dd__panel-title">{{ filter.label | escape }}</span>
+        <ul class="modulus-filter-dd__values" role="list">
+          {%- for value in filter.values -%}
+            {%- assign is_zero = false -%}
+            {%- if value.count == 0 and value.active == false -%}{%- assign is_zero = true -%}{%- endif -%}
+            {%- assign input_id = id_prefix | append: '-' | append: value.param_name | append: '-' | append: forloop.index -%}
+            <li class="modulus-filter-dd__value{% if is_zero %} is-disabled{% endif %}{% if value.active %} is-active{% endif %}">
+              <label for="{{ input_id }}" class="modulus-filter-dd__value-label-wrap">
+                <input
+                  id="{{ input_id }}"
+                  type="checkbox"
+                  name="{{ value.param_name }}"
+                  value="{{ value.value | escape }}"
+                  class="modulus-filter-dd__checkbox"
+                  {% if value.active %}checked{% endif %}
+                  {% if is_zero %}disabled{% endif %}
+                >
+                <span class="modulus-filter-dd__value-box" aria-hidden="true"></span>
+                <span class="modulus-filter-dd__value-label">{{ value.label | escape }}</span>
+                <span class="modulus-filter-dd__value-count">({{ value.count }})</span>
+              </label>
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    </div>
+  </div>
+{%- endif -%}
