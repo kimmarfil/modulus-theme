@@ -1,0 +1,550 @@
+{% comment %}
+  Modulus Blog — blog listing page.
+  Header (blog title / description) + featured article + article grid
+  + pagination. Editorial layout.
+{% endcomment %}
+
+{%- liquid
+  assign per_page = section.settings.articles_per_page | default: 12
+  assign show_featured = section.settings.show_featured
+-%}
+
+<div
+  id="modulus-blog-{{ section.id }}"
+  class="modulus-blog color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --mb-columns: {{ section.settings.columns }};
+    --mb-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-blog__inner">
+    <header class="modulus-blog__head" data-mod-reveal>
+      {%- if section.settings.label_text != blank -%}
+        {% render 'modulus-section-label',
+          text: section.settings.label_text,
+          number: section.settings.label_number
+        %}
+      {%- endif -%}
+      <h1 class="modulus-blog__heading">{{ blog.title | escape }}</h1>
+      {%- if section.settings.description != blank -%}
+        <div class="modulus-blog__description">{{ section.settings.description }}</div>
+      {%- endif -%}
+
+      {%- if section.settings.show_tags and blog.all_tags.size > 0 -%}
+        <ul class="modulus-blog__tags" role="list">
+          <li class="modulus-blog__tag{% if current_tags == blank %} is-active{% endif %}">
+            <a href="{{ blog.url }}">All</a>
+          </li>
+          {%- for tag in blog.all_tags -%}
+            <li class="modulus-blog__tag{% if current_tags contains tag %} is-active{% endif %}">
+              <a href="{{ blog.url }}/tagged/{{ tag | handle }}">{{ tag | escape }}</a>
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+    </header>
+
+    {%- paginate blog.articles by per_page -%}
+      {%- if blog.articles_count > 0 -%}
+
+        {%- assign first_article = blog.articles.first -%}
+        {%- assign is_first_page = false -%}
+        {%- if paginate.current_page == 1 -%}
+          {%- assign is_first_page = true -%}
+        {%- endif -%}
+
+        {%- if show_featured and is_first_page and current_tags == blank -%}
+          <a href="{{ first_article.url }}" class="modulus-blog__featured" data-mod-reveal data-mod-reveal-delay="80">
+            {%- if first_article.image != blank -%}
+              <div class="modulus-blog__featured-media">
+                <img
+                  src="{{ first_article.image | image_url: width: 1600 }}"
+                  srcset="
+                    {{ first_article.image | image_url: width: 800 }} 800w,
+                    {{ first_article.image | image_url: width: 1200 }} 1200w,
+                    {{ first_article.image | image_url: width: 1600 }} 1600w
+                  "
+                  sizes="(min-width: 1024px) 60vw, 100vw"
+                  alt="{{ first_article.image.alt | default: first_article.title | escape }}"
+                  loading="eager"
+                  fetchpriority="high"
+                  width="{{ first_article.image.width }}"
+                  height="{{ first_article.image.height }}"
+                >
+              </div>
+            {%- endif -%}
+            <div class="modulus-blog__featured-body">
+              <span class="modulus-blog__kicker">Latest · {{ first_article.published_at | date: '%B %-d, %Y' }}</span>
+              <h2 class="modulus-blog__featured-title">{{ first_article.title | escape }}</h2>
+              {%- if first_article.excerpt_or_content != blank -%}
+                <p class="modulus-blog__featured-excerpt">
+                  {{ first_article.excerpt_or_content | strip_html | truncatewords: 40 }}
+                </p>
+              {%- endif -%}
+              <span class="modulus-blog__featured-cta">
+                <span>Read the story</span>
+                {% render 'modulus-icon', name: 'arrow-right', size: 14 %}
+              </span>
+            </div>
+          </a>
+        {%- endif -%}
+
+        <ul class="modulus-blog__grid" role="list">
+          {%- for article in blog.articles -%}
+            {%- if show_featured and is_first_page and current_tags == blank and forloop.first -%}{%- continue -%}{%- endif -%}
+            <li class="modulus-blog__card-wrap" data-mod-reveal data-mod-reveal-delay="{{ forloop.index0 | times: 60 }}">
+              <a href="{{ article.url }}" class="modulus-blog__card">
+                <div class="modulus-blog__card-media">
+                  {%- if article.image != blank -%}
+                    <img
+                      src="{{ article.image | image_url: width: 800 }}"
+                      srcset="
+                        {{ article.image | image_url: width: 400 }} 400w,
+                        {{ article.image | image_url: width: 800 }} 800w,
+                        {{ article.image | image_url: width: 1200 }} 1200w
+                      "
+                      sizes="(min-width: 1024px) 33vw, 100vw"
+                      alt="{{ article.image.alt | default: article.title | escape }}"
+                      loading="lazy"
+                      width="{{ article.image.width }}"
+                      height="{{ article.image.height }}"
+                    >
+                  {%- else -%}
+                    {{ 'lifestyle-1' | placeholder_svg_tag: 'modulus-blog__placeholder' }}
+                  {%- endif -%}
+                </div>
+                <div class="modulus-blog__card-body">
+                  <span class="modulus-blog__kicker">
+                    {{ article.published_at | date: '%B %-d, %Y' }}
+                    {%- if article.tags.size > 0 %} · {{ article.tags | first | escape }}{% endif -%}
+                  </span>
+                  <h3 class="modulus-blog__card-title">{{ article.title | escape }}</h3>
+                  {%- if article.excerpt_or_content != blank -%}
+                    <p class="modulus-blog__card-excerpt">
+                      {{ article.excerpt_or_content | strip_html | truncatewords: 20 }}
+                    </p>
+                  {%- endif -%}
+                </div>
+              </a>
+            </li>
+          {%- endfor -%}
+        </ul>
+
+        {%- if paginate.pages > 1 -%}
+          <nav class="modulus-blog__pagination" aria-label="Pagination">
+            {%- if paginate.previous -%}
+              <a href="{{ paginate.previous.url }}" class="modulus-blog__pagination-btn">
+                {% render 'modulus-icon', name: 'arrow-left', size: 14 %}
+                <span>Prev</span>
+              </a>
+            {%- else -%}
+              <span class="modulus-blog__pagination-btn modulus-blog__pagination-btn--disabled">
+                {% render 'modulus-icon', name: 'arrow-left', size: 14 %}
+                <span>Prev</span>
+              </span>
+            {%- endif -%}
+            <span class="modulus-blog__pagination-info">
+              Page <strong>{{ paginate.current_page }}</strong> / {{ paginate.pages }}
+            </span>
+            {%- if paginate.next -%}
+              <a href="{{ paginate.next.url }}" class="modulus-blog__pagination-btn">
+                <span>Next</span>
+                {% render 'modulus-icon', name: 'arrow-right', size: 14 %}
+              </a>
+            {%- else -%}
+              <span class="modulus-blog__pagination-btn modulus-blog__pagination-btn--disabled">
+                <span>Next</span>
+                {% render 'modulus-icon', name: 'arrow-right', size: 14 %}
+              </span>
+            {%- endif -%}
+          </nav>
+        {%- endif -%}
+
+      {%- else -%}
+        <div class="modulus-blog__empty" data-mod-reveal>
+          <h2 class="modulus-blog__empty-heading">No articles yet</h2>
+          <p class="modulus-blog__empty-text">{{ section.settings.empty_text }}</p>
+        </div>
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-blog {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--mb-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-blog__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  /* ---- head ---- */
+
+  .modulus-blog__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+    margin-bottom: var(--mod-gap-xl);
+    max-width: 760px;
+  }
+
+  h1.modulus-blog__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(32px, 5vw, 72px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-blog__description {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.1vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.7;
+    max-width: 600px;
+  }
+
+  .modulus-blog__description p { margin: 0; }
+
+  .modulus-blog__tags {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .modulus-blog__tag a {
+    display: inline-block;
+    padding: 6px 12px;
+    border: 1px solid var(--color-border);
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .modulus-blog__tag a:hover {
+    color: var(--color-foreground);
+    border-color: var(--color-foreground);
+  }
+
+  .modulus-blog__tag.is-active a {
+    background: var(--color-foreground);
+    color: var(--color-background);
+    border-color: var(--color-foreground);
+  }
+
+  /* ---- featured ---- */
+
+  .modulus-blog__featured {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: var(--mod-gap-lg);
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    padding: var(--mod-gap-md) 0;
+    margin-bottom: var(--mod-gap-xl);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-blog__featured-media {
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: rgb(var(--color-foreground-rgb) / 0.04);
+  }
+
+  .modulus-blog__featured-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 600ms ease;
+  }
+
+  .modulus-blog__featured:hover .modulus-blog__featured-media img {
+    transform: scale(1.02);
+  }
+
+  .modulus-blog__featured-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  h2.modulus-blog__featured-title {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(24px, 3.4vw, 48px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-blog__featured-excerpt {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.1vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  .modulus-blog__featured-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    align-self: flex-start;
+    padding-bottom: 4px;
+    border-bottom: 1px solid currentColor;
+  }
+
+  /* ---- shared kicker ---- */
+
+  .modulus-blog__kicker {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  /* ---- article grid ---- */
+
+  .modulus-blog__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--mb-columns, 3), 1fr);
+    gap: var(--mod-gap-lg) var(--mod-gap-md);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .modulus-blog__card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .modulus-blog__card-media {
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: rgb(var(--color-foreground-rgb) / 0.04);
+  }
+
+  .modulus-blog__card-media img,
+  .modulus-blog__card-media svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 500ms ease;
+  }
+
+  .modulus-blog__card:hover .modulus-blog__card-media img {
+    transform: scale(1.03);
+  }
+
+  .modulus-blog__card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  h3.modulus-blog__card-title {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(18px, 1.6vw, 24px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+
+  .modulus-blog__card-excerpt {
+    font-family: var(--font-body--family);
+    font-size: 15px;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  /* ---- pagination ---- */
+
+  .modulus-blog__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mod-gap-md);
+    margin-top: var(--mod-gap-xl);
+    padding-top: var(--mod-gap-md);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .modulus-blog__pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--color-border);
+    padding: 12px 22px;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .modulus-blog__pagination-btn:hover {
+    background: var(--color-foreground);
+    color: var(--color-background);
+  }
+
+  .modulus-blog__pagination-btn--disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .modulus-blog__pagination-info {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  /* ---- empty ---- */
+
+  .modulus-blog__empty {
+    padding: 96px 24px;
+    text-align: center;
+    border: 1px dashed var(--color-border);
+  }
+
+  .modulus-blog__empty-heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4vw, 48px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    margin: 0 0 12px;
+  }
+
+  .modulus-blog__empty-text {
+    font-family: var(--font-body--family);
+    font-size: 15px;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    margin: 0;
+  }
+
+  /* ---- responsive ---- */
+
+  @media (max-width: 1024px) {
+    .modulus-blog__featured {
+      grid-template-columns: 1fr;
+      gap: var(--mod-gap-md);
+    }
+    .modulus-blog__grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 640px) {
+    .modulus-blog__grid { grid-template-columns: 1fr; gap: var(--mod-gap-lg); }
+    .modulus-blog__head { margin-bottom: var(--mod-gap-lg); }
+    .modulus-blog__featured { margin-bottom: var(--mod-gap-lg); }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Blog",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Journal" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "01" },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Stories, field notes, and updates from the studio.</p>"
+    },
+
+    { "type": "header", "content": "Display" },
+    { "type": "checkbox", "id": "show_featured", "label": "Feature the latest article on page 1", "default": true },
+    { "type": "checkbox", "id": "show_tags", "label": "Show tag filter", "default": true },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Columns (desktop)",
+      "min": 2, "max": 4, "step": 1,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "articles_per_page",
+      "label": "Articles per page",
+      "min": 6, "max": 24, "step": 3,
+      "default": 12
+    },
+
+    { "type": "header", "content": "Empty state" },
+    {
+      "type": "text",
+      "id": "empty_text",
+      "label": "Empty state text",
+      "default": "Check back soon — new stories publish regularly."
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [{ "name": "Modulus Blog" }],
+  "enabled_on": {
+    "templates": ["blog"]
+  }
+}
+{% endschema %}

@@ -9,12 +9,12 @@
  */
 {
   "sections": {
-    "main": {
-      "type": "article",
+    "article": {
+      "type": "modulus-article",
       "settings": {}
     }
   },
   "order": [
-    "main"
+    "article"
   ]
 }
