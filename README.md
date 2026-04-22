@@ -35,8 +35,17 @@ templates/     JSON templates composing sections into pages
 1. Add `assets/theme-preview.png` (1200×900 minimum, JPG or PNG). This is the hero image shown on the theme's Theme Store detail page.
 2. Verify `listings/default.json` — the current values are illustrative; confirm `categories` and `industries` against Shopify's current slug vocabulary before submission.
 3. Set `theme_documentation_url` + `theme_support_url` in `config/settings_schema.json` to the real URLs you want merchants to hit.
-4. Populate demo content in the connected dev store (products, collections, blog posts, pages). Shopify takes a snapshot for the Theme Store preview.
+4. Populate demo content in the connected dev store — products, collections, blog posts, pages, menus. The full walkthrough is in [`docs/DEMO_CONTENT.md`](docs/DEMO_CONTENT.md). Shopify takes a snapshot for the Theme Store preview after submission.
 5. Run `shopify theme check` locally — the bar is zero errors + zero warnings.
+
+## Pre-built page templates
+
+Beyond the standard templates, Modulus ships ready-made layouts merchants can assign directly to pages they create in the Shopify admin:
+
+- `page.about` — narrative + philosophy + stats + values + banner
+- `page.faq` — 6-item Q&A accordion, pre-filled with edit-in-place defaults
+- `page.shipping` — shipping / returns policy page with expandable sub-answers
+- `page.contact` — contact form paired with the standard page section
 
 ## Development
 

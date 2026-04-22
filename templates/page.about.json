@@ -1,0 +1,123 @@
+/*
+ * ------------------------------------------------------------
+ * Modulus About page template.
+ *
+ * Assign to an About page in Shopify admin (Pages → your page →
+ * Template → page.about). The page renders a narrative intro, the
+ * page's own rich-text body, a stats row, a values grid, and a
+ * closing banner.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "page-header": {
+      "type": "modulus-page",
+      "settings": {
+        "label_text": "About",
+        "label_number": "01",
+        "subtitle": "<p>We design everyday tools to outlast the trends they sit against.</p>",
+        "content_max_width": 760,
+        "padding_y": 120
+      }
+    },
+    "narrative": {
+      "type": "modulus-narrative",
+      "settings": {
+        "label_text": "Philosophy",
+        "label_number": "02",
+        "heading": "<p>The material rewards use. The function reads at a glance. The form still holds after a decade of looking at it.</p>",
+        "body_text": "<p>Our studio is a sixty-square-metre bench bordered by a hardware store on one side and a fish market on the other. We chose the location for its proximity to noise, not its charm. The shop next door sharpens our blades; the market across reminds us what freshness smells like.</p><p>Every piece we ship leaves the bench only after meeting those three tests.</p>",
+        "heading_width": 75
+      }
+    },
+    "stats": {
+      "type": "modulus-stats",
+      "settings": {
+        "label_text": "Year on year",
+        "label_number": "03",
+        "heading": "<p>A small bench. A measured output.</p>"
+      },
+      "blocks": {
+        "s1": {
+          "type": "stat",
+          "settings": {
+            "value": "60",
+            "unit": "sq m",
+            "title": "Studio floor",
+            "description": "<p>Big enough to breathe, small enough to hear yourself think.</p>"
+          }
+        },
+        "s2": {
+          "type": "stat",
+          "settings": {
+            "value": "120",
+            "unit": "+",
+            "title": "Objects in the catalogue",
+            "description": "<p>Everything we make, still in production.</p>"
+          }
+        },
+        "s3": {
+          "type": "stat",
+          "settings": {
+            "value": "4",
+            "unit": "",
+            "title": "People at the bench",
+            "description": "<p>Two designers, two makers. No one wears a title.</p>"
+          }
+        }
+      },
+      "block_order": ["s1", "s2", "s3"]
+    },
+    "values": {
+      "type": "modulus-values",
+      "settings": {
+        "label_text": "What we stand for",
+        "label_number": "04",
+        "heading": "<p>Three principles. Applied to every decision on the bench.</p>"
+      },
+      "blocks": {
+        "v1": {
+          "type": "value",
+          "settings": {
+            "number": "01",
+            "title": "Material honesty",
+            "description": "<p>We don't paint over what something is. Brass stays brass, oak stays oak, wool stays wool.</p>"
+          }
+        },
+        "v2": {
+          "type": "value",
+          "settings": {
+            "number": "02",
+            "title": "One version of the thing",
+            "description": "<p>We don't ship seven colours of the same cup. We ship the one we'd buy ourselves.</p>"
+          }
+        },
+        "v3": {
+          "type": "value",
+          "settings": {
+            "number": "03",
+            "title": "Slow over soon",
+            "description": "<p>An object that earns daily use over a decade is worth waiting six months for.</p>"
+          }
+        }
+      },
+      "block_order": ["v1", "v2", "v3"]
+    },
+    "banner": {
+      "type": "modulus-banner",
+      "settings": {
+        "heading": "<p>Writing from the bench.</p>",
+        "body_text": "<p>Occasional field notes on materials, process, and why we chose what we chose.</p>",
+        "button_label": "Read the journal",
+        "button_link": "/blogs/news"
+      }
+    }
+  },
+  "order": [
+    "page-header",
+    "narrative",
+    "stats",
+    "values",
+    "banner"
+  ]
+}

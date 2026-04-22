@@ -11,46 +11,92 @@
   "sections": {
     "hero": {
       "type": "modulus-hero",
-      "settings": {}
+      "settings": {
+        "heading": "<p>Objects for the considered everyday.</p>",
+        "body_text": "<p>Tools designed to outlast the trends they sit against. Made slowly, shipped carefully, used daily.</p>",
+        "button_label": "Shop the collection",
+        "button_link": "/collections/all",
+        "transparent_header": true
+      }
     },
     "logos": {
       "type": "modulus-logos",
-      "settings": {},
+      "settings": {
+        "label_text": "As seen in",
+        "label_number": "01"
+      },
       "blocks": {
-        "l1": { "type": "logo", "settings": {} },
-        "l2": { "type": "logo", "settings": {} },
-        "l3": { "type": "logo", "settings": {} },
-        "l4": { "type": "logo", "settings": {} },
-        "l5": { "type": "logo", "settings": {} },
-        "l6": { "type": "logo", "settings": {} }
+        "l1": { "type": "logo", "settings": { "name": "Dwell" } },
+        "l2": { "type": "logo", "settings": { "name": "Sight Unseen" } },
+        "l3": { "type": "logo", "settings": { "name": "Wallpaper*" } },
+        "l4": { "type": "logo", "settings": { "name": "Cool Hunting" } },
+        "l5": { "type": "logo", "settings": { "name": "Design Milk" } },
+        "l6": { "type": "logo", "settings": { "name": "Monocle" } }
       },
       "block_order": ["l1", "l2", "l3", "l4", "l5", "l6"]
     },
     "narrative": {
       "type": "modulus-narrative",
-      "settings": {}
+      "settings": {
+        "label_text": "Philosophy",
+        "label_number": "02",
+        "heading": "<p>Material honesty, one version of the thing, slow over soon.</p>",
+        "body_text": "<p>We don't paint over what something is. Brass stays brass, oak stays oak, wool stays wool. We don't ship seven colours of the same cup — we ship the one we'd buy ourselves. Every object earns daily use over a decade or it doesn't leave the bench.</p>",
+        "button_label": "Our story",
+        "button_link": "/pages/about"
+      }
     },
     "product-cards": {
       "type": "modulus-product-cards",
-      "settings": {}
+      "settings": {
+        "label_text": "Catalogue",
+        "label_number": "03",
+        "heading": "<p>Selected pieces.</p>"
+      }
+    },
+    "narrative-2": {
+      "type": "modulus-split",
+      "settings": {
+        "label_text": "At the bench",
+        "label_number": "04",
+        "heading": "<p>A sixty-square-metre studio between a hardware store and a fish market.</p>",
+        "body_text": "<p>The shop next door sharpens our blades; the market across reminds us what freshness smells like. Four people, two benches, one shared principle: we don't ship what we wouldn't keep.</p>",
+        "button_label": "Read the journal",
+        "button_link": "/blogs/news"
+      }
     },
     "testimonials": {
       "type": "modulus-testimonials",
-      "settings": {},
+      "settings": {
+        "label_text": "In their words",
+        "label_number": "05",
+        "heading": "<p>What customers, partners, and press say.</p>",
+        "layout": "grid",
+        "columns": 3
+      },
       "blocks": {
-        "t1": { "type": "testimonial", "settings": {} },
+        "t1": {
+          "type": "testimonial",
+          "settings": {
+            "quote": "<p>Ten years of daily use and the oak is still oak. Not much else I can say about a cutting board that matters more than that.</p>",
+            "author": "Clare N.",
+            "role": "Customer, Portland"
+          }
+        },
         "t2": {
           "type": "testimonial",
           "settings": {
-            "author": "John Smith",
-            "role": "Director, Workshop"
+            "quote": "<p>One of the few studios I point clients to when they ask for considered without being twee. Restraint is the operative word.</p>",
+            "author": "Jonah R.",
+            "role": "Interior designer, Brooklyn"
           }
         },
         "t3": {
           "type": "testimonial",
           "settings": {
+            "quote": "<p>The apron I bought three years ago looks better today than the day it arrived. The coffee stains feel earned.</p>",
             "author": "Aiko Tanaka",
-            "role": "Designer"
+            "role": "Baker, Osaka"
           }
         }
       },
@@ -58,7 +104,13 @@
     },
     "banner": {
       "type": "modulus-banner",
-      "settings": {}
+      "settings": {
+        "label_text": "Get in touch",
+        "heading": "<p>Questions or a project brief?</p>",
+        "body_text": "<p>Email the bench directly. We read everything and reply within two working days.</p>",
+        "button_label": "Contact us",
+        "button_link": "/pages/contact"
+      }
     }
   },
   "order": [
@@ -66,6 +118,7 @@
     "logos",
     "narrative",
     "product-cards",
+    "narrative-2",
     "testimonials",
     "banner"
   ]

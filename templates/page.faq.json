@@ -1,0 +1,84 @@
+/*
+ * ------------------------------------------------------------
+ * Modulus FAQ page template.
+ *
+ * Assign to an FAQ page in Shopify admin (Pages → your page →
+ * Template → page.faq). Renders the page title and a 6-item
+ * accordion below. Edit each question/answer in the theme editor.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "page-header": {
+      "type": "modulus-page",
+      "settings": {
+        "label_text": "FAQ",
+        "label_number": "01",
+        "subtitle": "<p>Answers to the questions we get most often. Don't see yours? <a href=\"/pages/contact\">Get in touch</a>.</p>",
+        "content_max_width": 760,
+        "padding_y": 96
+      }
+    },
+    "faq": {
+      "type": "modulus-faq",
+      "settings": {
+        "label_text": "",
+        "heading": "",
+        "layout": "split",
+        "intro": "<p>Skim the groups below. Each answer links out to the full policy when relevant.</p>",
+        "cta_label": "Contact us",
+        "cta_link": "/pages/contact"
+      },
+      "blocks": {
+        "q1": {
+          "type": "qa",
+          "settings": {
+            "question": "What's your shipping window?",
+            "answer": "<p>We ship within 2 business days of order confirmation. Domestic orders typically arrive in 3–5 days; international in 7–14. Tracking is emailed the moment your label prints.</p>",
+            "open_by_default": true
+          }
+        },
+        "q2": {
+          "type": "qa",
+          "settings": {
+            "question": "What's your return policy?",
+            "answer": "<p>30 days from delivery, in original condition. Return shipping is on us for domestic orders, at cost for international. We don't accept returns on final-sale items — those are marked on the product page before you buy.</p>"
+          }
+        },
+        "q3": {
+          "type": "qa",
+          "settings": {
+            "question": "Do you offer gift wrapping?",
+            "answer": "<p>Every order ships in a recycled kraft box with a twine tie — suitable for gifting as-is. We don't offer separate paid gift wrapping.</p>"
+          }
+        },
+        "q4": {
+          "type": "qa",
+          "settings": {
+            "question": "Are your products dishwasher safe?",
+            "answer": "<p>Check each product page's <em>Care</em> section — most are not, to extend their life. Hand-wash the wood, ceramic, and brass items. Machine-wash the textiles cold, hang to dry.</p>"
+          }
+        },
+        "q5": {
+          "type": "qa",
+          "settings": {
+            "question": "Do you wholesale?",
+            "answer": "<p>We do. Email <a href=\"mailto:wholesale@example.com\">wholesale@example.com</a> with your store name, location, and a note about your customer. We'll send our trade sheet and MOQ.</p>"
+          }
+        },
+        "q6": {
+          "type": "qa",
+          "settings": {
+            "question": "Where are you based?",
+            "answer": "<p>Our bench is in [City, Country]. We ship globally from one warehouse; everything is made (or finished) on the bench. See our <a href=\"/pages/about\">About page</a> for the long version.</p>"
+          }
+        }
+      },
+      "block_order": ["q1", "q2", "q3", "q4", "q5", "q6"]
+    }
+  },
+  "order": [
+    "page-header",
+    "faq"
+  ]
+}
