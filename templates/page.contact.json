@@ -1,0 +1,26 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * Contact page template — pairs modulus-page (for the page title
+ * + richtext intro entered in Shopify admin) with modulus-contact
+ * (the form). Merchants can reorder or add more Modulus sections
+ * in the theme editor.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "page": {
+      "type": "modulus-page",
+      "settings": {}
+    },
+    "contact": {
+      "type": "modulus-contact",
+      "settings": {}
+    }
+  },
+  "order": [
+    "page",
+    "contact"
+  ]
+}
