@@ -1,0 +1,88 @@
+{%- comment -%}
+  Modulus Product Card Swatches.
+
+  Renders a strip of color swatches for a product's color option, when
+  present. Uses Shopify's native `option.swatch` metaobject (set up by
+  merchants under Online Store → Swatches). Silently renders nothing
+  if the product has no color option, or has one but with no swatch
+  metaobjects configured.
+
+  Accepts:
+    product — product object
+    max     — max swatches to display inline (default 5). Beyond this,
+              shows "+N" indicator.
+{%- endcomment -%}
+
+{%- liquid
+  assign max = max | default: 5
+  assign color_option = null
+  for option in product.options_with_values
+    assign name_lower = option.name | downcase
+    if name_lower == 'color' or name_lower == 'colour'
+      assign color_option = option
+      break
+    endif
+  endfor
+-%}
+
+{%- if color_option -%}
+  {%- assign swatch_count = 0 -%}
+  {%- capture swatch_markup -%}
+    {%- for value in color_option.values -%}
+      {%- if value.swatch != blank and forloop.index0 < max -%}
+        {%- assign swatch_count = swatch_count | plus: 1 -%}
+        <li
+          class="modulus-product__swatch"
+          style="
+            {%- if value.swatch.color -%}background-color: {{ value.swatch.color }};{%- endif -%}
+            {%- if value.swatch.image -%}background-image: url({{ value.swatch.image | image_url: width: 40, height: 40 }});{%- endif -%}
+          "
+          title="{{ value | escape }}"
+          aria-label="{{ value | escape }}"
+        ></li>
+      {%- endif -%}
+    {%- endfor -%}
+  {%- endcapture -%}
+
+  {%- if swatch_count > 0 -%}
+    <ul class="modulus-product__swatches" role="list" aria-label="Available colors">
+      {{ swatch_markup }}
+      {%- if color_option.values.size > max -%}
+        {%- assign extras = color_option.values.size | minus: max -%}
+        <li class="modulus-product__swatch modulus-product__swatch--more" aria-hidden="true">+{{ extras }}</li>
+      {%- endif -%}
+    </ul>
+  {%- endif -%}
+{%- endif -%}
+
+<style>
+  .modulus-product__swatches {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .modulus-product__swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgb(var(--color-foreground-rgb) / 0.15);
+    background-size: cover;
+    background-position: center;
+  }
+  .modulus-product__swatch--more {
+    width: auto;
+    height: auto;
+    padding: 0 4px;
+    border: none;
+    background: transparent;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    line-height: 14px;
+  }
+</style>

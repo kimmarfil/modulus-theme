@@ -1,0 +1,84 @@
+{%- comment -%}
+  Modulus Quick Add button.
+
+  Renders a small add-to-cart form overlay for a product card. Behavior:
+    - If the product has only one available variant (or its default
+      variant is available), shows an "Add to cart" button that POSTs
+      directly. The cart drawer's global form intercept catches it.
+    - If the product has multiple variants, shows a "Choose options"
+      link to the PDP instead.
+    - If fully sold out, shows a "Sold out" button (disabled).
+
+  Accepts:
+    product — product object
+{%- endcomment -%}
+
+{%- liquid
+  assign current = product.selected_or_first_available_variant
+  assign can_quick_add = false
+  if product.has_only_default_variant and current.available
+    assign can_quick_add = true
+  endif
+-%}
+
+<div class="modulus-product__quick-add">
+  {%- if product.available == false -%}
+    <button type="button" class="modulus-product__qa-btn" disabled>Sold out</button>
+  {%- elsif can_quick_add -%}
+    <form action="{{ routes.cart_add_url }}" method="post" enctype="multipart/form-data" novalidate data-mod-quick-add-form>
+      <input type="hidden" name="id" value="{{ current.id }}">
+      <input type="hidden" name="quantity" value="1">
+      <button type="submit" name="add" class="modulus-product__qa-btn">
+        <span>Add to cart</span>
+        {% render 'modulus-icon', name: 'arrow-right', size: 12 %}
+      </button>
+    </form>
+  {%- else -%}
+    <a href="{{ product.url }}" class="modulus-product__qa-btn modulus-product__qa-btn--link">
+      <span>Choose options</span>
+      {% render 'modulus-icon', name: 'arrow-right', size: 12 %}
+    </a>
+  {%- endif -%}
+</div>
+
+<style>
+  .modulus-product__quick-add {
+    display: flex;
+    justify-content: center;
+  }
+  .modulus-product__qa-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-background);
+    background: var(--color-foreground);
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+  }
+  .modulus-product__qa-btn:hover {
+    opacity: 0.85;
+  }
+  .modulus-product__qa-btn[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .modulus-product__qa-btn--link {
+    background: transparent;
+    color: var(--color-foreground);
+    border: 1px solid var(--color-foreground);
+  }
+  .modulus-product__qa-btn--link:hover {
+    background: var(--color-foreground);
+    color: var(--color-background);
+    opacity: 1;
+  }
+</style>

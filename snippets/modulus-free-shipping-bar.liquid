@@ -1,0 +1,95 @@
+{%- comment -%}
+  Modulus Free-Shipping Progress Bar.
+
+  Emits the markup + styles for a cart free-shipping progress bar.
+  The actual bar is hidden if the feature is disabled in theme
+  settings (settings.cart_show_free_shipping_bar) or if the threshold
+  is 0. JS in modulus-cart and modulus-cart-drawer updates the bar's
+  data-attributes after cart mutations.
+
+  Accepts:
+    context     — 'cart' | 'drawer' — used only to scope an optional
+                  modifier class; both layouts use the same markup.
+{%- endcomment -%}
+
+{%- liquid
+  assign enabled = settings.cart_show_free_shipping_bar
+  assign threshold_units = settings.cart_free_shipping_threshold | default: 0
+-%}
+
+{%- if enabled and threshold_units > 0 -%}
+  {%- liquid
+    assign threshold_cents = threshold_units | times: 100
+    assign remaining_cents = threshold_cents | minus: cart.total_price
+    if remaining_cents < 0
+      assign remaining_cents = 0
+    endif
+    assign unlocked = false
+    if cart.total_price >= threshold_cents
+      assign unlocked = true
+    endif
+
+    assign percent = cart.total_price | times: 100 | divided_by: threshold_cents
+    if percent > 100
+      assign percent = 100
+    endif
+
+    assign remaining_money = remaining_cents | money
+    assign remaining_template = settings.cart_free_shipping_remaining_text | default: 'Add [amount] more for free shipping.'
+    assign remaining_text = remaining_template | replace: '[amount]', remaining_money
+    assign unlocked_text = settings.cart_free_shipping_unlocked_text | default: 'You qualify for free shipping.'
+  -%}
+
+  <div
+    class="modulus-ship-bar{% if context %} modulus-ship-bar--{{ context }}{% endif %}{% if unlocked %} is-unlocked{% endif %}"
+    data-mod-ship-bar
+    data-threshold-cents="{{ threshold_cents }}"
+    data-remaining-template="{{ remaining_template | escape }}"
+    data-unlocked-text="{{ unlocked_text | escape }}"
+  >
+    <div class="modulus-ship-bar__label" data-mod-ship-bar-label>
+      {%- if unlocked -%}{{ unlocked_text }}{%- else -%}{{ remaining_text }}{%- endif -%}
+    </div>
+    <div class="modulus-ship-bar__track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ percent }}">
+      <div class="modulus-ship-bar__fill" data-mod-ship-bar-fill style="width: {{ percent }}%;"></div>
+    </div>
+  </div>
+
+  <style>
+    .modulus-ship-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 0;
+    }
+
+    .modulus-ship-bar--drawer {
+      padding: 10px var(--mod-section-px, 24px);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .modulus-ship-bar__label {
+      font-family: var(--font-label--family, var(--font-body--family));
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgb(var(--color-foreground-rgb) / 0.75);
+    }
+
+    .modulus-ship-bar.is-unlocked .modulus-ship-bar__label {
+      color: var(--color-foreground);
+    }
+
+    .modulus-ship-bar__track {
+      height: 3px;
+      background: rgb(var(--color-foreground-rgb) / 0.12);
+      overflow: hidden;
+    }
+
+    .modulus-ship-bar__fill {
+      height: 100%;
+      background: var(--color-foreground);
+      transition: width 0.35s ease;
+    }
+  </style>
+{%- endif -%}

@@ -46,6 +46,8 @@
         class="modulus-cart__form"
         data-mod-cart-form
       >
+        {% render 'modulus-free-shipping-bar', context: 'cart' %}
+
         <div class="modulus-cart__layout">
 
           {%- comment -%} ===== LINE ITEMS ===== {%- endcomment -%}
@@ -871,6 +873,7 @@
               const totalEl = line.querySelector('.modulus-cart__line-total');
               if (totalEl) totalEl.innerHTML = `<span class="modulus-cart__price">${this.formatMoney(updated.final_line_price)}</span>`;
             }
+            this.updateShippingBar(cart);
             window.dispatchEvent(new CustomEvent('modulus:cart:update', { detail: cart }));
           })
           .catch(() => {
@@ -879,6 +882,31 @@
           .finally(() => {
             this.classList.remove('is-loading');
           });
+      }
+
+      updateShippingBar(cart) {
+        const bar = this.querySelector('[data-mod-ship-bar]');
+        if (!bar) return;
+        const threshold = parseInt(bar.dataset.thresholdCents, 10) || 0;
+        if (threshold <= 0) return;
+        const total = (cart && typeof cart.total_price === 'number') ? cart.total_price : 0;
+        const remaining = Math.max(0, threshold - total);
+        const percent = Math.min(100, Math.round((total / threshold) * 100));
+        const fill = bar.querySelector('[data-mod-ship-bar-fill]');
+        const label = bar.querySelector('[data-mod-ship-bar-label]');
+        if (fill) fill.style.width = percent + '%';
+        const track = bar.querySelector('.modulus-ship-bar__track');
+        if (track) track.setAttribute('aria-valuenow', String(percent));
+        const unlocked = total >= threshold;
+        bar.classList.toggle('is-unlocked', unlocked);
+        if (label) {
+          if (unlocked) {
+            label.textContent = bar.dataset.unlockedText || '';
+          } else {
+            const template = bar.dataset.remainingTemplate || 'Add [amount] more for free shipping.';
+            label.textContent = template.replace('[amount]', this.formatMoney(remaining));
+          }
+        }
       }
 
       formatMoney(cents) {

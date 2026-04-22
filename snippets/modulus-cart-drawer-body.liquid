@@ -8,6 +8,8 @@
     section — the calling section, for settings lookup
 {%- endcomment -%}
 
+{% render 'modulus-free-shipping-bar', context: 'drawer' %}
+
 {%- if cart.item_count == 0 -%}
   <div class="modulus-cart-drawer__empty">
     <p>

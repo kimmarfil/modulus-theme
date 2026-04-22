@@ -203,7 +203,28 @@
         "info": "The header section has its own override; this is the theme default."
       },
       { "type": "checkbox", "id": "cart_show_note", "label": "Show cart note field", "default": true },
-      { "type": "checkbox", "id": "cart_show_free_shipping_bar", "label": "Show free-shipping progress bar", "default": false, "info": "Reserved for a future feature." }
+      { "type": "checkbox", "id": "cart_show_free_shipping_bar", "label": "Show free-shipping progress bar", "default": false, "info": "Displays a progress bar in the cart page and cart drawer showing how close the order is to free shipping." },
+      {
+        "type": "range",
+        "id": "cart_free_shipping_threshold",
+        "label": "Free shipping threshold",
+        "info": "In your store's default currency. Used as the goal for the progress bar.",
+        "min": 0, "max": 500, "step": 5, "unit": "$",
+        "default": 100
+      },
+      {
+        "type": "text",
+        "id": "cart_free_shipping_remaining_text",
+        "label": "Remaining-amount message",
+        "info": "Use [amount] as a placeholder for the remaining amount.",
+        "default": "Add [amount] more for free shipping."
+      },
+      {
+        "type": "text",
+        "id": "cart_free_shipping_unlocked_text",
+        "label": "Unlocked message",
+        "default": "You qualify for free shipping."
+      }
     ]
   },
 

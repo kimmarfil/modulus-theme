@@ -19,9 +19,13 @@
 
 {%- assign real_total = 0 -%}
 {%- for filter in collection.filters -%}
-  {%- unless filter.type == 'price_range' or filter.type == 'range' -%}
+  {%- if filter.type == 'price_range' -%}
+    {%- if filter.range_max > 0 -%}{%- assign real_total = real_total | plus: 1 -%}{%- endif -%}
+  {%- elsif filter.type == 'range' -%}
+    {%- comment -%} Non-price numeric ranges not yet supported in the UI. {%- endcomment -%}
+  {%- else -%}
     {%- if filter.values.size > 0 -%}{%- assign real_total = real_total | plus: 1 -%}{%- endif -%}
-  {%- endunless -%}
+  {%- endif -%}
 {%- endfor -%}
 
 {%- if real_total > 0 -%}
@@ -58,11 +62,17 @@
             into the secondary row.
           {%- endcomment -%}
           {%- for filter in collection.filters -%}
-            {%- unless filter.type == 'price_range' or filter.type == 'range' -%}
+            {%- if filter.type == 'price_range' -%}
+              {%- if filter.range_max > 0 -%}
+                {%- render 'modulus-filter-price-range', filter: filter, id_prefix: 'mfb-p' -%}
+              {%- endif -%}
+            {%- elsif filter.type == 'range' -%}
+              {%- comment -%} Non-price numeric ranges not yet supported. {%- endcomment -%}
+            {%- else -%}
               {%- if filter.values.size > 0 -%}
                 {%- render 'modulus-filter-dropdown', filter: filter, id_prefix: 'mfb-p' -%}
               {%- endif -%}
-            {%- endunless -%}
+            {%- endif -%}
           {%- endfor -%}
         </div>
 

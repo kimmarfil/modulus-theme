@@ -97,9 +97,18 @@
 
     </div>
 
-    {%- if section.settings.show_locale_selector -%}
-      <div class="modulus-footer__locale">
-        {% render 'modulus-locale-selector', variant: 'inline' %}
+    {%- if section.settings.show_locale_selector or section.settings.show_cookie_link -%}
+      <div class="modulus-footer__bottom">
+        {%- if section.settings.show_locale_selector -%}
+          <div class="modulus-footer__locale">
+            {% render 'modulus-locale-selector', variant: 'inline' %}
+          </div>
+        {%- endif -%}
+        {%- if section.settings.show_cookie_link -%}
+          <div class="modulus-footer__cookie">
+            {% render 'modulus-cookie-link', label: section.settings.cookie_link_label %}
+          </div>
+        {%- endif -%}
       </div>
     {%- endif -%}
 
@@ -119,16 +128,29 @@
     margin: 0 auto;
   }
 
-  .modulus-footer__locale {
+  .modulus-footer__bottom {
     margin-top: var(--mod-gap-lg);
     padding-top: var(--mod-gap-md);
     border-top: 1px solid var(--color-border);
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--mod-gap-md);
+    flex-wrap: wrap;
+  }
+
+  .modulus-footer__locale { display: flex; }
+
+  .modulus-footer__cookie {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
   }
 
   @media (max-width: 640px) {
-    .modulus-footer__locale { justify-content: flex-start; }
+    .modulus-footer__bottom { justify-content: flex-start; }
   }
 
   /* ---- CTA row ---- */
@@ -442,6 +464,19 @@
       "label": "Show language / country selector",
       "info": "Appears below the footer columns. Only renders if the store has more than one market or language enabled.",
       "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cookie_link",
+      "label": "Show cookie preferences link",
+      "info": "Appears below the footer columns. Opens Shopify's consent banner when the merchant has enabled customer privacy in admin \u2192 Preferences.",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "cookie_link_label",
+      "label": "Cookie link label",
+      "default": "Cookie preferences"
     },
     {
       "type": "header",

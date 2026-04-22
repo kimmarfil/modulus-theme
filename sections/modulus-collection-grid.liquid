@@ -82,12 +82,14 @@
         <ul class="modulus-collection-grid__products">
           {%- for product in collection.products -%}
             {%- assign padded_index = forloop.index | prepend: '00' | slice: -2, 2 -%}
-            <li>
+            <li
+              class="modulus-collection-grid__product-wrap{% if product.available == false %} is-sold-out{% endif %}"
+              data-mod-reveal
+              data-mod-reveal-delay="{{ forloop.index0 | times: 40 | at_most: 320 }}"
+            >
               <a
                 href="{{ product.url }}"
                 class="modulus-product{% if product.available == false %} modulus-product--sold-out{% endif %}"
-                data-mod-reveal
-                data-mod-reveal-delay="{{ forloop.index0 | times: 40 | at_most: 320 }}"
               >
                 <div class="modulus-product__image-wrap">
                   {%- if section.settings.show_numbers -%}
@@ -133,6 +135,16 @@
                   {%- endif -%}
                 </div>
               </a>
+
+              {%- if section.settings.show_swatches -%}
+                {% render 'modulus-product-swatches', product: product %}
+              {%- endif -%}
+
+              {%- if section.settings.show_quick_add -%}
+                <div class="modulus-collection-grid__quick-add-wrap">
+                  {% render 'modulus-quick-add', product: product %}
+                </div>
+              {%- endif -%}
             </li>
           {%- endfor -%}
         </ul>
@@ -255,6 +267,10 @@
     margin: 0;
   }
 
+  .modulus-collection-grid__product-wrap {
+    position: relative;
+  }
+
   .modulus-product {
     position: relative;
     display: block;
@@ -268,6 +284,41 @@
     background: rgb(var(--color-foreground-rgb) / 0.04);
     aspect-ratio: var(--cg-aspect, 3 / 4);
     margin-bottom: 16px;
+  }
+
+  /* ---- Quick-add overlay (absolutely positioned over image area) ---- */
+  .modulus-collection-grid__quick-add-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    aspect-ratio: var(--cg-aspect, 3 / 4);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 14px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .modulus-collection-grid__product-wrap:hover .modulus-collection-grid__quick-add-wrap,
+  .modulus-collection-grid__product-wrap:focus-within .modulus-collection-grid__quick-add-wrap {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .modulus-collection-grid__quick-add-wrap > * {
+    pointer-events: auto;
+  }
+
+  /* On touch devices where hover doesn't apply, keep quick-add always visible. */
+  @media (hover: none) {
+    .modulus-collection-grid__quick-add-wrap {
+      opacity: 1;
+      transform: none;
+    }
   }
 
   .modulus-product__image {
@@ -618,6 +669,8 @@
     { "type": "header", "content": "Card display" },
     { "type": "checkbox", "id": "show_numbers", "label": "Show /01 numbered label on image", "default": true },
     { "type": "checkbox", "id": "show_vendor", "label": "Show vendor / brand", "default": false },
+    { "type": "checkbox", "id": "show_swatches", "label": "Show color swatches", "info": "Requires products to have a color option with swatches configured in Online Store \u2192 Swatches.", "default": true },
+    { "type": "checkbox", "id": "show_quick_add", "label": "Show quick-add on hover", "info": "For single-variant products, adds directly to cart on click. Multi-variant products link to the product page to choose options.", "default": true },
     { "type": "header", "content": "Filters" },
     {
       "type": "checkbox",

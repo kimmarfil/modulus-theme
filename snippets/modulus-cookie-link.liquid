@@ -1,0 +1,65 @@
+{%- comment -%}
+  Modulus Cookie preferences link.
+
+  Rendered as a small button in the footer. When Shopify's Customer
+  Privacy API is active (enabled by the merchant under Preferences →
+  Customer Privacy), clicking re-opens the consent banner so the
+  visitor can change their choices.
+
+  If the API isn't available (the merchant hasn't enabled consent
+  collection), clicking does nothing — the button is safe to ship
+  regardless of the shop's jurisdiction.
+
+  Accepts:
+    label — button text (default "Cookie preferences")
+{%- endcomment -%}
+
+{%- assign label = label | default: 'Cookie preferences' -%}
+
+<button
+  type="button"
+  class="modulus-cookie-link"
+  data-mod-cookie-open
+  aria-haspopup="dialog"
+>{{ label | escape }}</button>
+
+<style>
+  .modulus-cookie-link {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: inherit;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .modulus-cookie-link:hover {
+    text-decoration-thickness: 2px;
+  }
+</style>
+
+<script>
+  (function () {
+    if (window.__modulusCookieLinkBound) return;
+    window.__modulusCookieLinkBound = true;
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-mod-cookie-open]');
+      if (!btn) return;
+      e.preventDefault();
+
+      // Prefer the current Customer Privacy API surface, fall back to the
+      // older global if older Shopify runtimes are in play.
+      var api = window.Shopify && window.Shopify.customerPrivacy;
+      if (api && typeof api.openConsentPreferences === 'function') {
+        api.openConsentPreferences();
+      } else if (window.privacyBanner && typeof window.privacyBanner.loadBanner === 'function') {
+        window.privacyBanner.loadBanner();
+      }
+    });
+  })();
+</script>
