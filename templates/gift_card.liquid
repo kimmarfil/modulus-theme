@@ -201,7 +201,12 @@
     <main class="modulus-gc">
       <a href="{{ routes.root_url }}" class="modulus-gc__brand">
         {%- if settings.logo != blank -%}
-          <img src="{{ settings.logo | image_url: width: 240 }}" alt="{{ shop.name | escape }}">
+          <img
+            src="{{ settings.logo | image_url: width: 240 }}"
+            alt="{{ shop.name | escape }}"
+            width="{{ settings.logo.width }}"
+            height="{{ settings.logo.height }}"
+          >
         {%- else -%}
           {{ shop.name | escape }}
         {%- endif -%}

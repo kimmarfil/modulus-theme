@@ -38,10 +38,35 @@
   </head>
 
   <body>
+    <a class="modulus-skip-link" href="#MainContent">Skip to content</a>
+
     {% sections 'header-group' %}
 
-    {{ content_for_layout }}
+    <main id="MainContent" role="main">
+      {{ content_for_layout }}
+    </main>
 
     {% sections 'footer-group' %}
+
+    <style>
+      .modulus-skip-link {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        z-index: 200;
+        padding: 10px 16px;
+        background: var(--color-foreground, #000);
+        color: var(--color-background, #fff);
+        font-family: var(--font-label--family, system-ui, sans-serif);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        text-decoration: none;
+      }
+      .modulus-skip-link:focus {
+        left: 16px;
+        top: 16px;
+      }
+    </style>
   </body>
 </html>

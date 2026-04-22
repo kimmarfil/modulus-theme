@@ -140,7 +140,12 @@
     <div class="modulus-header__drawer-head">
       <a href="{{ routes.root_url }}" class="modulus-header__drawer-logo">
         {%- if use_image_logo -%}
-          <img src="{{ section.settings.logo | image_url: width: 300 }}" alt="{{ shop.name | escape }}">
+          <img
+            src="{{ section.settings.logo | image_url: width: 300 }}"
+            alt="{{ shop.name | escape }}"
+            width="{{ section.settings.logo.width }}"
+            height="{{ section.settings.logo.height }}"
+          >
         {%- else -%}
           {{ shop.name | escape }}
         {%- endif -%}

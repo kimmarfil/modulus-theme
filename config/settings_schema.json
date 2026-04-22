@@ -153,7 +153,7 @@
         ],
         "role": {
           "text": "text",
-          "background": { "solid": "background" },
+          "background": { "solid": "background", "gradient": "background" },
           "links": "secondary_button_label",
           "icons": "text",
           "primary_button": "button",

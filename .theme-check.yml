@@ -1,1 +1,17 @@
 extends: theme-check:recommended
+
+# The `qr` filter IS a valid Shopify Liquid filter (used on
+# templates/gift_card.liquid to render gift-card QR codes) but theme-
+# check doesn't yet recognize it. Suppress the false positives here
+# until upstream adds it.
+UnknownFilter:
+  enabled: true
+  ignore:
+    - "templates/gift_card.liquid"
+
+RemoteAsset:
+  enabled: true
+  ignore:
+    - "templates/gift_card.liquid"
+    # modulus-hero accepts a merchant-provided video URL (expected to be a CDN)
+    - "sections/modulus-hero.liquid"

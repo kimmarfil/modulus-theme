@@ -168,6 +168,9 @@
     "quantity": "Quantity",
     "unavailable": "Unavailable"
   },
+  "collections": {
+    "title": "Collections"
+  },
   "collection": {
     "results_count": "{{ count }} Results",
     "results_count_one": "1 Result",
@@ -287,6 +290,7 @@
     }
   },
   "gift_card": {
+    "title": "Gift card",
     "balance_label": "Gift card balance",
     "expired": "This gift card is no longer active.",
     "expires_on_html": "Expires on {{ date }}",
