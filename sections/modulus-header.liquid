@@ -14,14 +14,14 @@
 
 <modulus-header
   id="modulus-header-{{ section.id }}"
-  class="modulus-header{% if section.settings.sticky %} modulus-header--sticky{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  class="modulus-header color-{{ section.settings.color_scheme.id }}{% if section.settings.sticky %} modulus-header--sticky{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
   data-transparent-enabled="{{ section.settings.allow_transparent }}"
   style="
     --mh-height: {{ section.settings.header_height }}px;
     --mh-logo-height: {{ section.settings.logo_height }}px;
   "
 >
-  <div class="modulus-header__inner color-{{ section.settings.color_scheme.id }}">
+  <div class="modulus-header__inner">
     <a
       href="{{ routes.root_url }}"
       class="modulus-header__logo"
