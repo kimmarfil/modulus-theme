@@ -55,6 +55,12 @@
   --mod-gap-xl: 96px;
   --mod-max-width: calc(var(--page-width, 90rem) - var(--page-margin, 24px) * 2);
 
+  /* Standard prose max-width — use for text-heavy containers
+     (intros, page bodies, article bodies, 404 copy, contact intros).
+     Roughly 65–75 characters per line at base font size, the
+     classic typographic optimum for long-form reading. */
+  --mod-prose-max-width: 720px;
+
   /* ------ Motion ------ */
   --mod-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
   --mod-ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);

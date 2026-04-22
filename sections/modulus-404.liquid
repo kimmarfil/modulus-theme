@@ -5,7 +5,7 @@
 
 <div
   id="modulus-404-{{ section.id }}"
-  class="modulus-404 color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  class="modulus-404 modulus-404--align-{{ section.settings.text_alignment }} color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
   style="
     --nf-py: {{ section.settings.padding_y }}px;
     --nf-glyph-size: {{ section.settings.glyph_size }}px;
@@ -49,11 +49,25 @@
   }
 
   .modulus-404__content {
-    max-width: 680px;
+    max-width: var(--mod-prose-max-width, 720px);
     display: flex;
     flex-direction: column;
     gap: var(--mod-gap-md);
   }
+
+  /* Alignment variants — applied via class on the section root. */
+  .modulus-404--align-center .modulus-404__content {
+    margin: 0 auto;
+    text-align: center;
+    align-items: center;
+  }
+  .modulus-404--align-center .modulus-404__ctas { justify-content: center; }
+  .modulus-404--align-right .modulus-404__content {
+    margin-left: auto;
+    text-align: right;
+    align-items: flex-end;
+  }
+  .modulus-404--align-right .modulus-404__ctas { justify-content: flex-end; }
 
   .modulus-404__glyph {
     font-family: var(--font-heading--family);
@@ -140,6 +154,17 @@
     { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
 
     { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Text alignment",
+      "options": [
+        { "value": "left", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right", "label": "Right" }
+      ],
+      "default": "left"
+    },
     {
       "type": "select",
       "id": "section_width",
