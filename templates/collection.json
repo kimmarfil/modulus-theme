@@ -9,12 +9,17 @@
  */
 {
   "sections": {
-    "main": {
-      "type": "collection",
+    "collection-hero": {
+      "type": "modulus-collection-hero",
+      "settings": {}
+    },
+    "collection-grid": {
+      "type": "modulus-collection-grid",
       "settings": {}
     }
   },
   "order": [
-    "main"
+    "collection-hero",
+    "collection-grid"
   ]
 }

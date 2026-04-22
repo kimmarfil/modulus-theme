@@ -9,12 +9,53 @@
  */
 {
   "sections": {
-    "main": {
-      "type": "product",
+    "product-hero": {
+      "type": "modulus-product-hero",
+      "settings": {}
+    },
+    "feature-row": {
+      "type": "modulus-feature-row",
+      "settings": {}
+    },
+    "specs": {
+      "type": "modulus-specs",
+      "settings": {}
+    },
+    "narrative": {
+      "type": "modulus-narrative",
+      "settings": {}
+    },
+    "faq": {
+      "type": "modulus-faq",
+      "settings": {},
+      "blocks": {
+        "q1": { "type": "qa", "settings": {} },
+        "q2": {
+          "type": "qa",
+          "settings": {
+            "question": "How long does shipping take?"
+          }
+        },
+        "q3": {
+          "type": "qa",
+          "settings": {
+            "question": "What is your return policy?"
+          }
+        }
+      },
+      "block_order": ["q1", "q2", "q3"]
+    },
+    "banner": {
+      "type": "modulus-banner",
       "settings": {}
     }
   },
   "order": [
-    "main"
+    "product-hero",
+    "feature-row",
+    "specs",
+    "narrative",
+    "faq",
+    "banner"
   ]
 }

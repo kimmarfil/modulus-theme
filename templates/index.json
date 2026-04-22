@@ -9,12 +9,64 @@
  */
 {
   "sections": {
-    "main": {
-      "type": "hello-world",
+    "hero": {
+      "type": "modulus-hero",
+      "settings": {}
+    },
+    "logos": {
+      "type": "modulus-logos",
+      "settings": {},
+      "blocks": {
+        "l1": { "type": "logo", "settings": {} },
+        "l2": { "type": "logo", "settings": {} },
+        "l3": { "type": "logo", "settings": {} },
+        "l4": { "type": "logo", "settings": {} },
+        "l5": { "type": "logo", "settings": {} },
+        "l6": { "type": "logo", "settings": {} }
+      },
+      "block_order": ["l1", "l2", "l3", "l4", "l5", "l6"]
+    },
+    "narrative": {
+      "type": "modulus-narrative",
+      "settings": {}
+    },
+    "product-cards": {
+      "type": "modulus-product-cards",
+      "settings": {}
+    },
+    "testimonials": {
+      "type": "modulus-testimonials",
+      "settings": {},
+      "blocks": {
+        "t1": { "type": "testimonial", "settings": {} },
+        "t2": {
+          "type": "testimonial",
+          "settings": {
+            "author": "John Smith",
+            "role": "Director, Workshop"
+          }
+        },
+        "t3": {
+          "type": "testimonial",
+          "settings": {
+            "author": "Aiko Tanaka",
+            "role": "Designer"
+          }
+        }
+      },
+      "block_order": ["t1", "t2", "t3"]
+    },
+    "banner": {
+      "type": "modulus-banner",
       "settings": {}
     }
   },
   "order": [
-    "main"
+    "hero",
+    "logos",
+    "narrative",
+    "product-cards",
+    "testimonials",
+    "banner"
   ]
 }
