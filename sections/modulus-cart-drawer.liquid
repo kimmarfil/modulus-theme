@@ -65,6 +65,12 @@
     inset: 0;
     pointer-events: none;
     z-index: 110;
+    /* The outer container must stay transparent even when a .color-scheme-*
+       class (which sets background-color: var(--color-background)) is applied
+       to it — otherwise it paints a solid rectangle over the entire viewport
+       and the page goes blank. The backdrop + panel children render their
+       own backgrounds when the drawer opens. */
+    background: transparent !important;
   }
 
   .modulus-cart-drawer.is-open {
