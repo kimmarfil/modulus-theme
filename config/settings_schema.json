@@ -2,18 +2,65 @@
   {
     "name": "theme_info",
     "theme_name": "Modulus",
-    "theme_version": "0.1.0",
+    "theme_version": "0.2.0",
     "theme_author": "Kim Marfil",
     "theme_documentation_url": "https://github.com/kimmarfil/modulus-theme#readme",
     "theme_support_url": "https://github.com/kimmarfil/modulus-theme/issues"
   },
+
+  {
+    "name": "Brand",
+    "settings": [
+      { "type": "header", "content": "Identity" },
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Logo",
+        "info": "Used as a fallback on the password page, gift-card page, and anywhere `settings.logo` is referenced. Per-section headers can override."
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon",
+        "info": "Displayed in the browser tab. Recommended 32×32 or 64×64 PNG."
+      },
+      {
+        "type": "image_picker",
+        "id": "share_image",
+        "label": "Default social share image",
+        "info": "Used for Open Graph / Twitter cards when a page doesn't set its own."
+      },
+
+      { "type": "header", "content": "Contact" },
+      { "type": "text", "id": "brand_email", "label": "Public email" },
+      { "type": "text", "id": "brand_phone", "label": "Public phone" },
+      { "type": "richtext", "id": "brand_address", "label": "Public address" }
+    ]
+  },
+
+  {
+    "name": "Social media",
+    "settings": [
+      { "type": "header", "content": "Links" },
+      { "type": "text", "id": "social_instagram_link", "label": "Instagram URL" },
+      { "type": "text", "id": "social_twitter_link", "label": "X / Twitter URL" },
+      { "type": "text", "id": "social_facebook_link", "label": "Facebook URL" },
+      { "type": "text", "id": "social_tiktok_link", "label": "TikTok URL" },
+      { "type": "text", "id": "social_youtube_link", "label": "YouTube URL" },
+      { "type": "text", "id": "social_pinterest_link", "label": "Pinterest URL" },
+      { "type": "text", "id": "social_linkedin_link", "label": "LinkedIn URL" },
+      { "type": "text", "id": "social_threads_link", "label": "Threads URL" },
+      { "type": "text", "id": "social_snapchat_link", "label": "Snapchat URL" },
+
+      { "type": "header", "content": "Share handles (optional)" },
+      { "type": "text", "id": "social_twitter_handle", "label": "X / Twitter @handle", "info": "Used in Twitter card meta tags. Include the leading @." }
+    ]
+  },
+
   {
     "name": "Typography",
     "settings": [
-      {
-        "type": "header",
-        "content": "Fonts"
-      },
+      { "type": "header", "content": "Fonts" },
       {
         "type": "font_picker",
         "id": "type_heading_font",
@@ -35,10 +82,8 @@
         "label": "Label font",
         "info": "Used for tiny uppercase labels and button text."
       },
-      {
-        "type": "header",
-        "content": "Primary font (Skeleton fallback)"
-      },
+
+      { "type": "header", "content": "Primary font (Skeleton fallback)" },
       {
         "type": "font_picker",
         "id": "type_primary_font",
@@ -48,9 +93,11 @@
       }
     ]
   },
+
   {
     "name": "Layout",
     "settings": [
+      { "type": "header", "content": "Page dimensions" },
       {
         "type": "select",
         "id": "max_page_width",
@@ -71,9 +118,24 @@
         "unit": "px",
         "label": "Page margin",
         "default": 24
+      },
+
+      { "type": "header", "content": "Section spacing" },
+      {
+        "type": "select",
+        "id": "section_spacing",
+        "label": "Default section vertical padding",
+        "options": [
+          { "value": "tight",  "label": "Tight (64px)" },
+          { "value": "normal", "label": "Normal (120px)" },
+          { "value": "loose",  "label": "Loose (180px)" }
+        ],
+        "default": "normal",
+        "info": "Individual sections can still override via their own padding setting."
       }
     ]
   },
+
   {
     "name": "Colors",
     "settings": [
@@ -81,48 +143,13 @@
         "type": "color_scheme_group",
         "id": "color_schemes",
         "definition": [
-          {
-            "type": "color",
-            "id": "background",
-            "label": "Background",
-            "default": "#ffffff"
-          },
-          {
-            "type": "color",
-            "id": "text",
-            "label": "Text",
-            "default": "#060809"
-          },
-          {
-            "type": "color",
-            "id": "heading",
-            "label": "Heading",
-            "default": "#060809"
-          },
-          {
-            "type": "color",
-            "id": "border",
-            "label": "Border / divider",
-            "default": "#e5e5e5"
-          },
-          {
-            "type": "color",
-            "id": "button",
-            "label": "Button background",
-            "default": "#060809"
-          },
-          {
-            "type": "color",
-            "id": "button_label",
-            "label": "Button text",
-            "default": "#ffffff"
-          },
-          {
-            "type": "color",
-            "id": "secondary_button_label",
-            "label": "Secondary button text / link",
-            "default": "#060809"
-          }
+          { "type": "color", "id": "background", "label": "Background", "default": "#ffffff" },
+          { "type": "color", "id": "text", "label": "Text", "default": "#060809" },
+          { "type": "color", "id": "heading", "label": "Heading", "default": "#060809" },
+          { "type": "color", "id": "border", "label": "Border / divider", "default": "#e5e5e5" },
+          { "type": "color", "id": "button", "label": "Button background", "default": "#060809" },
+          { "type": "color", "id": "button_label", "label": "Button text", "default": "#ffffff" },
+          { "type": "color", "id": "secondary_button_label", "label": "Secondary button text / link", "default": "#060809" }
         ],
         "role": {
           "text": "text",
@@ -139,25 +166,61 @@
       }
     ]
   },
+
+  {
+    "name": "Product cards",
+    "settings": [
+      { "type": "header", "content": "Defaults" },
+      { "type": "checkbox", "id": "product_card_show_vendor", "label": "Show vendor / brand on cards", "default": false },
+      { "type": "checkbox", "id": "product_card_show_sale_badge", "label": "Show sale badge", "default": true },
+      { "type": "checkbox", "id": "product_card_show_sold_out_badge", "label": "Show sold-out badge", "default": true },
+      {
+        "type": "select",
+        "id": "product_card_image_ratio",
+        "label": "Image aspect ratio",
+        "options": [
+          { "value": "1 / 1", "label": "Square (1:1)" },
+          { "value": "3 / 4", "label": "Portrait (3:4)" },
+          { "value": "4 / 5", "label": "Tall (4:5)" }
+        ],
+        "default": "3 / 4"
+      }
+    ]
+  },
+
+  {
+    "name": "Cart behavior",
+    "settings": [
+      {
+        "type": "select",
+        "id": "cart_type",
+        "label": "Cart type",
+        "options": [
+          { "value": "drawer", "label": "Slide-in drawer" },
+          { "value": "page", "label": "Cart page" }
+        ],
+        "default": "drawer",
+        "info": "The header section has its own override; this is the theme default."
+      },
+      { "type": "checkbox", "id": "cart_show_note", "label": "Show cart note field", "default": true },
+      { "type": "checkbox", "id": "cart_show_free_shipping_bar", "label": "Show free-shipping progress bar", "default": false, "info": "Reserved for a future feature." }
+    ]
+  },
+
+  {
+    "name": "Currency & checkout",
+    "settings": [
+      { "type": "checkbox", "id": "show_payment_icons", "label": "Show payment icons in footer", "default": true },
+      { "type": "checkbox", "id": "currency_show_code", "label": "Show currency code with prices", "default": false, "info": "E.g. '$19.99 USD' instead of '$19.99'." }
+    ]
+  },
+
   {
     "name": "Defaults",
     "settings": [
-      {
-        "type": "header",
-        "content": "Legacy colors (Skeleton compatibility)"
-      },
-      {
-        "type": "color",
-        "id": "background_color",
-        "default": "#ffffff",
-        "label": "Site background"
-      },
-      {
-        "type": "color",
-        "id": "foreground_color",
-        "default": "#060809",
-        "label": "Site foreground"
-      },
+      { "type": "header", "content": "Legacy colors (Skeleton compatibility)" },
+      { "type": "color", "id": "background_color", "default": "#ffffff", "label": "Site background" },
+      { "type": "color", "id": "foreground_color", "default": "#060809", "label": "Site foreground" },
       {
         "type": "range",
         "id": "input_corner_radius",

@@ -23,6 +23,12 @@
     {% # Modulus design tokens — depends on critical.css + css-variables %}
     {{ 'modulus-tokens.css' | asset_url | stylesheet_tag }}
 
+    {% # Favicon from theme settings %}
+    {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+      <link rel="apple-touch-icon" sizes="180x180" href="{{ settings.favicon | image_url: width: 180, height: 180 }}">
+    {%- endif -%}
+
     {% # Social, title, etc. %}
     {% render 'meta-tags' %}
 
