@@ -16,7 +16,7 @@
 -%}
 
 {%- unless render_empty -%}
-<section
+<div
   id="modulus-product-hero-{{ section.id }}"
   class="modulus-product-hero color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
   style="
@@ -164,19 +164,26 @@
               type="submit"
               name="add"
               class="modulus-product-hero__cta modulus-product-hero__cta--primary"
+              data-mph-add
               {% unless current_variant.available %}disabled{% endunless %}
             >
-              <span>
+              <span data-mph-add-label>
                 {%- if current_variant.available -%}
                   {{ section.settings.add_to_cart_label | default: 'Add to cart' }}
                 {%- else -%}
-                  Sold out
+                  {{ section.settings.sold_out_label | default: 'Sold out' }}
                 {%- endif -%}
               </span>
               {%- if current_variant.available -%}
                 {% render 'modulus-icon', name: 'arrow-right', size: 14 %}
               {%- endif -%}
             </button>
+
+            {%- if section.settings.show_payment_button -%}
+              <div class="modulus-product-hero__payment-buttons">
+                {{ form | payment_button }}
+              </div>
+            {%- endif -%}
           </div>
         {%- endform -%}
 
@@ -197,7 +204,7 @@
       </div>
     </div>
   </div>
-</section>
+</div>
 
 <script>
   (function () {
@@ -252,6 +259,22 @@
       });
     }
 
+    var addBtn = section.querySelector('[data-mph-add]');
+    var addLabel = section.querySelector('[data-mph-add-label]');
+    var addLabelAvailable = addLabel ? addLabel.textContent.trim() : 'Add to cart';
+    var addLabelSoldOut = {{ section.settings.sold_out_label | default: 'Sold out' | json }};
+    var addLabelUnavailable = 'Unavailable';
+
+    function swapMainImage (src, alt) {
+      if (!mainImg || !src) return;
+      mainImg.src = src;
+      mainImg.srcset = '';
+      if (alt) mainImg.alt = alt;
+      section.querySelectorAll('.modulus-product-hero__thumb').forEach(function (t) {
+        t.classList.toggle('is-active', t.getAttribute('data-image-url') === src);
+      });
+    }
+
     radios.forEach(function (radio) {
       radio.addEventListener('change', function () {
         var labels = this.closest('.modulus-product-hero__option-values')
@@ -268,7 +291,39 @@
         var matched = findMatchingVariant(selected);
         if (matched) {
           if (variantInput) variantInput.value = matched.id;
-          if (priceEl) priceEl.textContent = formatMoney(matched.price);
+          if (priceEl) {
+            var priceHtml = formatMoney(matched.price);
+            if (matched.compare_at_price && matched.compare_at_price > matched.price) {
+              priceHtml += ' <span class="modulus-product-hero__price-compare"><s>' + formatMoney(matched.compare_at_price) + '</s></span>';
+            }
+            priceEl.innerHTML = priceHtml;
+          }
+
+          // Swap main image to the variant's featured image if present.
+          if (matched.featured_image && matched.featured_image.src) {
+            swapMainImage(matched.featured_image.src.replace(/_large\./, '_1200x.'), matched.featured_image.alt);
+          }
+
+          // Flip add-to-cart button state.
+          if (addBtn) {
+            if (matched.available) {
+              addBtn.removeAttribute('disabled');
+              if (addLabel) addLabel.textContent = addLabelAvailable;
+            } else {
+              addBtn.setAttribute('disabled', 'disabled');
+              if (addLabel) addLabel.textContent = addLabelSoldOut;
+            }
+          }
+
+          // Update URL so reload / share respects the selected variant.
+          try {
+            var url = new URL(window.location.href);
+            url.searchParams.set('variant', matched.id);
+            window.history.replaceState({}, '', url);
+          } catch (err) { /* ignore */ }
+        } else if (addBtn) {
+          addBtn.setAttribute('disabled', 'disabled');
+          if (addLabel) addLabel.textContent = addLabelUnavailable;
         }
       });
     });
@@ -501,10 +556,16 @@
   /* ---- Buttons ---- */
   .modulus-product-hero__buttons {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 10px;
     margin-top: 8px;
   }
+
+  .modulus-product-hero__payment-buttons {
+    width: 100%;
+  }
+  .modulus-product-hero__payment-buttons > * { width: 100%; }
+  .shopify-payment-button__button { font-family: var(--font-label--family) !important; }
 
   .modulus-product-hero__cta {
     display: inline-flex;
@@ -608,6 +669,19 @@
       "id": "add_to_cart_label",
       "label": "Add-to-cart button label",
       "default": "Add to cart"
+    },
+    {
+      "type": "text",
+      "id": "sold_out_label",
+      "label": "Sold-out button label",
+      "default": "Sold out"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_button",
+      "label": "Show express checkout buttons",
+      "info": "Renders Shop Pay, Apple Pay, Google Pay buttons below Add-to-cart (via {{ form | payment_button }}).",
+      "default": true
     },
     { "type": "header", "content": "Trust strip (optional)" },
     {

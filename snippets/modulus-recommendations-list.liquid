@@ -1,0 +1,53 @@
+{%- comment -%}
+  Modulus recommendations list — product cards grid.
+  Used by modulus-product-recommendations both server-side (when
+  recommendations are Liquid-rendered on first paint) and client-side
+  (when fetched async via /recommendations/products).
+
+  Accepts:
+    products     — iterable of product objects
+    show_vendor  — boolean (default false)
+{%- endcomment -%}
+
+<ul class="modulus-recommendations__grid" role="list">
+  {%- for product in products -%}
+    <li>
+      <a href="{{ product.url }}" class="modulus-recommendations__card">
+        <div class="modulus-recommendations__card-media" data-mod-reveal>
+          {%- if product.featured_image != blank -%}
+            <img
+              src="{{ product.featured_image | image_url: width: 600 }}"
+              srcset="
+                {{ product.featured_image | image_url: width: 300 }} 300w,
+                {{ product.featured_image | image_url: width: 600 }} 600w,
+                {{ product.featured_image | image_url: width: 900 }} 900w
+              "
+              sizes="(max-width: 640px) 50vw, 25vw"
+              alt="{{ product.featured_image.alt | default: product.title | escape }}"
+              loading="lazy"
+              width="{{ product.featured_image.width }}"
+              height="{{ product.featured_image.height }}"
+            >
+          {%- else -%}
+            {{ 'product-1' | placeholder_svg_tag: '' }}
+          {%- endif -%}
+        </div>
+
+        {%- if show_vendor and product.vendor != blank -%}
+          <span class="modulus-recommendations__card-vendor">{{ product.vendor | escape }}</span>
+        {%- endif -%}
+
+        <h3 class="modulus-recommendations__card-title">{{ product.title | escape }}</h3>
+
+        <div class="modulus-recommendations__card-price">
+          {%- if product.compare_at_price > product.price -%}
+            <span>{{ product.price | money }}</span>
+            <span class="modulus-recommendations__card-price--compare"><s>{{ product.compare_at_price | money }}</s></span>
+          {%- else -%}
+            <span>{{ product.price | money }}</span>
+          {%- endif -%}
+        </div>
+      </a>
+    </li>
+  {%- endfor -%}
+</ul>

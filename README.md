@@ -21,12 +21,22 @@ Modulus merges industrial precision with Scandinavian restraint. Every element p
 assets/        CSS, JS, images, icons
 blocks/        Reusable, nestable UI blocks
 config/        Global settings schema & data
+docs/          Merchant guide, customizations log
 layout/        Page wrappers (theme.liquid, password.liquid)
+listings/      Shopify Theme Store listing metadata
 locales/       i18n translation files
 sections/      Full-width modular page sections
 snippets/      Reusable Liquid fragments
 templates/     JSON templates composing sections into pages
 ```
+
+## Before publishing to the Theme Store
+
+1. Add `assets/theme-preview.png` (1200×900 minimum, JPG or PNG). This is the hero image shown on the theme's Theme Store detail page.
+2. Verify `listings/default.json` — the current values are illustrative; confirm `categories` and `industries` against Shopify's current slug vocabulary before submission.
+3. Set `theme_documentation_url` + `theme_support_url` in `config/settings_schema.json` to the real URLs you want merchants to hit.
+4. Populate demo content in the connected dev store (products, collections, blog posts, pages). Shopify takes a snapshot for the Theme Store preview.
+5. Run `shopify theme check` locally — the bar is zero errors + zero warnings.
 
 ## Development
 

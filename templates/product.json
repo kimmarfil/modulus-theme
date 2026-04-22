@@ -45,6 +45,10 @@
       },
       "block_order": ["q1", "q2", "q3"]
     },
+    "recommendations": {
+      "type": "modulus-product-recommendations",
+      "settings": {}
+    },
     "banner": {
       "type": "modulus-banner",
       "settings": {}
@@ -56,6 +60,7 @@
     "specs",
     "narrative",
     "faq",
+    "recommendations",
     "banner"
   ]
 }

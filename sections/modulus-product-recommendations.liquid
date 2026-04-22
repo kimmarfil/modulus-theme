@@ -1,0 +1,297 @@
+{% comment %}
+  Modulus Product Recommendations — "You might also like".
+  Uses Shopify's `recommendations` object, fetched async after initial
+  page render so it doesn't block LCP. Server-renders placeholder
+  skeleton; replaces on fetch.
+
+  Only outputs on product templates. No-ops elsewhere.
+{% endcomment %}
+
+{%- if template contains 'product' and product -%}
+<modulus-recommendations
+  id="modulus-recommendations-{{ section.id }}"
+  class="modulus-recommendations color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  data-shopify-section-id="{{ section.id }}"
+  data-product-id="{{ product.id }}"
+  data-limit="{{ section.settings.max_products }}"
+  data-intent="{{ section.settings.intent }}"
+  style="
+    --mr-py: {{ section.settings.padding_y }}px;
+    --mr-columns: {{ section.settings.columns }};
+  "
+>
+  <div class="modulus-recommendations__inner">
+    {%- if section.settings.label_text != blank or section.settings.heading != blank -%}
+      <header class="modulus-recommendations__head" data-mod-reveal>
+        {%- if section.settings.label_text != blank -%}
+          {% render 'modulus-section-label',
+            text: section.settings.label_text,
+            number: section.settings.label_number
+          %}
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="modulus-recommendations__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    <div class="modulus-recommendations__body" data-mod-rec-body>
+      {%- if recommendations.performed and recommendations.products_count > 0 -%}
+        {%- render 'modulus-recommendations-list', products: recommendations.products, show_vendor: section.settings.show_vendor -%}
+      {%- else -%}
+        {%- comment -%}
+          Placeholder skeleton — replaced client-side once the fetch
+          completes with the actual recommendations.
+        {%- endcomment -%}
+        <ul class="modulus-recommendations__grid" aria-hidden="true">
+          {%- assign placeholder_count = section.settings.max_products | default: 4 | at_most: 8 -%}
+          {%- for i in (1..placeholder_count) -%}
+            <li class="modulus-recommendations__skeleton" aria-hidden="true"></li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+    </div>
+  </div>
+</modulus-recommendations>
+{%- endif -%}
+
+{% stylesheet %}
+  .modulus-recommendations {
+    display: block;
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--mr-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-recommendations__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-recommendations__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+    margin-bottom: var(--mod-gap-lg);
+  }
+
+  h2.modulus-recommendations__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(24px, 3.6vw, 44px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-recommendations__heading p { margin: 0; }
+
+  .modulus-recommendations__grid {
+    display: grid;
+    grid-template-columns: repeat(var(--mr-columns, 4), 1fr);
+    gap: var(--mod-gap-md);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .modulus-recommendations__skeleton {
+    aspect-ratio: 3 / 4;
+    background: rgb(var(--color-foreground-rgb) / 0.05);
+    animation: modulus-rec-pulse 1.4s ease-in-out infinite;
+  }
+
+  @keyframes modulus-rec-pulse {
+    0%, 100% { opacity: 0.65; }
+    50% { opacity: 1; }
+  }
+
+  .modulus-recommendations__card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .modulus-recommendations__card-media {
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.04);
+  }
+
+  .modulus-recommendations__card-media img,
+  .modulus-recommendations__card-media svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 500ms ease;
+  }
+
+  .modulus-recommendations__card:hover .modulus-recommendations__card-media img {
+    transform: scale(1.03);
+  }
+
+  .modulus-recommendations__card-vendor {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+  }
+
+  h3.modulus-recommendations__card-title {
+    font-family: var(--font-body--family);
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 1.3;
+    color: var(--color-foreground);
+    margin: 0;
+  }
+
+  .modulus-recommendations__card-price {
+    font-family: var(--font-body--family);
+    font-size: 14px;
+    color: var(--color-foreground);
+  }
+
+  .modulus-recommendations__card-price--compare {
+    color: rgb(var(--color-foreground-rgb) / 0.5);
+    margin-left: 8px;
+  }
+
+  .modulus-recommendations[data-empty] .modulus-recommendations__inner {
+    display: none;
+  }
+
+  @media (max-width: 1024px) {
+    .modulus-recommendations__grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (max-width: 640px) {
+    .modulus-recommendations__grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('modulus-recommendations')) {
+    customElements.define('modulus-recommendations', class ModulusRecommendations extends HTMLElement {
+      connectedCallback() {
+        // If the Liquid already rendered recommendations (recommendations.performed == true),
+        // the body already has product cards — don't re-fetch.
+        const body = this.querySelector('[data-mod-rec-body]');
+        if (!body || body.querySelector('.modulus-recommendations__card')) return;
+
+        const productId = this.dataset.productId;
+        const limit = this.dataset.limit || '4';
+        const intent = this.dataset.intent || 'related';
+        const sectionId = this.dataset.shopifySectionId;
+        if (!productId || !sectionId) return;
+
+        const url = `${window.Shopify && Shopify.routes && Shopify.routes.root || '/'}recommendations/products?section_id=${encodeURIComponent(sectionId)}&product_id=${encodeURIComponent(productId)}&limit=${encodeURIComponent(limit)}&intent=${encodeURIComponent(intent)}`;
+
+        fetch(url, { headers: { 'Accept': 'text/html' } })
+          .then((r) => r.ok ? r.text() : Promise.reject(r.status))
+          .then((html) => {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const newBody = doc.querySelector('[data-mod-rec-body]');
+            if (!newBody) throw new Error('no body');
+            // If the server returned no products, hide the whole section.
+            if (!newBody.querySelector('.modulus-recommendations__card')) {
+              this.setAttribute('data-empty', '');
+              return;
+            }
+            body.innerHTML = newBody.innerHTML;
+            if (window.ModulusReveal && typeof window.ModulusReveal.rescan === 'function') {
+              window.ModulusReveal.rescan(this);
+            }
+          })
+          .catch(() => {
+            // Fail silently — hide the section rather than show the skeleton forever.
+            this.setAttribute('data-empty', '');
+          });
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Modulus Recommendations",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Related" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "09" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "<p>You might also like.</p>"
+    },
+
+    { "type": "header", "content": "Source" },
+    {
+      "type": "select",
+      "id": "intent",
+      "label": "Recommendation intent",
+      "options": [
+        { "value": "related", "label": "Related" },
+        { "value": "complementary", "label": "Complementary (often bought together)" }
+      ],
+      "default": "related"
+    },
+    {
+      "type": "range",
+      "id": "max_products",
+      "label": "Max products",
+      "min": 2, "max": 8, "step": 1,
+      "default": 4
+    },
+
+    { "type": "header", "content": "Card display" },
+    { "type": "checkbox", "id": "show_vendor", "label": "Show vendor / brand", "default": false },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "range",
+      "id": "columns",
+      "label": "Columns (desktop)",
+      "min": 2, "max": 6, "step": 1,
+      "default": 4
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 96
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [{ "name": "Modulus Recommendations" }],
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}

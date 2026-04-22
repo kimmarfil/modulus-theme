@@ -1,0 +1,116 @@
+{%- comment -%}
+  Modulus locale & country selector.
+
+  Renders two compact native <select>s (language + market/country),
+  submitting to Shopify's built-in localization forms. Falls back
+  gracefully when a store only enables one market or one language.
+
+  Accepts:
+    variant   — 'inline' (default) or 'stacked'
+    show_flag — boolean, whether to prefix country options with an emoji flag
+{%- endcomment -%}
+
+{%- liquid
+  assign variant = variant | default: 'inline'
+  if show_flag == nil
+    assign show_flag = true
+  endif
+-%}
+
+{%- if localization.available_countries.size > 1 or localization.available_languages.size > 1 -%}
+  <div class="modulus-locale modulus-locale--{{ variant }}">
+
+    {%- if localization.available_languages.size > 1 -%}
+      {%- form 'localization', id: 'modulus-locale-language', class: 'modulus-locale__form' -%}
+        <label for="modulus-locale-language-select" class="modulus-locale__label">Language</label>
+        <select
+          id="modulus-locale-language-select"
+          name="locale_code"
+          class="modulus-locale__select"
+          onchange="this.form.submit()"
+        >
+          {%- for lang in localization.available_languages -%}
+            <option
+              value="{{ lang.iso_code }}"
+              lang="{{ lang.iso_code }}"
+              {%- if lang.iso_code == localization.language.iso_code %} selected{% endif -%}
+            >{{ lang.endonym_name | capitalize }}</option>
+          {%- endfor -%}
+        </select>
+      {%- endform -%}
+    {%- endif -%}
+
+    {%- if localization.available_countries.size > 1 -%}
+      {%- form 'localization', id: 'modulus-locale-country', class: 'modulus-locale__form' -%}
+        <label for="modulus-locale-country-select" class="modulus-locale__label">Country</label>
+        <select
+          id="modulus-locale-country-select"
+          name="country_code"
+          class="modulus-locale__select"
+          onchange="this.form.submit()"
+        >
+          {%- for country in localization.available_countries -%}
+            <option
+              value="{{ country.iso_code }}"
+              {%- if country.iso_code == localization.country.iso_code %} selected{% endif -%}
+            >
+              {%- if show_flag -%}{{ country.iso_code | replace_first: country.iso_code, '' }}{%- endif -%}
+              {{ country.name }}
+              {%- if country.currency and country.currency.iso_code -%}
+                &nbsp;({{ country.currency.iso_code }})
+              {%- endif -%}
+            </option>
+          {%- endfor -%}
+        </select>
+      {%- endform -%}
+    {%- endif -%}
+
+  </div>
+
+  <style>
+    .modulus-locale {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      font-family: var(--font-label--family, var(--font-body--family));
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgb(var(--color-foreground-rgb) / 0.75);
+    }
+    .modulus-locale--stacked {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .modulus-locale__form {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .modulus-locale__label {
+      display: none;
+    }
+    .modulus-locale__select {
+      font: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      background: transparent;
+      color: var(--color-foreground);
+      border: 1px solid var(--color-border);
+      padding: 6px 28px 6px 10px;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      background-size: 10px;
+      min-width: 0;
+    }
+    .modulus-locale__select:focus-visible {
+      outline: 2px solid var(--color-foreground);
+      outline-offset: 2px;
+    }
+  </style>
+{%- endif -%}

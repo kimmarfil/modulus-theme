@@ -96,6 +96,13 @@
       </div>
 
     </div>
+
+    {%- if section.settings.show_locale_selector -%}
+      <div class="modulus-footer__locale">
+        {% render 'modulus-locale-selector', variant: 'inline' %}
+      </div>
+    {%- endif -%}
+
   </div>
 </footer>
 
@@ -110,6 +117,18 @@
     width: 100%;
     max-width: var(--mod-max-width);
     margin: 0 auto;
+  }
+
+  .modulus-footer__locale {
+    margin-top: var(--mod-gap-lg);
+    padding-top: var(--mod-gap-md);
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  @media (max-width: 640px) {
+    .modulus-footer__locale { justify-content: flex-start; }
   }
 
   /* ---- CTA row ---- */
@@ -412,6 +431,17 @@
       "type": "url",
       "id": "social_url_3",
       "label": "Social 3 URL"
+    },
+    {
+      "type": "header",
+      "content": "Localization"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_locale_selector",
+      "label": "Show language / country selector",
+      "info": "Appears below the footer columns. Only renders if the store has more than one market or language enabled.",
+      "default": true
     },
     {
       "type": "header",

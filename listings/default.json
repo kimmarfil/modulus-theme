@@ -1,0 +1,41 @@
+{
+  "name": "Modulus",
+  "tagline": "Editorial-industrial Shopify theme for considered brands.",
+
+  "summary": "Modulus pairs sharp editorial typography with an industrial grid system — ideal for design studios, small-batch makers, and brands that want product pages to read like a magazine spread. 28+ native sections, two install presets (Editorial and Industrial), and full customer-account coverage ship out of the box.",
+
+  "description": "Modulus is a production-grade Shopify theme built for brands that treat their catalogue as content. The theme covers the full commerce surface — homepage, collection, product, search, blog, article, cart, customer accounts, contact, gift card — with 28 custom sections, a cart drawer, predictive search overlay, and a sticky header with transparent-over-hero mode. Two Theme Store presets (Modulus Editorial — light, airy, portrait cards; Modulus Industrial — dark, square cards, vendor-forward) let merchants pick an aesthetic in one click.",
+
+  "categories": [
+    "clothing-and-fashion"
+  ],
+
+  "industries": [
+    "clothing",
+    "home-and-garden"
+  ],
+
+  "catalog_size": "medium",
+
+  "features": [
+    "28 custom sections",
+    "Two install presets (Editorial, Industrial)",
+    "Cart drawer with AJAX updates",
+    "Predictive search overlay",
+    "Product recommendations",
+    "Variant image switching",
+    "Express checkout (Shop Pay, Apple Pay)",
+    "Mobile slide-in navigation",
+    "Sticky header with transparent-over-hero mode",
+    "Multi-column footer with locale/currency selector",
+    "Full customer account suite",
+    "Editorial blog + article templates",
+    "5 configurable color schemes",
+    "Dark mode via scheme swap",
+    "i18n scaffolding (en + 9 locale stubs)",
+    "Accessibility — skip link, semantic landmarks, focus states",
+    "Theme-check clean"
+  ],
+
+  "_notes": "Fields are based on the structure Shopify requires for Theme Store listings as of 2026-04. Confirm against the current spec before submission: check https://shopify.dev/themes and https://partners.shopify.com for the exact category/industry slug vocabulary. Update the tagline + summary + description once you have a live preview URL and production copy."
+}
