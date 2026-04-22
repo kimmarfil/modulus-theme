@@ -109,6 +109,23 @@
           </div>
         {%- endif -%}
 
+        {%- if section.settings.show_sku and current_variant.sku != blank -%}
+          <div class="modulus-product-hero__sku">
+            <span class="modulus-product-hero__sku-label">SKU</span>
+            <span class="modulus-product-hero__sku-value" data-mph-sku>{{ current_variant.sku | escape }}</span>
+          </div>
+        {%- elsif section.settings.show_sku -%}
+          {%- comment -%}
+            Render an empty placeholder so the variant-change JS can
+            populate it when the chosen variant has a SKU, even if the
+            initial variant doesn't.
+          {%- endcomment -%}
+          <div class="modulus-product-hero__sku" data-mph-sku-wrap hidden>
+            <span class="modulus-product-hero__sku-label">SKU</span>
+            <span class="modulus-product-hero__sku-value" data-mph-sku></span>
+          </div>
+        {%- endif -%}
+
         {%- form 'product', product, class: 'modulus-product-hero__form' -%}
           <input type="hidden" name="id" value="{{ current_variant.id }}" id="mph-variant-id-{{ section.id }}">
 
@@ -264,6 +281,8 @@
     var addLabelAvailable = addLabel ? addLabel.textContent.trim() : 'Add to cart';
     var addLabelSoldOut = {{ section.settings.sold_out_label | default: 'Sold out' | json }};
     var addLabelUnavailable = 'Unavailable';
+    var skuEl = section.querySelector('[data-mph-sku]');
+    var skuWrap = section.querySelector('[data-mph-sku-wrap]') || (skuEl && skuEl.closest('.modulus-product-hero__sku'));
 
     function swapMainImage (src, alt) {
       if (!mainImg || !src) return;
@@ -312,6 +331,18 @@
             } else {
               addBtn.setAttribute('disabled', 'disabled');
               if (addLabel) addLabel.textContent = addLabelSoldOut;
+            }
+          }
+
+          // Update SKU (show the wrapper if it was hidden).
+          if (skuEl) {
+            skuEl.textContent = matched.sku || '';
+            if (skuWrap) {
+              if (matched.sku) {
+                skuWrap.removeAttribute('hidden');
+              } else {
+                skuWrap.setAttribute('hidden', 'hidden');
+              }
             }
           }
 
@@ -420,6 +451,26 @@
     line-height: 1.1;
     letter-spacing: -0.01em;
     margin: 0;
+  }
+
+  .modulus-product-hero__sku {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-top: -4px;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  .modulus-product-hero__sku-label {
+    color: rgb(var(--color-foreground-rgb) / 0.45);
+  }
+
+  .modulus-product-hero__sku-value {
+    color: var(--color-foreground);
   }
 
   .modulus-product-hero__short-desc {
@@ -657,6 +708,13 @@
       "id": "show_price",
       "label": "Show price",
       "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sku",
+      "label": "Show SKU",
+      "info": "Displays the selected variant's SKU below the price. Hidden when the variant has no SKU set.",
+      "default": false
     },
     {
       "type": "checkbox",

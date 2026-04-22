@@ -406,17 +406,47 @@
       }
 
       open() {
+        this._opener = document.activeElement;
         this.classList.add('is-open');
         this.setAttribute('aria-hidden', 'false');
         document.body.classList.add('modulus-header-drawer-open');
         if (this.panel) this.panel.focus();
         this.refresh();
+        if (!this._trap) {
+          this._trap = (e) => this._trapTab(e);
+          (this.panel || this).addEventListener('keydown', this._trap);
+        }
       }
 
       close() {
         this.classList.remove('is-open');
         this.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('modulus-header-drawer-open');
+        if (this._trap) {
+          (this.panel || this).removeEventListener('keydown', this._trap);
+          this._trap = null;
+        }
+        if (this._opener && typeof this._opener.focus === 'function') {
+          this._opener.focus();
+          this._opener = null;
+        }
+      }
+
+      _trapTab(e) {
+        if (e.key !== 'Tab') return;
+        const container = this.panel || this;
+        const sel = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        const focusables = Array.from(container.querySelectorAll(sel)).filter((el) => el.offsetParent !== null);
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
 
       // Intercept product-form add-to-cart submits so we can POST via
@@ -434,13 +464,30 @@
           if (!drawer) return;
           e.preventDefault();
           const fd = new FormData(form);
+          // Each add-to-cart gets its own AbortController so a slow /add
+          // doesn't block a quicker subsequent click.
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 10000);
           drawer.classList.add('is-loading');
-          fetch('/cart/add.js', { method: 'POST', body: fd, headers: { 'Accept': 'application/json' } })
-            .then((r) => r.json())
+          fetch('/cart/add.js', {
+            method: 'POST',
+            body: fd,
+            headers: { 'Accept': 'application/json' },
+            signal: controller.signal
+          })
+            .then((r) => r.ok ? r.json() : Promise.reject(r.status))
             .then(() => drawer.refresh())
             .then(() => drawer.open())
-            .catch(() => { form.submit(); })
-            .finally(() => drawer.classList.remove('is-loading'));
+            .catch((err) => {
+              // On timeout / network error / non-2xx, fall back to the
+              // native form submission so the user isn't stuck silently.
+              if (err && err.name === 'AbortError') return;
+              form.submit();
+            })
+            .finally(() => {
+              clearTimeout(timeout);
+              drawer.classList.remove('is-loading');
+            });
         });
       }
 
@@ -475,25 +522,46 @@
         });
       }
 
+      // Fetch wrapper with a 6 s timeout + AbortController. Returns the
+      // raw response so callers can decide how to parse (.json() / .text()).
+      _fetchWithTimeout(url, options, timeoutMs) {
+        options = options || {};
+        const controller = new AbortController();
+        const signal = controller.signal;
+        const timeout = setTimeout(() => controller.abort(), timeoutMs || 6000);
+        return fetch(url, Object.assign({ signal }, options))
+          .finally(() => clearTimeout(timeout));
+      }
+
       update(key, qty) {
+        // Cancel any in-flight update before starting a new one — otherwise
+        // rapid clicks on the qty stepper can produce out-of-order responses
+        // that overwrite fresher cart state.
+        if (this._updateAbort) this._updateAbort.abort();
+        this._updateAbort = new AbortController();
+
         this.classList.add('is-loading');
         fetch('/cart/change.js', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ id: key, quantity: qty })
+          body: JSON.stringify({ id: key, quantity: qty }),
+          signal: this._updateAbort.signal
         })
           .then((r) => r.json())
           .then((cart) => {
             this.render(cart);
             window.dispatchEvent(new CustomEvent('modulus:cart:update', { detail: cart }));
           })
+          .catch((err) => {
+            if (err && err.name === 'AbortError') return;
+          })
           .finally(() => this.classList.remove('is-loading'));
       }
 
       refresh() {
-        fetch('/cart.js', { headers: { 'Accept': 'application/json' } })
-          .then((r) => r.json())
-          .then((cart) => this.render(cart))
+        this._fetchWithTimeout('/cart.js', { headers: { 'Accept': 'application/json' } })
+          .then((r) => r.ok ? r.json() : null)
+          .then((cart) => { if (cart) this.render(cart); })
           .catch(() => {});
       }
 
@@ -508,11 +576,16 @@
 
         // Re-fetch section HTML via Shopify's Section Rendering API for a
         // faithful render (Liquid-rendered markup, including prices + money
-        // formatting, rather than rebuilding client-side).
+        // formatting, rather than rebuilding client-side). Timeout so a slow
+        // storefront doesn't leave the drawer stuck on stale markup.
         const sectionId = this.dataset.shopifySectionId;
         if (!sectionId) return;
+        if (this._renderAbort) this._renderAbort.abort();
+        this._renderAbort = new AbortController();
+        const renderTimeout = setTimeout(() => this._renderAbort.abort(), 6000);
         fetch(`${window.location.pathname}?section_id=${encodeURIComponent(sectionId)}`, {
-          headers: { 'Accept': 'text/html' }
+          headers: { 'Accept': 'text/html' },
+          signal: this._renderAbort.signal
         })
           .then((r) => r.text())
           .then((html) => {
@@ -532,7 +605,10 @@
               this.foot = newFoot;
             }
           })
-          .catch(() => {});
+          .catch(() => {})
+          .finally(() => {
+            clearTimeout(renderTimeout);
+          });
       }
     });
   }

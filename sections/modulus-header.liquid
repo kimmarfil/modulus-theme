@@ -906,10 +906,16 @@
 
       openDrawer() {
         if (!this.drawer) return;
+        this._drawerOpener = document.activeElement;
         this.drawer.classList.add('is-open');
         this.drawer.setAttribute('aria-hidden', 'false');
         if (this.overlay) this.overlay.classList.add('is-open');
         document.body.classList.add('modulus-header-drawer-open');
+        requestAnimationFrame(() => this._focusFirst(this.drawer));
+        if (!this._drawerTrap) {
+          this._drawerTrap = (e) => this._trapTab(e, this.drawer);
+          this.drawer.addEventListener('keydown', this._drawerTrap);
+        }
       }
 
       closeDrawer() {
@@ -918,6 +924,36 @@
         this.drawer.setAttribute('aria-hidden', 'true');
         if (this.overlay) this.overlay.classList.remove('is-open');
         document.body.classList.remove('modulus-header-drawer-open');
+        if (this._drawerTrap) {
+          this.drawer.removeEventListener('keydown', this._drawerTrap);
+          this._drawerTrap = null;
+        }
+        if (this._drawerOpener && typeof this._drawerOpener.focus === 'function') {
+          this._drawerOpener.focus();
+          this._drawerOpener = null;
+        }
+      }
+
+      _focusFirst(container) {
+        const sel = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        const first = container.querySelector(sel);
+        if (first && typeof first.focus === 'function') first.focus();
+      }
+
+      _trapTab(e, container) {
+        if (e.key !== 'Tab') return;
+        const sel = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        const focusables = Array.from(container.querySelectorAll(sel)).filter((el) => el.offsetParent !== null);
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
 
       // Tap-to-toggle for touch devices where :hover doesn't work reliably.
@@ -966,10 +1002,15 @@
 
       openSearch() {
         if (!this.searchOverlay) return;
+        this._searchOpener = document.activeElement;
         this.searchOverlay.classList.add('is-open');
         this.searchOverlay.setAttribute('aria-hidden', 'false');
         document.body.classList.add('modulus-header-drawer-open');
         requestAnimationFrame(() => { if (this.searchInput) this.searchInput.focus(); });
+        if (!this._searchTrap) {
+          this._searchTrap = (e) => this._trapTab(e, this.searchPanel || this.searchOverlay);
+          (this.searchPanel || this.searchOverlay).addEventListener('keydown', this._searchTrap);
+        }
       }
 
       closeSearch() {
@@ -978,6 +1019,14 @@
         this.searchOverlay.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('modulus-header-drawer-open');
         if (this.searchAbort) { this.searchAbort.abort(); this.searchAbort = null; }
+        if (this._searchTrap) {
+          (this.searchPanel || this.searchOverlay).removeEventListener('keydown', this._searchTrap);
+          this._searchTrap = null;
+        }
+        if (this._searchOpener && typeof this._searchOpener.focus === 'function') {
+          this._searchOpener.focus();
+          this._searchOpener = null;
+        }
       }
 
       onSearchInput() {

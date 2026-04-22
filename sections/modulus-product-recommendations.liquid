@@ -193,7 +193,10 @@
 
         const url = `${window.Shopify && Shopify.routes && Shopify.routes.root || '/'}recommendations/products?section_id=${encodeURIComponent(sectionId)}&product_id=${encodeURIComponent(productId)}&limit=${encodeURIComponent(limit)}&intent=${encodeURIComponent(intent)}`;
 
-        fetch(url, { headers: { 'Accept': 'text/html' } })
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+
+        fetch(url, { headers: { 'Accept': 'text/html' }, signal: controller.signal })
           .then((r) => r.ok ? r.text() : Promise.reject(r.status))
           .then((html) => {
             const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -210,9 +213,11 @@
             }
           })
           .catch(() => {
-            // Fail silently — hide the section rather than show the skeleton forever.
+            // Fail silently (timeout, network error, non-2xx response) —
+            // hide the section rather than leave the skeleton up forever.
             this.setAttribute('data-empty', '');
-          });
+          })
+          .finally(() => clearTimeout(timeout));
       }
     });
   }
