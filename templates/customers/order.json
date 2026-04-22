@@ -1,0 +1,14 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "order": {
+      "type": "modulus-customers-order",
+      "settings": {}
+    }
+  },
+  "order": ["order"]
+}

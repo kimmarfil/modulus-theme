@@ -1,0 +1,340 @@
+{% comment %}
+  Modulus Customers · Login — login form + recover-password form
+  (recover form revealed via <details> toggle).
+{% endcomment %}
+
+<div
+  id="modulus-cust-login-{{ section.id }}"
+  class="modulus-cust modulus-cust--auth color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="--mc-py: {{ section.settings.padding_y }}px;"
+>
+  <div class="modulus-cust__inner modulus-cust__inner--auth">
+    <div class="modulus-cust__panel" data-mod-reveal>
+      <header class="modulus-cust__header">
+        <h1 class="modulus-cust__heading">{{ section.settings.heading | default: 'Sign in' }}</h1>
+        {%- if section.settings.subtitle != blank -%}
+          <p class="modulus-cust__subtitle">{{ section.settings.subtitle }}</p>
+        {%- endif -%}
+      </header>
+
+      {% form 'customer_login', novalidate: 'novalidate' %}
+        {%- if form.errors -%}
+          <div class="modulus-cust__notice modulus-cust__notice--error" role="alert">
+            {{ form.errors | default_errors }}
+          </div>
+        {%- endif -%}
+
+        <div class="modulus-cust__field">
+          <label for="cust-login-email-{{ section.id }}">Email</label>
+          <input
+            type="email"
+            id="cust-login-email-{{ section.id }}"
+            name="customer[email]"
+            autocomplete="email"
+            autocorrect="off"
+            autocapitalize="off"
+            required
+          >
+        </div>
+
+        <div class="modulus-cust__field">
+          <label for="cust-login-password-{{ section.id }}">Password</label>
+          <input
+            type="password"
+            id="cust-login-password-{{ section.id }}"
+            name="customer[password]"
+            autocomplete="current-password"
+            required
+          >
+        </div>
+
+        <button type="submit" class="mod-btn mod-btn--primary modulus-cust__submit">
+          <span>{{ section.settings.submit_label | default: 'Sign in' }}</span>
+          <span class="mod-btn__arrow" aria-hidden="true">{% render 'modulus-icon', name: 'arrow-right', size: 14 %}</span>
+        </button>
+      {% endform %}
+
+      <div class="modulus-cust__extra">
+        <details class="modulus-cust__recover">
+          <summary>{{ section.settings.recover_toggle_label | default: 'Forgot your password?' }}</summary>
+
+          <div class="modulus-cust__recover-inner">
+            {% form 'recover_customer_password' %}
+              {%- if form.errors -%}
+                <div class="modulus-cust__notice modulus-cust__notice--error" role="alert">
+                  {{ form.errors | default_errors }}
+                </div>
+              {%- elsif form.posted_successfully? -%}
+                <div class="modulus-cust__notice modulus-cust__notice--success" role="status">
+                  {{ section.settings.recover_success | default: "We've sent you a reset link if the email matches an account." }}
+                </div>
+              {%- endif -%}
+
+              <p class="modulus-cust__note">
+                {{ section.settings.recover_help | default: "Enter the email used for your account and we'll send a reset link." }}
+              </p>
+
+              <div class="modulus-cust__field">
+                <label for="cust-recover-email-{{ section.id }}">Email</label>
+                <input
+                  type="email"
+                  id="cust-recover-email-{{ section.id }}"
+                  name="email"
+                  autocomplete="email"
+                  required
+                >
+              </div>
+
+              <button type="submit" class="modulus-cust__submit modulus-cust__submit--ghost">
+                {{ section.settings.recover_submit_label | default: 'Send reset link' }}
+              </button>
+            {% endform %}
+          </div>
+        </details>
+
+        <p class="modulus-cust__alt-cta">
+          {{ section.settings.register_prompt | default: "New here?" }}
+          <a href="{{ routes.account_register_url }}">{{ section.settings.register_cta | default: 'Create an account' }}</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-cust {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--mc-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-cust__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-cust__inner--auth {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+  }
+
+  .modulus-cust__panel {
+    width: 100%;
+    max-width: 480px;
+    border: 1px solid var(--color-border);
+    padding: clamp(28px, 4vw, 48px);
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+  }
+
+  .modulus-cust__header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: var(--mod-gap-sm);
+  }
+
+  h1.modulus-cust__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(26px, 3.4vw, 40px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-cust__subtitle {
+    font-family: var(--font-body--family);
+    font-size: 14px;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .modulus-cust__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: var(--mod-gap-sm);
+  }
+
+  .modulus-cust__field label {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+  }
+
+  .modulus-cust__field input,
+  .modulus-cust__field select,
+  .modulus-cust__field textarea {
+    font-family: var(--font-body--family);
+    font-size: 15px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-foreground);
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .modulus-cust__field input:focus,
+  .modulus-cust__field select:focus,
+  .modulus-cust__field textarea:focus {
+    border-color: var(--color-foreground);
+  }
+
+  .modulus-cust__submit {
+    align-self: flex-start;
+    justify-content: center;
+  }
+
+  .modulus-cust__submit--ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    background: transparent;
+    color: var(--color-foreground);
+    border: 1px solid var(--color-border);
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .modulus-cust__submit--ghost:hover {
+    background: var(--color-foreground);
+    color: var(--color-background);
+  }
+
+  .modulus-cust__notice {
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    font-family: var(--font-body--family);
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: var(--mod-gap-sm);
+  }
+
+  .modulus-cust__notice--error { border-color: var(--color-foreground); }
+
+  .modulus-cust__extra {
+    margin-top: var(--mod-gap-sm);
+    padding-top: var(--mod-gap-sm);
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+  }
+
+  .modulus-cust__recover summary {
+    cursor: pointer;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    list-style: none;
+    padding: 4px 0;
+  }
+
+  .modulus-cust__recover summary::-webkit-details-marker { display: none; }
+  .modulus-cust__recover summary::marker { content: ''; }
+  .modulus-cust__recover summary:hover { color: var(--color-foreground); }
+
+  .modulus-cust__recover[open] summary {
+    color: var(--color-foreground);
+    margin-bottom: 10px;
+  }
+
+  .modulus-cust__recover-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+  }
+
+  .modulus-cust__note {
+    font-family: var(--font-body--family);
+    font-size: 13px;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .modulus-cust__alt-cta {
+    font-family: var(--font-body--family);
+    font-size: 13px;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    margin: 0;
+  }
+
+  .modulus-cust__alt-cta a {
+    color: var(--color-foreground);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Login",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Sign in" },
+    { "type": "text", "id": "subtitle", "label": "Subtitle", "default": "Welcome back." },
+    { "type": "text", "id": "submit_label", "label": "Submit label", "default": "Sign in" },
+
+    { "type": "header", "content": "Recover password" },
+    { "type": "text", "id": "recover_toggle_label", "label": "Recover toggle label", "default": "Forgot your password?" },
+    { "type": "text", "id": "recover_help", "label": "Recover help text", "default": "Enter the email used for your account and we'll send a reset link." },
+    { "type": "text", "id": "recover_submit_label", "label": "Recover submit label", "default": "Send reset link" },
+    { "type": "text", "id": "recover_success", "label": "Recover success message", "default": "We've sent you a reset link if the email matches an account." },
+
+    { "type": "header", "content": "Register prompt" },
+    { "type": "text", "id": "register_prompt", "label": "Register prompt", "default": "New here?" },
+    { "type": "text", "id": "register_cta", "label": "Register CTA", "default": "Create an account" },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 96
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [{ "name": "Modulus Login" }],
+  "enabled_on": {
+    "templates": ["customers/login"]
+  }
+}
+{% endschema %}

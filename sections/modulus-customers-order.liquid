@@ -1,0 +1,394 @@
+{% comment %}
+  Modulus Customers · Order — single order detail view.
+  Line items + totals + shipping/billing addresses + fulfillment tracking.
+{% endcomment %}
+
+<div
+  id="modulus-cust-order-{{ section.id }}"
+  class="modulus-cust modulus-cust--order color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="--mc-py: {{ section.settings.padding_y }}px;"
+>
+  <div class="modulus-cust__inner">
+    <nav class="modulus-cust__breadcrumb" aria-label="Breadcrumb" data-mod-reveal>
+      <a href="{{ routes.account_url }}">Account</a>
+      <span aria-hidden="true">/</span>
+      <span>Order {{ order.name }}</span>
+    </nav>
+
+    <header class="modulus-cust__account-head" data-mod-reveal data-mod-reveal-delay="60">
+      <h1 class="modulus-cust__account-heading">Order {{ order.name }}</h1>
+      <p class="modulus-cust__account-sub">
+        Placed {{ order.created_at | date: '%B %-d, %Y at %-l:%M %p' }}
+      </p>
+      <div class="modulus-cust__tags">
+        <span class="modulus-cust__tag">{{ order.financial_status_label }}</span>
+        <span class="modulus-cust__tag">{{ order.fulfillment_status_label }}</span>
+        {%- if order.cancelled? -%}
+          <span class="modulus-cust__tag modulus-cust__tag--warning">
+            Cancelled {{ order.cancelled_at | date: '%b %-d, %Y' }}
+            {%- if order.cancel_reason %} · {{ order.cancel_reason_label }}{% endif -%}
+          </span>
+        {%- endif -%}
+      </div>
+    </header>
+
+    <div class="modulus-cust__order-grid">
+
+      <main class="modulus-cust__main" data-mod-reveal data-mod-reveal-delay="120">
+        <section class="modulus-cust__card">
+          <div class="modulus-cust__card-head">
+            <h2 class="modulus-cust__card-heading">Items</h2>
+            <span class="modulus-cust__card-meta">{{ order.item_count }} total</span>
+          </div>
+
+          <ul class="modulus-cust__order-items" role="list">
+            {%- for line_item in order.line_items -%}
+              <li class="modulus-cust__order-item">
+                {%- if line_item.image != blank -%}
+                  <a href="{{ line_item.product.url }}" class="modulus-cust__order-item-image">
+                    <img
+                      src="{{ line_item.image | image_url: width: 200 }}"
+                      alt="{{ line_item.image.alt | default: line_item.title | escape }}"
+                      width="100" height="100"
+                      loading="lazy"
+                    >
+                  </a>
+                {%- else -%}
+                  <div class="modulus-cust__order-item-image modulus-cust__order-item-image--empty"></div>
+                {%- endif -%}
+
+                <div class="modulus-cust__order-item-body">
+                  <a href="{{ line_item.product.url }}" class="modulus-cust__order-item-title">{{ line_item.title | escape }}</a>
+                  <div class="modulus-cust__order-item-meta">
+                    <span>Qty {{ line_item.quantity }}</span>
+                    {%- if line_item.fulfillment -%}
+                      <span> · Shipped {{ line_item.fulfillment.created_at | date: '%b %-d' }}</span>
+                      {%- if line_item.fulfillment.tracking_url -%}
+                        <a href="{{ line_item.fulfillment.tracking_url }}" target="_blank" rel="noopener">Track</a>
+                      {%- endif -%}
+                    {%- endif -%}
+                  </div>
+                  {%- if line_item.line_level_discount_allocations.size > 0 -%}
+                    <ul class="modulus-cust__order-discounts">
+                      {%- for allocation in line_item.line_level_discount_allocations -%}
+                        <li>{{ allocation.discount_application.title | escape }} · −{{ allocation.amount | money }}</li>
+                      {%- endfor -%}
+                    </ul>
+                  {%- endif -%}
+                </div>
+
+                <div class="modulus-cust__order-item-total">
+                  {%- if line_item.final_line_price != line_item.original_line_price -%}
+                    <span class="modulus-cust__order-item-compare"><s>{{ line_item.original_line_price | money }}</s></span>
+                  {%- endif -%}
+                  <span>{{ line_item.final_line_price | money }}</span>
+                </div>
+              </li>
+            {%- endfor -%}
+          </ul>
+        </section>
+
+        {%- if order.fulfillments.size > 0 -%}
+          <section class="modulus-cust__card">
+            <div class="modulus-cust__card-head">
+              <h2 class="modulus-cust__card-heading">Fulfillments</h2>
+            </div>
+            <ul class="modulus-cust__fulfillments" role="list">
+              {%- for fulfillment in order.fulfillments -%}
+                <li>
+                  <span class="modulus-cust__fulfillment-date">
+                    {{ fulfillment.created_at | date: '%B %-d, %Y' }}
+                  </span>
+                  {%- if fulfillment.tracking_company != blank -%}
+                    <span> · {{ fulfillment.tracking_company }}</span>
+                  {%- endif -%}
+                  {%- if fulfillment.tracking_number -%}
+                    <span> · {{ fulfillment.tracking_number }}</span>
+                  {%- endif -%}
+                  {%- if fulfillment.tracking_url -%}
+                    <a href="{{ fulfillment.tracking_url }}" target="_blank" rel="noopener">Track package</a>
+                  {%- endif -%}
+                </li>
+              {%- endfor -%}
+            </ul>
+          </section>
+        {%- endif -%}
+      </main>
+
+      <aside class="modulus-cust__order-side" data-mod-reveal data-mod-reveal-delay="180">
+        <section class="modulus-cust__card">
+          <div class="modulus-cust__card-head">
+            <h2 class="modulus-cust__card-heading">Totals</h2>
+          </div>
+          <ul class="modulus-cust__totals" role="list">
+            <li><span>Subtotal</span><span>{{ order.line_items_subtotal_price | money }}</span></li>
+            {%- if order.discount_applications.size > 0 -%}
+              {%- for discount in order.discount_applications -%}
+                <li><span>{{ discount.title | escape }}</span><span>−{{ discount.total_allocated_amount | money }}</span></li>
+              {%- endfor -%}
+            {%- endif -%}
+            {%- if order.shipping_methods.size > 0 -%}
+              <li>
+                <span>
+                  Shipping
+                  {%- if order.shipping_methods.first %} · {{ order.shipping_methods.first.title | escape }}{% endif -%}
+                </span>
+                <span>{{ order.shipping_price | money }}</span>
+              </li>
+            {%- endif -%}
+            {%- if order.tax_price > 0 -%}
+              <li><span>Tax</span><span>{{ order.tax_price | money }}</span></li>
+            {%- endif -%}
+            <li class="modulus-cust__totals-grand"><span>Total</span><span>{{ order.total_price | money }}</span></li>
+            {%- if order.total_refunded_amount > 0 -%}
+              <li class="modulus-cust__totals-refund"><span>Refunded</span><span>−{{ order.total_refunded_amount | money }}</span></li>
+              <li class="modulus-cust__totals-grand"><span>Net charged</span><span>{{ order.total_net_amount | money }}</span></li>
+            {%- endif -%}
+          </ul>
+        </section>
+
+        {%- if order.shipping_address -%}
+          <section class="modulus-cust__card">
+            <div class="modulus-cust__card-head">
+              <h2 class="modulus-cust__card-heading">Shipping address</h2>
+            </div>
+            <address>{{ order.shipping_address | format_address }}</address>
+          </section>
+        {%- endif -%}
+
+        {%- if order.billing_address -%}
+          <section class="modulus-cust__card">
+            <div class="modulus-cust__card-head">
+              <h2 class="modulus-cust__card-heading">Billing address</h2>
+            </div>
+            <address>{{ order.billing_address | format_address }}</address>
+          </section>
+        {%- endif -%}
+      </aside>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-cust {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--mc-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+  .modulus-cust__inner { width: 100%; max-width: var(--mod-max-width); margin: 0 auto; }
+
+  .modulus-cust__breadcrumb {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+    margin-bottom: var(--mod-gap-sm);
+  }
+  .modulus-cust__breadcrumb a { color: inherit; text-decoration: none; }
+  .modulus-cust__breadcrumb a:hover { color: var(--color-foreground); }
+
+  .modulus-cust__account-head {
+    display: flex; flex-direction: column; gap: var(--mod-gap-sm);
+    padding-bottom: var(--mod-gap-md); margin-bottom: var(--mod-gap-lg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  h1.modulus-cust__account-heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4.5vw, 56px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.05; letter-spacing: -0.01em; margin: 0;
+  }
+
+  .modulus-cust__account-sub {
+    font-family: var(--font-body--family);
+    font-size: 14px; color: rgb(var(--color-foreground-rgb) / 0.7); margin: 0;
+  }
+
+  .modulus-cust__tags {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+
+  .modulus-cust__tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border: 1px solid var(--color-border);
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.8);
+  }
+  .modulus-cust__tag--warning { color: var(--color-foreground); border-color: var(--color-foreground); }
+
+  .modulus-cust__order-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: var(--mod-gap-lg);
+    align-items: flex-start;
+  }
+
+  .modulus-cust__main,
+  .modulus-cust__order-side { display: flex; flex-direction: column; gap: var(--mod-gap-md); }
+
+  .modulus-cust__card { border: 1px solid var(--color-border); padding: clamp(20px, 2vw, 28px); }
+
+  .modulus-cust__card-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 16px; padding-bottom: 12px; margin-bottom: var(--mod-gap-sm);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  h2.modulus-cust__card-heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: 18px; margin: 0;
+    color: var(--color-foreground-heading, var(--color-foreground));
+  }
+
+  .modulus-cust__card-meta {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+  }
+
+  /* ---- line items ---- */
+  .modulus-cust__order-items { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+
+  .modulus-cust__order-item {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-cust__order-item:last-child { border-bottom: none; }
+
+  .modulus-cust__order-item-image {
+    width: 72px; aspect-ratio: 1;
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.05);
+  }
+
+  .modulus-cust__order-item-image img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+
+  .modulus-cust__order-item-body {
+    display: flex; flex-direction: column; gap: 6px; min-width: 0;
+  }
+
+  .modulus-cust__order-item-title {
+    font-family: var(--font-body--family);
+    font-weight: 500; font-size: 15px;
+    color: var(--color-foreground); text-decoration: none;
+    line-height: 1.3;
+  }
+
+  .modulus-cust__order-item-meta {
+    font-family: var(--font-body--family);
+    font-size: 13px; color: rgb(var(--color-foreground-rgb) / 0.65);
+    line-height: 1.5;
+  }
+  .modulus-cust__order-item-meta a { color: var(--color-foreground); text-decoration: underline; text-underline-offset: 3px; margin-left: 8px; }
+
+  .modulus-cust__order-discounts {
+    list-style: none; padding: 0; margin: 2px 0 0;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+  }
+
+  .modulus-cust__order-item-total {
+    text-align: right; min-width: 80px;
+    font-family: var(--font-body--family);
+    font-size: 14px; color: var(--color-foreground);
+    display: flex; flex-direction: column; gap: 2px;
+  }
+
+  .modulus-cust__order-item-compare {
+    color: rgb(var(--color-foreground-rgb) / 0.5);
+    font-size: 12px;
+  }
+
+  /* ---- totals ---- */
+  .modulus-cust__totals { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+
+  .modulus-cust__totals li {
+    display: flex; justify-content: space-between; gap: 12px;
+    font-family: var(--font-body--family); font-size: 14px;
+    color: rgb(var(--color-foreground-rgb) / 0.85);
+  }
+
+  .modulus-cust__totals-grand {
+    padding-top: 10px; margin-top: 4px;
+    border-top: 1px solid var(--color-border);
+    font-size: 16px !important;
+    color: var(--color-foreground) !important;
+    font-weight: 500;
+  }
+
+  .modulus-cust__totals-refund { color: rgb(var(--color-foreground-rgb) / 0.7) !important; }
+
+  /* ---- addresses + fulfillments ---- */
+  .modulus-cust__card address {
+    font-family: var(--font-body--family);
+    font-style: normal; font-size: 14px; line-height: 1.6;
+    color: var(--color-foreground);
+  }
+
+  .modulus-cust__fulfillments {
+    list-style: none; padding: 0; margin: 0;
+    display: flex; flex-direction: column; gap: 12px;
+    font-family: var(--font-body--family); font-size: 14px; line-height: 1.5;
+  }
+  .modulus-cust__fulfillments a { color: var(--color-foreground); text-decoration: underline; text-underline-offset: 3px; margin-left: 8px; }
+  .modulus-cust__fulfillment-date { font-weight: 500; }
+
+  /* ---- responsive ---- */
+  @media (max-width: 1024px) {
+    .modulus-cust__order-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    .modulus-cust__order-item { grid-template-columns: 56px 1fr auto; gap: 12px; }
+    .modulus-cust__order-item-image { width: 56px; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Order",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 96
+    },
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [{ "name": "Modulus Order" }],
+  "enabled_on": {
+    "templates": ["customers/order"]
+  }
+}
+{% endschema %}

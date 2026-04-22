@@ -1,0 +1,14 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "register": {
+      "type": "modulus-customers-register",
+      "settings": {}
+    }
+  },
+  "order": ["register"]
+}

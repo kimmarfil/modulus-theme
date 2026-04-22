@@ -1,0 +1,14 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "login": {
+      "type": "modulus-customers-login",
+      "settings": {}
+    }
+  },
+  "order": ["login"]
+}

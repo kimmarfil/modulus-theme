@@ -1,0 +1,382 @@
+{% comment %}
+  Modulus Customers · Account — overview page.
+  Sidebar nav + main content (greeting, default address, recent orders).
+{% endcomment %}
+
+<div
+  id="modulus-cust-account-{{ section.id }}"
+  class="modulus-cust modulus-cust--account color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="--mc-py: {{ section.settings.padding_y }}px;"
+>
+  <div class="modulus-cust__inner">
+    <header class="modulus-cust__account-head" data-mod-reveal>
+      {%- if section.settings.label_text != blank -%}
+        {% render 'modulus-section-label',
+          text: section.settings.label_text,
+          number: section.settings.label_number
+        %}
+      {%- endif -%}
+      <h1 class="modulus-cust__account-heading">
+        {{ section.settings.heading | default: 'Account' }}
+      </h1>
+      <p class="modulus-cust__account-sub">
+        {%- if customer.first_name != blank -%}
+          Hi {{ customer.first_name | escape }} ·
+        {%- endif -%}
+        {{ customer.email | escape }}
+      </p>
+    </header>
+
+    <div class="modulus-cust__account-grid">
+      <aside class="modulus-cust__nav" aria-label="Account navigation" data-mod-reveal>
+        <ul role="list">
+          <li><a href="{{ routes.account_url }}" aria-current="page">Overview</a></li>
+          <li><a href="{{ routes.account_addresses_url }}">Addresses</a></li>
+          <li><a href="{{ routes.account_logout_url }}">Sign out</a></li>
+        </ul>
+      </aside>
+
+      <main class="modulus-cust__main">
+
+        {%- if customer.default_address -%}
+          <section class="modulus-cust__card" data-mod-reveal data-mod-reveal-delay="80">
+            <div class="modulus-cust__card-head">
+              <h2 class="modulus-cust__card-heading">Default address</h2>
+              <a href="{{ routes.account_addresses_url }}" class="modulus-cust__card-link">Manage</a>
+            </div>
+            <address class="modulus-cust__address">
+              {{ customer.default_address | format_address }}
+            </address>
+          </section>
+        {%- endif -%}
+
+        <section class="modulus-cust__card" data-mod-reveal data-mod-reveal-delay="120">
+          <div class="modulus-cust__card-head">
+            <h2 class="modulus-cust__card-heading">Orders</h2>
+            <span class="modulus-cust__card-meta">{{ customer.orders_count }} total</span>
+          </div>
+
+          {%- if customer.orders.size > 0 -%}
+            {%- paginate customer.orders by 20 -%}
+              <div class="modulus-cust__orders-wrap">
+                <table class="modulus-cust__orders">
+                  <thead>
+                    <tr>
+                      <th scope="col">Order</th>
+                      <th scope="col">Date</th>
+                      <th scope="col">Total</th>
+                      <th scope="col">Payment</th>
+                      <th scope="col">Fulfillment</th>
+                      <th scope="col" aria-label="View"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {%- for order in customer.orders -%}
+                      <tr>
+                        <td data-label="Order"><a href="{{ order.customer_url }}">{{ order.name }}</a></td>
+                        <td data-label="Date">{{ order.created_at | date: '%B %-d, %Y' }}</td>
+                        <td data-label="Total">{{ order.total_price | money }}</td>
+                        <td data-label="Payment">{{ order.financial_status_label }}</td>
+                        <td data-label="Fulfillment">{{ order.fulfillment_status_label }}</td>
+                        <td data-label="View" class="modulus-cust__orders-view">
+                          <a href="{{ order.customer_url }}" aria-label="View order {{ order.name }}">
+                            {% render 'modulus-icon', name: 'arrow-up-right', size: 14 %}
+                          </a>
+                        </td>
+                      </tr>
+                    {%- endfor -%}
+                  </tbody>
+                </table>
+              </div>
+
+              {%- if paginate.pages > 1 -%}
+                <nav class="modulus-cust__pagination" aria-label="Order pagination">
+                  {%- if paginate.previous -%}
+                    <a href="{{ paginate.previous.url }}">← Prev</a>
+                  {%- endif -%}
+                  <span>Page {{ paginate.current_page }} / {{ paginate.pages }}</span>
+                  {%- if paginate.next -%}
+                    <a href="{{ paginate.next.url }}">Next →</a>
+                  {%- endif -%}
+                </nav>
+              {%- endif -%}
+            {%- endpaginate -%}
+          {%- else -%}
+            <p class="modulus-cust__empty">You haven't placed any orders yet.</p>
+          {%- endif -%}
+        </section>
+      </main>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-cust {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--mc-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-cust__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  /* ---- account head ---- */
+  .modulus-cust__account-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+    padding-bottom: var(--mod-gap-md);
+    margin-bottom: var(--mod-gap-lg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  h1.modulus-cust__account-heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(32px, 5vw, 64px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-cust__account-sub {
+    font-family: var(--font-body--family);
+    font-size: 14px;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    margin: 0;
+  }
+
+  /* ---- grid ---- */
+  .modulus-cust__account-grid {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: var(--mod-gap-lg);
+    align-items: flex-start;
+  }
+
+  /* ---- nav ---- */
+  .modulus-cust__nav {
+    position: sticky;
+    top: 100px;
+  }
+
+  .modulus-cust__nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .modulus-cust__nav a {
+    display: block;
+    padding: 10px 0;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border);
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .modulus-cust__nav a:hover,
+  .modulus-cust__nav a[aria-current='page'] {
+    color: var(--color-foreground);
+    border-bottom-color: var(--color-foreground);
+  }
+
+  /* ---- main ---- */
+  .modulus-cust__main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-lg);
+  }
+
+  .modulus-cust__card {
+    border: 1px solid var(--color-border);
+    padding: clamp(20px, 2vw, 28px);
+  }
+
+  .modulus-cust__card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding-bottom: 12px;
+    margin-bottom: var(--mod-gap-sm);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  h2.modulus-cust__card-heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: 20px;
+    color: var(--color-foreground-heading, var(--color-foreground));
+    margin: 0;
+  }
+
+  .modulus-cust__card-meta,
+  .modulus-cust__card-link {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+  }
+
+  .modulus-cust__card-link { color: var(--color-foreground); text-decoration: underline; text-underline-offset: 3px; }
+
+  .modulus-cust__address {
+    font-family: var(--font-body--family);
+    font-style: normal;
+    font-size: 14px;
+    color: var(--color-foreground);
+    line-height: 1.6;
+  }
+
+  .modulus-cust__empty {
+    font-family: var(--font-body--family);
+    font-size: 14px;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+    margin: 0;
+    padding: 24px 0;
+    text-align: center;
+  }
+
+  /* ---- orders table ---- */
+  .modulus-cust__orders-wrap {
+    overflow-x: auto;
+  }
+
+  .modulus-cust__orders {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-body--family);
+    font-size: 14px;
+  }
+
+  .modulus-cust__orders th {
+    text-align: left;
+    padding: 12px 16px 12px 0;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    border-bottom: 1px solid var(--color-border);
+    white-space: nowrap;
+  }
+
+  .modulus-cust__orders td {
+    padding: 14px 16px 14px 0;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: middle;
+  }
+
+  .modulus-cust__orders a {
+    color: var(--color-foreground);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .modulus-cust__orders-view { text-align: right; padding-right: 0 !important; }
+  .modulus-cust__orders-view a { display: inline-flex; text-decoration: none; }
+
+  /* ---- pagination ---- */
+  .modulus-cust__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-top: var(--mod-gap-md);
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  .modulus-cust__pagination a {
+    color: var(--color-foreground);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 2px;
+  }
+
+  /* ---- responsive ---- */
+  @media (max-width: 900px) {
+    .modulus-cust__account-grid { grid-template-columns: 1fr; }
+    .modulus-cust__nav { position: static; }
+    .modulus-cust__nav ul { display: flex; gap: 4px; flex-wrap: wrap; }
+    .modulus-cust__nav a { border-bottom: none; padding: 10px 16px; border: 1px solid var(--color-border); }
+    .modulus-cust__nav a[aria-current='page'] { background: var(--color-foreground); color: var(--color-background); border-color: var(--color-foreground); }
+  }
+
+  @media (max-width: 640px) {
+    .modulus-cust__orders thead { display: none; }
+    .modulus-cust__orders,
+    .modulus-cust__orders tbody,
+    .modulus-cust__orders tr,
+    .modulus-cust__orders td { display: block; width: 100%; }
+    .modulus-cust__orders tr { padding: 14px 0; border-bottom: 1px solid var(--color-border); }
+    .modulus-cust__orders td { padding: 4px 0; border: none; display: flex; justify-content: space-between; gap: 16px; }
+    .modulus-cust__orders td::before {
+      content: attr(data-label);
+      font-family: var(--font-label--family);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgb(var(--color-foreground-rgb) / 0.55);
+    }
+    .modulus-cust__orders-view { justify-content: flex-end !important; }
+    .modulus-cust__orders-view::before { display: none; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Account",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Account" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "01" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Account" },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 96
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [{ "name": "Modulus Account" }],
+  "enabled_on": {
+    "templates": ["customers/account"]
+  }
+}
+{% endschema %}
