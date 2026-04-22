@@ -1,0 +1,762 @@
+{% comment %}
+  Modulus Header — main site header.
+  Logo + desktop nav (with hover/focus dropdowns) + action icons +
+  mobile hamburger → slide-in drawer. Supports transparent-over-hero
+  mode when body has .modulus-header-transparent (set by modulus-hero).
+{% endcomment %}
+
+{%- liquid
+  assign use_image_logo = false
+  if section.settings.logo != blank
+    assign use_image_logo = true
+  endif
+-%}
+
+<modulus-header
+  id="modulus-header-{{ section.id }}"
+  class="modulus-header{% if section.settings.sticky %} modulus-header--sticky{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  data-transparent-enabled="{{ section.settings.allow_transparent }}"
+  style="
+    --mh-height: {{ section.settings.header_height }}px;
+    --mh-logo-height: {{ section.settings.logo_height }}px;
+  "
+>
+  <div class="modulus-header__inner color-{{ section.settings.color_scheme.id }}">
+    <a
+      href="{{ routes.root_url }}"
+      class="modulus-header__logo"
+      aria-label="{{ shop.name | escape }} — home"
+    >
+      {%- if use_image_logo -%}
+        <img
+          src="{{ section.settings.logo | image_url: width: 400 }}"
+          srcset="
+            {{ section.settings.logo | image_url: width: 200 }} 200w,
+            {{ section.settings.logo | image_url: width: 400 }} 400w,
+            {{ section.settings.logo | image_url: width: 600 }} 600w
+          "
+          sizes="200px"
+          alt="{{ shop.name | escape }}"
+          width="{{ section.settings.logo.width }}"
+          height="{{ section.settings.logo.height }}"
+          loading="eager"
+        >
+      {%- else -%}
+        <span class="modulus-header__logo-text">{{ shop.name | escape }}</span>
+      {%- endif -%}
+    </a>
+
+    {%- if section.settings.menu != blank -%}
+      <nav class="modulus-header__nav" aria-label="Main">
+        <ul class="modulus-header__nav-list" role="list">
+          {%- for link in section.settings.menu.links -%}
+            <li class="modulus-header__nav-item{% if link.links.size > 0 %} has-dropdown{% endif %}{% if link.active or link.child_active %} is-active{% endif %}">
+              {%- if link.links.size > 0 -%}
+                <button
+                  type="button"
+                  class="modulus-header__nav-link modulus-header__nav-trigger"
+                  aria-expanded="false"
+                  aria-haspopup="true"
+                  data-mod-dropdown-trigger
+                >
+                  <span>{{ link.title | escape }}</span>
+                  <span class="modulus-header__chev" aria-hidden="true">{% render 'modulus-icon', name: 'chevron-down', size: 10 %}</span>
+                </button>
+                <div class="modulus-header__dropdown" data-mod-dropdown-panel>
+                  <ul role="list">
+                    {%- for child in link.links -%}
+                      <li>
+                        <a href="{{ child.url }}" class="modulus-header__dropdown-link{% if child.active %} is-active{% endif %}">
+                          {{ child.title | escape }}
+                        </a>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                </div>
+              {%- else -%}
+                <a href="{{ link.url }}" class="modulus-header__nav-link">
+                  {{ link.title | escape }}
+                </a>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ul>
+      </nav>
+    {%- endif -%}
+
+    <div class="modulus-header__actions">
+      {%- if section.settings.show_search -%}
+        <a href="{{ routes.search_url }}" class="modulus-header__icon-btn" aria-label="Search">
+          {% render 'modulus-icon', name: 'search', size: 18 %}
+        </a>
+      {%- endif -%}
+
+      {%- if section.settings.show_account and shop.customer_accounts_enabled -%}
+        <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="modulus-header__icon-btn" aria-label="Account">
+          {% render 'modulus-icon', name: 'account', size: 18 %}
+        </a>
+      {%- endif -%}
+
+      {%- if section.settings.show_cart -%}
+        {%- if section.settings.cart_type == 'drawer' -%}
+          <button
+            type="button"
+            class="modulus-header__icon-btn"
+            data-mod-cart-open
+            aria-label="Open cart"
+            aria-controls="modulus-cart-drawer"
+          >
+            {% render 'modulus-icon', name: 'cart', size: 18 %}
+            <span class="modulus-header__cart-count{% if cart.item_count == 0 %} is-empty{% endif %}" data-mod-cart-count>{{ cart.item_count }}</span>
+          </button>
+        {%- else -%}
+          <a href="{{ routes.cart_url }}" class="modulus-header__icon-btn" aria-label="Cart">
+            {% render 'modulus-icon', name: 'cart', size: 18 %}
+            <span class="modulus-header__cart-count{% if cart.item_count == 0 %} is-empty{% endif %}" data-mod-cart-count>{{ cart.item_count }}</span>
+          </a>
+        {%- endif -%}
+      {%- endif -%}
+
+      <button
+        type="button"
+        class="modulus-header__icon-btn modulus-header__burger"
+        data-mod-drawer-open
+        aria-label="Open menu"
+        aria-controls="modulus-header-drawer-{{ section.id }}"
+      >
+        {% render 'modulus-icon', name: 'menu', size: 20 %}
+      </button>
+    </div>
+  </div>
+
+  {%- comment -%} ===== MOBILE DRAWER ===== {%- endcomment -%}
+  <aside
+    id="modulus-header-drawer-{{ section.id }}"
+    class="modulus-header__drawer color-{{ section.settings.color_scheme.id }}"
+    data-mod-drawer
+    aria-hidden="true"
+    tabindex="-1"
+  >
+    <div class="modulus-header__drawer-head">
+      <a href="{{ routes.root_url }}" class="modulus-header__drawer-logo">
+        {%- if use_image_logo -%}
+          <img src="{{ section.settings.logo | image_url: width: 300 }}" alt="{{ shop.name | escape }}">
+        {%- else -%}
+          {{ shop.name | escape }}
+        {%- endif -%}
+      </a>
+      <button type="button" class="modulus-header__drawer-close" data-mod-drawer-close aria-label="Close menu">
+        {% render 'modulus-icon', name: 'close', size: 18 %}
+      </button>
+    </div>
+
+    {%- if section.settings.menu != blank -%}
+      <nav class="modulus-header__drawer-nav" aria-label="Mobile main">
+        <ul role="list">
+          {%- for link in section.settings.menu.links -%}
+            <li>
+              {%- if link.links.size > 0 -%}
+                <details class="modulus-header__drawer-details">
+                  <summary>
+                    <span>{{ link.title | escape }}</span>
+                    <span class="modulus-header__drawer-chev" aria-hidden="true">{% render 'modulus-icon', name: 'chevron-down', size: 12 %}</span>
+                  </summary>
+                  <ul class="modulus-header__drawer-sub" role="list">
+                    <li><a href="{{ link.url }}">{{ section.settings.view_all_prefix | default: 'All' }} {{ link.title | escape | downcase }}</a></li>
+                    {%- for child in link.links -%}
+                      <li><a href="{{ child.url }}">{{ child.title | escape }}</a></li>
+                    {%- endfor -%}
+                  </ul>
+                </details>
+              {%- else -%}
+                <a href="{{ link.url }}">{{ link.title | escape }}</a>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ul>
+      </nav>
+    {%- endif -%}
+
+    <footer class="modulus-header__drawer-footer">
+      {%- if section.settings.show_search -%}
+        <a href="{{ routes.search_url }}">
+          {% render 'modulus-icon', name: 'search', size: 14 %}
+          <span>Search</span>
+        </a>
+      {%- endif -%}
+      {%- if section.settings.show_account and shop.customer_accounts_enabled -%}
+        <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}">
+          {% render 'modulus-icon', name: 'account', size: 14 %}
+          <span>{% if customer %}Account{% else %}Sign in{% endif %}</span>
+        </a>
+      {%- endif -%}
+      {%- if section.settings.drawer_footer_text != blank -%}
+        <div class="modulus-header__drawer-blurb">{{ section.settings.drawer_footer_text }}</div>
+      {%- endif -%}
+    </footer>
+  </aside>
+
+  <div class="modulus-header__overlay" data-mod-drawer-backdrop aria-hidden="true"></div>
+</modulus-header>
+
+{% stylesheet %}
+  :root {
+    --modulus-header-height: var(--mh-height, 72px);
+  }
+
+  .modulus-header {
+    display: block;
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: var(--color-background);
+    border-bottom: 1px solid var(--color-border);
+    transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  }
+
+  /* Non-sticky variant */
+  .modulus-header:not(.modulus-header--sticky) {
+    position: relative;
+  }
+
+  /* Transparent-over-hero: set by body class from modulus-hero */
+  body.modulus-header-transparent .modulus-header {
+    background: transparent;
+    border-bottom-color: transparent;
+    color: #fff;
+  }
+
+  body.modulus-header-transparent .modulus-header .modulus-header__inner {
+    color: #fff;
+  }
+
+  body.modulus-header-transparent .modulus-header__cart-count {
+    background: #fff;
+    color: #000;
+  }
+
+  /* Inner bar */
+  .modulus-header__inner {
+    min-height: var(--mh-height, 72px);
+    padding: 0 var(--mod-section-px, 24px);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--mod-gap-md);
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+    color: var(--color-foreground);
+  }
+
+  /* ---- logo ---- */
+
+  .modulus-header__logo {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    line-height: 0;
+  }
+
+  .modulus-header__logo img {
+    max-height: var(--mh-logo-height, 28px);
+    width: auto;
+    display: block;
+  }
+
+  .modulus-header__logo-text {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: 18px;
+    letter-spacing: 0.01em;
+    line-height: 1;
+  }
+
+  /* ---- nav ---- */
+
+  .modulus-header__nav {
+    justify-self: center;
+  }
+
+  .modulus-header__nav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 4px;
+  }
+
+  .modulus-header__nav-item {
+    position: relative;
+  }
+
+  .modulus-header__nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: inherit;
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .modulus-header__nav-link:hover,
+  .modulus-header__nav-item.is-active > .modulus-header__nav-link {
+    opacity: 0.6;
+  }
+
+  .modulus-header__chev {
+    display: inline-flex;
+    transition: transform 0.2s ease;
+  }
+
+  .modulus-header__nav-item.has-dropdown:hover .modulus-header__chev,
+  .modulus-header__nav-item.has-dropdown:focus-within .modulus-header__chev,
+  .modulus-header__nav-item.has-dropdown.is-open .modulus-header__chev {
+    transform: rotate(180deg);
+  }
+
+  /* ---- dropdown ---- */
+
+  .modulus-header__dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 220px;
+    background: var(--color-background);
+    color: var(--color-foreground);
+    border: 1px solid var(--color-border);
+    padding: 10px 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 0.15s;
+    z-index: 60;
+  }
+
+  .modulus-header__nav-item.has-dropdown:hover > .modulus-header__dropdown,
+  .modulus-header__nav-item.has-dropdown:focus-within > .modulus-header__dropdown,
+  .modulus-header__nav-item.has-dropdown.is-open > .modulus-header__dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 0s;
+  }
+
+  .modulus-header__dropdown ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .modulus-header__dropdown-link {
+    display: block;
+    padding: 10px 18px;
+    font-family: var(--font-body--family);
+    font-size: 14px;
+    color: inherit;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s ease;
+  }
+
+  .modulus-header__dropdown-link:hover,
+  .modulus-header__dropdown-link.is-active {
+    background: rgb(var(--color-foreground-rgb) / 0.05);
+  }
+
+  /* ---- actions ---- */
+
+  .modulus-header__actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    justify-self: end;
+  }
+
+  .modulus-header__icon-btn {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .modulus-header__icon-btn:hover { opacity: 0.65; }
+
+  .modulus-header__cart-count {
+    position: absolute;
+    top: 6px;
+    right: 2px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--color-background);
+    background: var(--color-foreground);
+    border-radius: 999px;
+    line-height: 1;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .modulus-header__cart-count.is-empty {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+
+  .modulus-header__burger { display: none; }
+
+  /* ---- mobile drawer ---- */
+
+  .modulus-header__overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+    z-index: 90;
+  }
+
+  .modulus-header__overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.25s ease, visibility 0s linear 0s;
+  }
+
+  .modulus-header__drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(420px, 92vw);
+    background: var(--color-background);
+    color: var(--color-foreground);
+    border-left: 1px solid var(--color-border);
+    padding: 0;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .modulus-header__drawer.is-open {
+    transform: translateX(0);
+  }
+
+  .modulus-header__drawer-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px var(--mod-section-px, 24px);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-header__drawer-logo {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: 16px;
+    color: var(--color-foreground);
+    text-decoration: none;
+    line-height: 1;
+  }
+
+  .modulus-header__drawer-logo img {
+    max-height: 26px;
+    width: auto;
+    display: block;
+  }
+
+  .modulus-header__drawer-close {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-foreground);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .modulus-header__drawer-close:hover {
+    background: var(--color-foreground);
+    color: var(--color-background);
+  }
+
+  .modulus-header__drawer-nav {
+    flex: 1;
+    padding: 8px var(--mod-section-px, 24px);
+  }
+
+  .modulus-header__drawer-nav > ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .modulus-header__drawer-nav > ul > li {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-header__drawer-nav > ul > li > a,
+  .modulus-header__drawer-details > summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 0;
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: 20px;
+    color: var(--color-foreground);
+    text-decoration: none;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .modulus-header__drawer-details > summary::-webkit-details-marker { display: none; }
+  .modulus-header__drawer-details > summary::marker { content: ''; }
+
+  .modulus-header__drawer-chev {
+    display: inline-flex;
+    transition: transform 0.2s ease;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  .modulus-header__drawer-details[open] .modulus-header__drawer-chev {
+    transform: rotate(180deg);
+  }
+
+  .modulus-header__drawer-sub {
+    list-style: none;
+    padding: 0 0 18px 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modulus-header__drawer-sub a {
+    font-family: var(--font-body--family);
+    font-size: 15px;
+    color: rgb(var(--color-foreground-rgb) / 0.85);
+    text-decoration: none;
+  }
+
+  .modulus-header__drawer-sub a:hover {
+    color: var(--color-foreground);
+  }
+
+  .modulus-header__drawer-footer {
+    padding: 20px var(--mod-section-px, 24px);
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .modulus-header__drawer-footer a {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    text-decoration: none;
+  }
+
+  .modulus-header__drawer-blurb {
+    font-family: var(--font-body--family);
+    font-size: 12px;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    line-height: 1.5;
+    margin-top: 6px;
+  }
+
+  /* Lock body scroll when drawer open */
+  body.modulus-header-drawer-open {
+    overflow: hidden;
+  }
+
+  /* ---- responsive ---- */
+
+  @media (max-width: 900px) {
+    .modulus-header__nav { display: none; }
+    .modulus-header__inner { grid-template-columns: auto 1fr auto; }
+    .modulus-header__burger { display: inline-flex; }
+  }
+
+  @media (min-width: 901px) {
+    .modulus-header__burger { display: none; }
+    .modulus-header__drawer,
+    .modulus-header__overlay { display: none !important; }
+  }
+
+  @media (max-width: 600px) {
+    .modulus-header__inner { gap: 8px; padding: 0 16px; }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('modulus-header')) {
+    customElements.define('modulus-header', class ModulusHeader extends HTMLElement {
+      connectedCallback() {
+        this.drawer = this.querySelector('[data-mod-drawer]');
+        this.overlay = this.querySelector('[data-mod-drawer-backdrop]');
+        this.openBtn = this.querySelector('[data-mod-drawer-open]');
+        this.closeBtn = this.querySelector('[data-mod-drawer-close]');
+        this.cartCount = this.querySelector('[data-mod-cart-count]');
+
+        if (this.openBtn) this.openBtn.addEventListener('click', () => this.openDrawer());
+        if (this.closeBtn) this.closeBtn.addEventListener('click', () => this.closeDrawer());
+        if (this.overlay) this.overlay.addEventListener('click', () => this.closeDrawer());
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') this.closeDrawer();
+        });
+
+        this.bindDropdownClicks();
+
+        window.addEventListener('modulus:cart:update', (e) => this.updateCartCount(e.detail));
+      }
+
+      openDrawer() {
+        if (!this.drawer) return;
+        this.drawer.classList.add('is-open');
+        this.drawer.setAttribute('aria-hidden', 'false');
+        if (this.overlay) this.overlay.classList.add('is-open');
+        document.body.classList.add('modulus-header-drawer-open');
+      }
+
+      closeDrawer() {
+        if (!this.drawer) return;
+        this.drawer.classList.remove('is-open');
+        this.drawer.setAttribute('aria-hidden', 'true');
+        if (this.overlay) this.overlay.classList.remove('is-open');
+        document.body.classList.remove('modulus-header-drawer-open');
+      }
+
+      // Tap-to-toggle for touch devices where :hover doesn't work reliably.
+      bindDropdownClicks() {
+        this.querySelectorAll('[data-mod-dropdown-trigger]').forEach((trigger) => {
+          const item = trigger.closest('.modulus-header__nav-item');
+          trigger.addEventListener('click', (e) => {
+            // Only intercept on touch-first contexts; desktop hover still works naturally.
+            if (!window.matchMedia('(hover: none)').matches) return;
+            e.preventDefault();
+            const isOpen = item.classList.contains('is-open');
+            this.querySelectorAll('.modulus-header__nav-item.is-open').forEach((o) => o.classList.remove('is-open'));
+            if (!isOpen) {
+              item.classList.add('is-open');
+              trigger.setAttribute('aria-expanded', 'true');
+            } else {
+              trigger.setAttribute('aria-expanded', 'false');
+            }
+          });
+        });
+
+        document.addEventListener('click', (e) => {
+          if (this.contains(e.target)) return;
+          this.querySelectorAll('.modulus-header__nav-item.is-open').forEach((o) => {
+            o.classList.remove('is-open');
+            const t = o.querySelector('[data-mod-dropdown-trigger]');
+            if (t) t.setAttribute('aria-expanded', 'false');
+          });
+        });
+      }
+
+      updateCartCount(cart) {
+        if (!this.cartCount || !cart) return;
+        const count = cart.item_count || 0;
+        this.cartCount.textContent = count;
+        this.cartCount.classList.toggle('is-empty', count === 0);
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Modulus Header",
+  "settings": [
+    { "type": "header", "content": "Branding" },
+    { "type": "image_picker", "id": "logo", "label": "Logo" },
+    {
+      "type": "range",
+      "id": "logo_height",
+      "label": "Logo max height",
+      "min": 16, "max": 80, "step": 2, "unit": "px",
+      "default": 28
+    },
+
+    { "type": "header", "content": "Menu" },
+    { "type": "link_list", "id": "menu", "label": "Main menu", "default": "main-menu" },
+    { "type": "text", "id": "view_all_prefix", "label": "Mobile “view all” prefix", "default": "All" },
+
+    { "type": "header", "content": "Actions" },
+    { "type": "checkbox", "id": "show_search", "label": "Show search icon", "default": true },
+    { "type": "checkbox", "id": "show_account", "label": "Show account icon", "default": true, "info": "Only visible when customer accounts are enabled in Shopify admin." },
+    { "type": "checkbox", "id": "show_cart", "label": "Show cart icon", "default": true },
+    {
+      "type": "select",
+      "id": "cart_type",
+      "label": "Cart icon behavior",
+      "options": [
+        { "value": "drawer", "label": "Open cart drawer" },
+        { "value": "page", "label": "Link to cart page" }
+      ],
+      "default": "drawer"
+    },
+
+    { "type": "header", "content": "Layout" },
+    { "type": "checkbox", "id": "sticky", "label": "Stick to top on scroll", "default": true },
+    { "type": "checkbox", "id": "allow_transparent", "label": "Allow transparent over hero", "default": true, "info": "When a hero with “transparent header” enabled is present, the header renders transparent until the user scrolls past the hero." },
+    {
+      "type": "range",
+      "id": "header_height",
+      "label": "Header height",
+      "min": 56, "max": 120, "step": 2, "unit": "px",
+      "default": 72
+    },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Drawer footer" },
+    { "type": "richtext", "id": "drawer_footer_text", "label": "Drawer footer note", "default": "<p>Questions? Reach us at hello@example.com.</p>" },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "enabled_on": {
+    "groups": ["header"]
+  }
+}
+{% endschema %}

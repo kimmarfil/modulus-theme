@@ -1,0 +1,252 @@
+{% comment %}
+  Modulus Announcement bar — thin marquee-style bar above the header.
+  Supports multiple blocks that rotate on a timer (JS). Falls back to
+  showing the first block if JS is unavailable.
+{% endcomment %}
+
+{%- if section.blocks.size > 0 -%}
+<modulus-announcement
+  id="modulus-announcement-{{ section.id }}"
+  class="modulus-announce color-{{ section.settings.color_scheme.id }}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  data-interval="{{ section.settings.interval }}"
+  style="--ma-py: {{ section.settings.padding_y }}px;"
+>
+  <div class="modulus-announce__inner">
+    <div class="modulus-announce__track" data-mod-announce-track>
+      {%- for block in section.blocks -%}
+        <div
+          class="modulus-announce__slide{% if forloop.first %} is-active{% endif %}"
+          data-mod-announce-slide
+          {{ block.shopify_attributes }}
+        >
+          {%- if block.settings.text != blank -%}
+            {%- if block.settings.link != blank -%}
+              <a href="{{ block.settings.link }}" class="modulus-announce__link">
+                {%- if block.settings.icon != 'none' -%}
+                  <span class="modulus-announce__icon">{% render 'modulus-icon', name: block.settings.icon, size: 12 %}</span>
+                {%- endif -%}
+                <span>{{ block.settings.text | escape }}</span>
+              </a>
+            {%- else -%}
+              <span class="modulus-announce__static">
+                {%- if block.settings.icon != 'none' -%}
+                  <span class="modulus-announce__icon">{% render 'modulus-icon', name: block.settings.icon, size: 12 %}</span>
+                {%- endif -%}
+                <span>{{ block.settings.text | escape }}</span>
+              </span>
+            {%- endif -%}
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+
+    {%- if section.blocks.size > 1 and section.settings.show_controls -%}
+      <div class="modulus-announce__controls" aria-label="Announcement controls">
+        <button type="button" class="modulus-announce__ctrl" data-mod-announce-prev aria-label="Previous announcement">
+          {% render 'modulus-icon', name: 'arrow-left', size: 10 %}
+        </button>
+        <button type="button" class="modulus-announce__ctrl" data-mod-announce-next aria-label="Next announcement">
+          {% render 'modulus-icon', name: 'arrow-right', size: 10 %}
+        </button>
+      </div>
+    {%- endif -%}
+  </div>
+</modulus-announcement>
+{%- endif -%}
+
+{% stylesheet %}
+  .modulus-announce {
+    display: block;
+    background: var(--color-background);
+    color: var(--color-foreground);
+    border-bottom: 1px solid var(--color-border);
+    padding: var(--ma-py, 10px) var(--mod-section-px, 24px);
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .modulus-announce__inner {
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    position: relative;
+  }
+
+  .modulus-announce__track {
+    flex: 1;
+    text-align: center;
+    min-height: 1em;
+    position: relative;
+  }
+
+  .modulus-announce__slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+
+  .modulus-announce__slide:first-child { position: relative; }
+
+  .modulus-announce__slide.is-active {
+    opacity: 1;
+    position: relative;
+    pointer-events: auto;
+  }
+
+  .modulus-announce__slide.is-active ~ .modulus-announce__slide { position: absolute; }
+
+  .modulus-announce__link,
+  .modulus-announce__static {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .modulus-announce__link {
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+    transition: border-color 0.2s ease;
+  }
+
+  .modulus-announce__link:hover {
+    border-bottom-color: currentColor;
+  }
+
+  .modulus-announce__icon { display: inline-flex; opacity: 0.75; }
+
+  .modulus-announce__controls {
+    display: inline-flex;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .modulus-announce__ctrl {
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    color: inherit;
+    opacity: 0.55;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease;
+  }
+
+  .modulus-announce__ctrl:hover { opacity: 1; }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('modulus-announcement')) {
+    customElements.define('modulus-announcement', class ModulusAnnouncement extends HTMLElement {
+      connectedCallback() {
+        this.slides = Array.from(this.querySelectorAll('[data-mod-announce-slide]'));
+        if (this.slides.length <= 1) return;
+        this.index = 0;
+        this.interval = Math.max(0, parseInt(this.dataset.interval || '0', 10));
+
+        const prev = this.querySelector('[data-mod-announce-prev]');
+        const next = this.querySelector('[data-mod-announce-next]');
+        if (prev) prev.addEventListener('click', () => this.step(-1));
+        if (next) next.addEventListener('click', () => this.step(1));
+
+        if (this.interval > 0) {
+          this.timer = setInterval(() => this.step(1), this.interval * 1000);
+          this.addEventListener('mouseenter', () => clearInterval(this.timer));
+          this.addEventListener('mouseleave', () => {
+            this.timer = setInterval(() => this.step(1), this.interval * 1000);
+          });
+        }
+      }
+
+      step(delta) {
+        this.slides[this.index].classList.remove('is-active');
+        this.index = (this.index + delta + this.slides.length) % this.slides.length;
+        this.slides[this.index].classList.add('is-active');
+      }
+
+      disconnectedCallback() {
+        if (this.timer) clearInterval(this.timer);
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Modulus Announcement bar",
+  "settings": [
+    { "type": "header", "content": "Behavior" },
+    {
+      "type": "range",
+      "id": "interval",
+      "label": "Auto-rotate interval",
+      "info": "Seconds between rotations. Set to 0 to disable.",
+      "min": 0, "max": 20, "step": 1, "unit": "s",
+      "default": 5
+    },
+    { "type": "checkbox", "id": "show_controls", "label": "Show prev/next arrows", "default": false },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-2" },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 4, "max": 24, "step": 1, "unit": "px",
+      "default": 10
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "Message",
+      "settings": [
+        { "type": "text", "id": "text", "label": "Text", "default": "Free shipping on orders over $100." },
+        { "type": "url", "id": "link", "label": "Link (optional)" },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "arrow-right", "label": "Arrow" },
+            { "value": "package", "label": "Package" },
+            { "value": "mail", "label": "Mail" },
+            { "value": "target", "label": "Target" },
+            { "value": "check", "label": "Check" }
+          ],
+          "default": "none"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 5,
+  "default": {
+    "blocks": [
+      { "type": "message", "settings": { "text": "Free shipping on orders over $100." } },
+      { "type": "message", "settings": { "text": "30-day returns. No questions." } }
+    ]
+  },
+  "enabled_on": {
+    "groups": ["header"]
+  }
+}
+{% endschema %}

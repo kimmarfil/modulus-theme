@@ -1,0 +1,87 @@
+{%- comment -%}
+  Cart drawer body — line items or empty state. Rendered directly on
+  initial page load and re-fetched via Section Rendering API after cart
+  mutations (see modulus-cart-drawer.liquid → render()).
+
+  Accepts:
+    cart    — the Shopify cart Liquid object
+    section — the calling section, for settings lookup
+{%- endcomment -%}
+
+{%- if cart.item_count == 0 -%}
+  <div class="modulus-cart-drawer__empty">
+    <p>
+      <strong>{{ section.settings.empty_heading | default: 'Your cart is empty' }}</strong>
+    </p>
+    {%- if section.settings.empty_text != blank -%}
+      {{ section.settings.empty_text }}
+    {%- endif -%}
+    <a href="{{ routes.all_products_collection_url }}" class="mod-btn mod-btn--ghost-dark">
+      <span>{{ section.settings.empty_cta_label | default: 'Continue shopping' }}</span>
+      <span class="mod-btn__arrow" aria-hidden="true">{% render 'modulus-icon', name: 'arrow-right', size: 12 %}</span>
+    </a>
+  </div>
+{%- else -%}
+  <ul class="modulus-cart-drawer__lines" role="list">
+    {%- for item in cart.items -%}
+      <li class="modulus-cart-drawer__line" data-mod-drawer-line data-key="{{ item.key }}">
+        <a href="{{ item.url }}" class="modulus-cart-drawer__line-img" tabindex="-1" aria-hidden="true">
+          {%- if item.image != blank -%}
+            <img
+              src="{{ item.image | image_url: width: 160 }}"
+              srcset="
+                {{ item.image | image_url: width: 120 }} 120w,
+                {{ item.image | image_url: width: 200 }} 200w,
+                {{ item.image | image_url: width: 320 }} 320w
+              "
+              sizes="80px"
+              alt="{{ item.image.alt | default: item.product.title | escape }}"
+              width="{{ item.image.width }}"
+              height="{{ item.image.height }}"
+              loading="lazy"
+            >
+          {%- else -%}
+            {{ 'product-1' | placeholder_svg_tag: '' }}
+          {%- endif -%}
+        </a>
+
+        <div class="modulus-cart-drawer__line-body">
+          <a href="{{ item.url }}" class="modulus-cart-drawer__line-title">{{ item.product.title | escape }}</a>
+          {%- unless item.product_has_only_default_variant -%}
+            <span class="modulus-cart-drawer__line-variant">{{ item.variant.title | escape }}</span>
+          {%- endunless -%}
+
+          <div class="modulus-cart-drawer__line-row">
+            <div class="modulus-cart-drawer__qty">
+              <button type="button" data-mod-drawer-step data-mod-drawer-step="-1" aria-label="Decrease">
+                {% render 'modulus-icon', name: 'minus', size: 10 %}
+              </button>
+              <input
+                type="number"
+                value="{{ item.quantity }}"
+                min="0"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                data-mod-drawer-qty-input
+                data-key="{{ item.key }}"
+                aria-label="Quantity for {{ item.product.title | escape }}"
+              >
+              <button type="button" data-mod-drawer-step data-mod-drawer-step="1" aria-label="Increase">
+                {% render 'modulus-icon', name: 'plus', size: 10 %}
+              </button>
+            </div>
+
+            <span class="modulus-cart-drawer__line-total">{{ item.final_line_price | money }}</span>
+          </div>
+
+          <button
+            type="button"
+            class="modulus-cart-drawer__line-remove"
+            data-mod-drawer-remove
+            data-key="{{ item.key }}"
+          >Remove</button>
+        </div>
+      </li>
+    {%- endfor -%}
+  </ul>
+{%- endif -%}

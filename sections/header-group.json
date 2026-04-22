@@ -1,22 +1,21 @@
-/*
- * ------------------------------------------------------------
- * IMPORTANT: The contents of this file are auto-generated.
- *
- * This file may be updated by the Shopify admin theme editor
- * or related systems. Please exercise caution as any changes
- * made to this file may be overwritten.
- * ------------------------------------------------------------
- */
 {
   "type": "header",
-  "name": "t:general.header",
+  "name": "Header",
   "sections": {
+    "announcement": {
+      "type": "modulus-announcement-bar",
+      "disabled": true
+    },
     "header": {
-      "type": "header",
-      "settings": {}
+      "type": "modulus-header"
+    },
+    "cart_drawer": {
+      "type": "modulus-cart-drawer"
     }
   },
   "order": [
-    "header"
-  ],
+    "announcement",
+    "header",
+    "cart_drawer"
+  ]
 }
