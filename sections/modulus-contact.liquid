@@ -60,7 +60,8 @@
       </header>
 
       <div class="modulus-contact__form-wrap" data-mod-reveal data-mod-reveal-delay="120">
-        {% form 'contact', id: 'modulus-contact-form-' | append: section.id, class: 'modulus-contact__form' %}
+        {%- assign contact_form_id = 'modulus-contact-form-' | append: section.id -%}
+        {% form 'contact', id: contact_form_id, class: 'modulus-contact__form' %}
           {%- if form.posted_successfully? -%}
             <div class="modulus-contact__notice modulus-contact__notice--success" role="status">
               {{ section.settings.success_message | default: "Thanks — we'll get back to you shortly." }}
