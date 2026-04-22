@@ -1,0 +1,178 @@
+{% comment %}
+  Modulus 404 — page-not-found landing.
+  Large oversize glyph + editorial message + CTA back to home.
+{% endcomment %}
+
+<div
+  id="modulus-404-{{ section.id }}"
+  class="modulus-404 color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --nf-py: {{ section.settings.padding_y }}px;
+    --nf-glyph-size: {{ section.settings.glyph_size }}px;
+  "
+>
+  <div class="modulus-404__inner">
+    <div class="modulus-404__content" data-mod-reveal>
+      <span class="modulus-404__glyph" aria-hidden="true">{{ section.settings.glyph | default: '404' }}</span>
+      <h1 class="modulus-404__heading">{{ section.settings.heading | default: 'Page not found' }}</h1>
+      {%- if section.settings.body != blank -%}
+        <div class="modulus-404__body">{{ section.settings.body }}</div>
+      {%- endif -%}
+      <div class="modulus-404__ctas">
+        <a href="{{ routes.root_url }}" class="mod-btn mod-btn--primary">
+          <span>{{ section.settings.home_label | default: 'Back to home' }}</span>
+          <span class="mod-btn__arrow" aria-hidden="true">{% render 'modulus-icon', name: 'arrow-right', size: 14 %}</span>
+        </a>
+        <a href="{{ routes.search_url }}" class="modulus-404__secondary-link">
+          <span>{{ section.settings.search_label | default: 'Or search the site' }}</span>
+          {% render 'modulus-icon', name: 'search', size: 14 %}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-404 {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--nf-py, var(--mod-section-py)) var(--mod-section-px);
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+  }
+
+  .modulus-404__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-404__content {
+    max-width: 680px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-md);
+  }
+
+  .modulus-404__glyph {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: var(--nf-glyph-size, clamp(100px, 18vw, 220px));
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    color: var(--color-foreground-heading, var(--color-foreground));
+    opacity: 0.9;
+  }
+
+  h1.modulus-404__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(24px, 3vw, 40px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-404__body {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.1vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.7;
+    max-width: 560px;
+  }
+
+  .modulus-404__body p { margin: 0 0 0.8em; }
+  .modulus-404__body p:last-child { margin-bottom: 0; }
+
+  .modulus-404__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    margin-top: var(--mod-gap-sm);
+  }
+
+  .modulus-404__secondary-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    text-decoration: none;
+    padding-bottom: 4px;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease;
+  }
+
+  .modulus-404__secondary-link:hover {
+    border-bottom-color: var(--color-foreground);
+  }
+
+  @media (max-width: 640px) {
+    .modulus-404 { min-height: 50vh; }
+    .modulus-404__ctas { gap: 14px; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus 404",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "glyph", "label": "Large glyph", "default": "404" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Page not found" },
+    {
+      "type": "richtext",
+      "id": "body",
+      "label": "Body",
+      "default": "<p>The page you were looking for has been moved, renamed, or never existed. Head back to the home page or try a search.</p>"
+    },
+    { "type": "text", "id": "home_label", "label": "Home button label", "default": "Back to home" },
+    { "type": "text", "id": "search_label", "label": "Search link label", "default": "Or search the site" },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "range",
+      "id": "glyph_size",
+      "label": "Glyph size",
+      "min": 80, "max": 320, "step": 8, "unit": "px",
+      "default": 200
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [{ "name": "Modulus 404" }],
+  "enabled_on": {
+    "templates": ["404"]
+  }
+}
+{% endschema %}

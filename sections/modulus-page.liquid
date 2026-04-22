@@ -1,0 +1,205 @@
+{% comment %}
+  Modulus Page — renders a page's title + richtext content in editorial
+  typography. Designed as the "main" section on page templates.
+  Merchants can add additional Modulus sections above or below in the
+  theme editor.
+{% endcomment %}
+
+<div
+  id="modulus-page-{{ section.id }}"
+  class="modulus-page color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --mp-content-width: {{ section.settings.content_max_width }}px;
+    --mp-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-page__inner">
+    <header class="modulus-page__header" data-mod-reveal>
+      {%- if section.settings.label_text != blank -%}
+        {% render 'modulus-section-label',
+          text: section.settings.label_text,
+          number: section.settings.label_number
+        %}
+      {%- endif -%}
+      {%- if section.settings.heading_override != blank -%}
+        <h1 class="modulus-page__title">{{ section.settings.heading_override | escape }}</h1>
+      {%- else -%}
+        <h1 class="modulus-page__title">{{ page.title | escape }}</h1>
+      {%- endif -%}
+      {%- if section.settings.subtitle != blank -%}
+        <div class="modulus-page__subtitle">{{ section.settings.subtitle }}</div>
+      {%- endif -%}
+    </header>
+
+    {%- if page.content != blank -%}
+      <div class="modulus-page__body rte" data-mod-reveal data-mod-reveal-delay="80">
+        {{ page.content }}
+      </div>
+    {%- elsif section.settings.show_placeholder -%}
+      <div class="modulus-page__body modulus-page__body--empty" data-mod-reveal data-mod-reveal-delay="80">
+        <p>{{ section.settings.placeholder_text }}</p>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-page {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--mp-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-page__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-page__header {
+    max-width: var(--mp-content-width, 760px);
+    margin: 0 auto var(--mod-gap-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+  }
+
+  h1.modulus-page__title {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(32px, 5vw, 72px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+
+  .modulus-page__subtitle {
+    font-family: var(--font-body--family);
+    font-size: clamp(16px, 1.2vw, 19px);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.55;
+    margin-top: 4px;
+  }
+
+  .modulus-page__subtitle p { margin: 0; }
+
+  .modulus-page__body {
+    max-width: var(--mp-content-width, 760px);
+    margin: 0 auto;
+    font-family: var(--font-body--family);
+    font-size: clamp(16px, 1.15vw, 18px);
+    color: var(--color-foreground);
+    line-height: 1.75;
+  }
+
+  .modulus-page__body p { margin: 0 0 1.2em; }
+  .modulus-page__body p:last-child { margin-bottom: 0; }
+  .modulus-page__body h2,
+  .modulus-page__body h3,
+  .modulus-page__body h4 {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    letter-spacing: -0.005em;
+    line-height: 1.2;
+    margin: 2em 0 0.6em;
+  }
+  .modulus-page__body h2 { font-size: clamp(22px, 2.4vw, 34px); }
+  .modulus-page__body h3 { font-size: clamp(18px, 1.8vw, 26px); }
+  .modulus-page__body h4 { font-size: clamp(16px, 1.4vw, 20px); }
+  .modulus-page__body a {
+    color: var(--color-foreground);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .modulus-page__body blockquote {
+    margin: 1.5em 0;
+    padding-left: 24px;
+    border-left: 3px solid var(--color-foreground);
+    font-family: var(--font-heading--family);
+    font-size: 1.15em;
+    line-height: 1.4;
+    color: var(--color-foreground-heading, var(--color-foreground));
+  }
+  .modulus-page__body ul,
+  .modulus-page__body ol {
+    padding-left: 1.3em;
+    margin: 0 0 1.2em;
+  }
+  .modulus-page__body li { margin-bottom: 0.4em; }
+  .modulus-page__body img {
+    max-width: 100%;
+    height: auto;
+    margin: 1.5em 0;
+    display: block;
+  }
+  .modulus-page__body hr {
+    border: 0;
+    border-top: 1px solid var(--color-border);
+    margin: 2.5em 0;
+  }
+
+  .modulus-page__body--empty {
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+    font-style: italic;
+  }
+
+  @media (max-width: 640px) {
+    .modulus-page__header { margin-bottom: var(--mod-gap-md); }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Page",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label" },
+    { "type": "text", "id": "label_number", "label": "Section number" },
+    { "type": "text", "id": "heading_override", "label": "Heading override", "info": "Leave blank to use the page title." },
+    { "type": "richtext", "id": "subtitle", "label": "Subtitle / intro" },
+    { "type": "checkbox", "id": "show_placeholder", "label": "Show placeholder when page has no content", "default": false },
+    { "type": "text", "id": "placeholder_text", "label": "Placeholder text", "default": "This page is currently empty." },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "range",
+      "id": "content_max_width",
+      "label": "Content max width",
+      "min": 600, "max": 1200, "step": 20, "unit": "px",
+      "default": 760
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 96
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [{ "name": "Modulus Page" }],
+  "enabled_on": {
+    "templates": ["page"]
+  }
+}
+{% endschema %}

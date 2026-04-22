@@ -3,70 +3,259 @@
 <!doctype html>
 <html lang="{{ request.locale.iso_code }}">
   <head>
-    {% # Inlined CSS Variables %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+
+    <title>{{ 'gift_card.title' | t }} · {{ shop.name }}</title>
+
     {% render 'css-variables' %}
-
-    {% # Load and preload the critical CSS %}
     {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
-
-    {% # Social, title, etc. %}
-    {% render 'meta-tags' %}
-
-    {% style %}
-      main {
-        text-align: center;
-      }
-      main img {
-        display: unset;
-      }
-    {% endstyle %}
+    {{ 'modulus-tokens.css' | asset_url | stylesheet_tag }}
 
     {{ content_for_header }}
+
+    {% style %}
+      html, body {
+        background: var(--color-background);
+        color: var(--color-foreground);
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+      }
+
+      .modulus-gc {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(24px, 5vw, 64px);
+      }
+
+      .modulus-gc__brand {
+        font-family: var(--font-heading--family);
+        font-weight: var(--font-heading--weight);
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        color: rgb(var(--color-foreground-rgb) / 0.7);
+        text-decoration: none;
+        margin-bottom: 32px;
+        text-transform: uppercase;
+      }
+
+      .modulus-gc__brand img {
+        display: inline-block;
+        max-height: 32px;
+        width: auto;
+        vertical-align: middle;
+      }
+
+      .modulus-gc__card {
+        width: 100%;
+        max-width: 520px;
+        background: var(--color-background);
+        border: 1px solid var(--color-border);
+        padding: 48px 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+        text-align: center;
+      }
+
+      .modulus-gc__label {
+        font-family: var(--font-label--family, var(--font-body--family));
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: rgb(var(--color-foreground-rgb) / 0.65);
+      }
+
+      .modulus-gc__balance {
+        font-family: var(--font-heading--family);
+        font-weight: var(--font-heading--weight);
+        font-size: clamp(40px, 8vw, 72px);
+        letter-spacing: -0.02em;
+        line-height: 1;
+        color: var(--color-foreground-heading, var(--color-foreground));
+        margin: 0;
+      }
+
+      .modulus-gc__note {
+        font-family: var(--font-body--family);
+        font-size: 14px;
+        color: rgb(var(--color-foreground-rgb) / 0.7);
+        line-height: 1.55;
+        margin: 0;
+      }
+
+      .modulus-gc__note--warning {
+        color: var(--color-foreground);
+        padding: 10px 14px;
+        border: 1px solid var(--color-foreground);
+      }
+
+      .modulus-gc__code-wrap {
+        padding: 24px 16px;
+        border: 1px dashed var(--color-border);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .modulus-gc__code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: clamp(16px, 2.4vw, 22px);
+        letter-spacing: 0.08em;
+        word-break: break-all;
+        color: var(--color-foreground);
+      }
+
+      .modulus-gc__qr {
+        display: inline-block;
+        margin: 0 auto;
+        padding: 14px;
+        background: #fff;
+      }
+
+      .modulus-gc__qr img {
+        display: block;
+        width: 160px;
+        height: 160px;
+      }
+
+      .modulus-gc__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 4px;
+      }
+
+      .modulus-gc__btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px 24px;
+        background: var(--color-foreground);
+        color: var(--color-background);
+        border: 1px solid var(--color-foreground);
+        font-family: var(--font-label--family, var(--font-body--family));
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        text-decoration: none;
+        cursor: pointer;
+        transition: opacity 0.2s ease;
+      }
+
+      .modulus-gc__btn--ghost {
+        background: transparent;
+        color: var(--color-foreground);
+      }
+
+      .modulus-gc__btn:hover { opacity: 0.85; }
+
+      .modulus-gc__apple {
+        display: inline-block;
+        margin: 0;
+      }
+
+      .modulus-gc__apple img {
+        display: block;
+        width: 200px;
+        height: auto;
+      }
+
+      .modulus-gc__footer {
+        margin-top: 32px;
+      }
+
+      .modulus-gc__footer a {
+        font-family: var(--font-label--family, var(--font-body--family));
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgb(var(--color-foreground-rgb) / 0.6);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        padding-bottom: 2px;
+        transition: color 0.2s ease, border-color 0.2s ease;
+      }
+
+      .modulus-gc__footer a:hover {
+        color: var(--color-foreground);
+        border-bottom-color: var(--color-foreground);
+      }
+
+      @media print {
+        .modulus-gc__actions,
+        .modulus-gc__footer { display: none; }
+        .modulus-gc__card { border: 1px solid #000; }
+      }
+    {% endstyle %}
   </head>
 
   <body>
-    <main>
-      <div class="shopify-section">
-        <h1>{{ gift_card.balance | money }}</h1>
+    <main class="modulus-gc">
+      <a href="{{ routes.root_url }}" class="modulus-gc__brand">
+        {%- if settings.logo != blank -%}
+          <img src="{{ settings.logo | image_url: width: 240 }}" alt="{{ shop.name | escape }}">
+        {%- else -%}
+          {{ shop.name | escape }}
+        {%- endif -%}
+      </a>
 
-        {% if gift_card.enabled == false or gift_card.expired %}
-          <p>{{ 'gift_card.expired' | t }}</p>
-        {% endif %}
+      <article class="modulus-gc__card">
+        <span class="modulus-gc__label">Gift card balance</span>
 
-        {% if gift_card.expires_on %}
-          {% assign expires_on = gift_card.expires_on | date: '%B %e, %Y' %}
-          <p>
-            {{ 'gift_card.expires_on' | t: expires_on: expires_on }}
+        <h1 class="modulus-gc__balance">{{ gift_card.balance | money }}</h1>
+
+        {%- if gift_card.enabled == false or gift_card.expired -%}
+          <p class="modulus-gc__note modulus-gc__note--warning">
+            {{ 'gift_card.expired' | t | default: 'This gift card is no longer active.' }}
           </p>
-        {% endif %}
+        {%- elsif gift_card.expires_on -%}
+          <p class="modulus-gc__note">
+            Expires on {{ gift_card.expires_on | date: '%B %-d, %Y' }}
+          </p>
+        {%- endif -%}
 
-        <p>
-          {% if settings.logo %}
-            {{ settings.logo | image_url: width: 300 | image_tag: alt: shop.name }}
-          {% else %}
-            <img
-              src="{{ 'gift-card/card.svg' | shopify_asset_url }}"
-              alt="{{ 'gift_card.card' | t }}"
-              width="300"
-              height="200"
-            >
-          {% endif %}
+        {%- if gift_card.initial_value != gift_card.balance -%}
+          <p class="modulus-gc__note">
+            Original value {{ gift_card.initial_value | money }}
+          </p>
+        {%- endif -%}
+
+        <p class="modulus-gc__note">
+          {{ 'gift_card.use_at_checkout' | t | default: 'Use this code at checkout.' }}
         </p>
 
-        <h2>{{ shop.name }}</h2>
-        <p>{{ 'gift_card.use_at_checkout' | t }}</p>
-        <p>{{ gift_card.code | format_code }}</p>
+        <div class="modulus-gc__code-wrap">
+          <span class="modulus-gc__label">Code</span>
+          <div class="modulus-gc__code">{{ gift_card.code | format_code }}</div>
+          {%- if gift_card.qr_identifier -%}
+            <div class="modulus-gc__qr">
+              <img src="{{ gift_card.qr_identifier | qr: size: 160 }}" alt="QR code for this gift card" width="160" height="160">
+            </div>
+          {%- endif -%}
+        </div>
 
-        {% if gift_card.pass_url %}
-          <a href="{{ gift_card.pass_url }}">
-            <img
-              src="{{ 'gift-card/add-to-apple-wallet.svg' | shopify_asset_url }}"
-              alt="{{ 'gift_card.add_to_apple_wallet' | t }}"
-              width="200"
-              height="60"
-            >
-          </a>
-        {% endif %}
+        <div class="modulus-gc__actions">
+          <button type="button" class="modulus-gc__btn modulus-gc__btn--ghost" onclick="window.print()">
+            Print this card
+          </button>
+          {%- if gift_card.enabled and gift_card.pass_url -%}
+            <a href="{{ gift_card.pass_url }}" class="modulus-gc__apple" aria-label="Add to Apple Wallet">
+              <img src="{{ 'gift-card/add-to-apple-wallet.svg' | shopify_asset_url }}" alt="Add to Apple Wallet" width="200" height="60">
+            </a>
+          {%- endif -%}
+        </div>
+      </article>
+
+      <div class="modulus-gc__footer">
+        <a href="{{ routes.root_url }}">Back to {{ shop.name | escape }}</a>
       </div>
     </main>
   </body>
