@@ -28,17 +28,17 @@
         <div class="modulus-cust__field-row">
           <div class="modulus-cust__field">
             <label for="cust-reg-first-{{ section.id }}">First name</label>
-            <input type="text" id="cust-reg-first-{{ section.id }}" name="customer[first_name]" autocomplete="given-name" value="{% if form.first_name %}{{ form.first_name }}{% endif %}" required>
+            <input type="text" id="cust-reg-first-{{ section.id }}" name="customer[first_name]" autocomplete="given-name" value="{% if form.first_name %}{{ form.first_name | escape }}{% endif %}" required>
           </div>
           <div class="modulus-cust__field">
             <label for="cust-reg-last-{{ section.id }}">Last name</label>
-            <input type="text" id="cust-reg-last-{{ section.id }}" name="customer[last_name]" autocomplete="family-name" value="{% if form.last_name %}{{ form.last_name }}{% endif %}" required>
+            <input type="text" id="cust-reg-last-{{ section.id }}" name="customer[last_name]" autocomplete="family-name" value="{% if form.last_name %}{{ form.last_name | escape }}{% endif %}" required>
           </div>
         </div>
 
         <div class="modulus-cust__field">
           <label for="cust-reg-email-{{ section.id }}">Email</label>
-          <input type="email" id="cust-reg-email-{{ section.id }}" name="customer[email]" autocomplete="email" value="{% if form.email %}{{ form.email }}{% endif %}" required>
+          <input type="email" id="cust-reg-email-{{ section.id }}" name="customer[email]" autocomplete="email" value="{% if form.email %}{{ form.email | escape }}{% endif %}" required>
         </div>
 
         <div class="modulus-cust__field">

@@ -8,6 +8,7 @@
 <modulus-cart-drawer
   id="modulus-cart-drawer"
   class="modulus-cart-drawer color-{{ section.settings.color_scheme.id }}"
+  data-shopify-section-id="{{ section.id }}"
   aria-hidden="true"
 >
   <div class="modulus-cart-drawer__overlay" data-mod-cart-backdrop></div>
@@ -414,19 +415,26 @@
 
       // Intercept product-form add-to-cart submits so we can POST via
       // /cart/add.js and open the drawer with the updated cart.
+      // Bind exactly once globally — the theme editor re-runs
+      // connectedCallback on every setting change, which would otherwise
+      // stack listeners and cause duplicate /cart/add.js requests.
       bindFormIntercepts() {
+        if (window.__modulusCartDrawerGlobalBound) return;
+        window.__modulusCartDrawerGlobalBound = true;
         document.addEventListener('submit', (e) => {
           const form = e.target.closest('form[action$="/cart/add"]');
           if (!form) return;
+          const drawer = document.querySelector('modulus-cart-drawer');
+          if (!drawer) return;
           e.preventDefault();
           const fd = new FormData(form);
-          this.classList.add('is-loading');
+          drawer.classList.add('is-loading');
           fetch('/cart/add.js', { method: 'POST', body: fd, headers: { 'Accept': 'application/json' } })
             .then((r) => r.json())
-            .then(() => this.refresh())
-            .then(() => this.open())
+            .then(() => drawer.refresh())
+            .then(() => drawer.open())
             .catch(() => { form.submit(); })
-            .finally(() => this.classList.remove('is-loading'));
+            .finally(() => drawer.classList.remove('is-loading'));
         });
       }
 
@@ -495,8 +503,9 @@
         // Re-fetch section HTML via Shopify's Section Rendering API for a
         // faithful render (Liquid-rendered markup, including prices + money
         // formatting, rather than rebuilding client-side).
-        const sectionId = this.id.replace(/^modulus-cart-/, '');
-        fetch(`${window.location.pathname}?section_id=${encodeURIComponent('modulus-cart-drawer')}`, {
+        const sectionId = this.dataset.shopifySectionId;
+        if (!sectionId) return;
+        fetch(`${window.location.pathname}?section_id=${encodeURIComponent(sectionId)}`, {
           headers: { 'Accept': 'text/html' }
         })
           .then((r) => r.text())

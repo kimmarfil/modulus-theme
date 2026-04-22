@@ -84,7 +84,7 @@
                 id="contact-name-{{ section.id }}"
                 name="contact[name]"
                 autocomplete="name"
-                value="{% if form.name %}{{ form.name }}{% elsif customer.name %}{{ customer.name }}{% endif %}"
+                value="{% if form.name %}{{ form.name | escape }}{% elsif customer.name %}{{ customer.name | escape }}{% endif %}"
                 required
               >
             </div>
@@ -95,7 +95,7 @@
                 id="contact-email-{{ section.id }}"
                 name="contact[email]"
                 autocomplete="email"
-                value="{% if form.email %}{{ form.email }}{% elsif customer.email %}{{ customer.email }}{% endif %}"
+                value="{% if form.email %}{{ form.email | escape }}{% elsif customer.email %}{{ customer.email | escape }}{% endif %}"
                 required
               >
             </div>
@@ -109,7 +109,7 @@
                 id="contact-phone-{{ section.id }}"
                 name="contact[phone]"
                 autocomplete="tel"
-                value="{% if form.phone %}{{ form.phone }}{% endif %}"
+                value="{% if form.phone %}{{ form.phone | escape }}{% endif %}"
               >
             </div>
           {%- endif -%}
@@ -121,7 +121,7 @@
               name="contact[body]"
               rows="6"
               required
-            >{% if form.body %}{{ form.body }}{% endif %}</textarea>
+            >{% if form.body %}{{ form.body | escape }}{% endif %}</textarea>
           </div>
 
           <button type="submit" class="mod-btn mod-btn--primary modulus-contact__submit">

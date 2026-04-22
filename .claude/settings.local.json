@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(shopify version *)",
+      "Bash(node -e ' *)",
+      "Bash(echo \"EXIT $?\")",
+      "Bash(git restore *)"
+    ]
+  }
+}

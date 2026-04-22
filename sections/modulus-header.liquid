@@ -687,14 +687,22 @@
           });
         });
 
-        document.addEventListener('click', (e) => {
-          if (this.contains(e.target)) return;
-          this.querySelectorAll('.modulus-header__nav-item.is-open').forEach((o) => {
-            o.classList.remove('is-open');
-            const t = o.querySelector('[data-mod-dropdown-trigger]');
-            if (t) t.setAttribute('aria-expanded', 'false');
+        // Close dropdowns when clicking outside the header.
+        // Bind the global listener exactly once, not per connectedCallback
+        // (the theme editor re-runs connectedCallback on every setting change).
+        if (!window.__modulusHeaderGlobalBound) {
+          window.__modulusHeaderGlobalBound = true;
+          document.addEventListener('click', (e) => {
+            document.querySelectorAll('modulus-header').forEach((header) => {
+              if (header.contains(e.target)) return;
+              header.querySelectorAll('.modulus-header__nav-item.is-open').forEach((o) => {
+                o.classList.remove('is-open');
+                const t = o.querySelector('[data-mod-dropdown-trigger]');
+                if (t) t.setAttribute('aria-expanded', 'false');
+              });
+            });
           });
-        });
+        }
       }
 
       updateCartCount(cart) {

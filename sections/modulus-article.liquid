@@ -169,7 +169,7 @@
                 type="text"
                 id="comment-author-{{ section.id }}"
                 name="comment[author]"
-                value="{{ form.author }}"
+                value="{{ form.author | escape }}"
                 required
               >
             </div>
@@ -180,7 +180,7 @@
                 type="email"
                 id="comment-email-{{ section.id }}"
                 name="comment[email]"
-                value="{{ form.email }}"
+                value="{{ form.email | escape }}"
                 required
               >
             </div>
@@ -192,7 +192,7 @@
                 name="comment[body]"
                 rows="5"
                 required
-              >{{ form.body }}</textarea>
+              >{{ form.body | escape }}</textarea>
             </div>
 
             <button type="submit" class="mod-btn mod-btn--primary">
