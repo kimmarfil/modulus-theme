@@ -1,0 +1,776 @@
+{% comment %}
+  Modulus Search — results page.
+  Prominent search input + type filter tabs + mixed results list
+  (products rendered as cards, articles/pages as editorial rows).
+{% endcomment %}
+
+{%- liquid
+  assign terms = search.terms | default: ''
+  assign current_type_raw = search.types | default: ''
+  assign current_type = 'all'
+  if current_type_raw contains ',' or current_type_raw == ''
+    assign current_type = 'all'
+  else
+    assign current_type = current_type_raw
+  endif
+
+  assign default_types = section.settings.default_types | default: 'product,article,page'
+-%}
+
+<div
+  id="modulus-search-{{ section.id }}"
+  class="modulus-search color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="--ms-py: {{ section.settings.padding_y }}px;"
+>
+  <div class="modulus-search__inner">
+
+    {%- comment -%} ===== HEADER ===== {%- endcomment -%}
+    <header class="modulus-search__head" data-mod-reveal>
+      {%- if section.settings.label_text != blank -%}
+        {% render 'modulus-section-label',
+          text: section.settings.label_text,
+          number: section.settings.label_number
+        %}
+      {%- endif -%}
+
+      {%- if search.performed -%}
+        <h1 class="modulus-search__heading">
+          {%- if search.results_count > 0 -%}
+            {{ search.results_count }}
+            {%- if search.results_count == 1 %} result{% else %} results{% endif %}
+            for &ldquo;<span class="modulus-search__terms">{{ terms | escape }}</span>&rdquo;
+          {%- else -%}
+            No results for &ldquo;<span class="modulus-search__terms">{{ terms | escape }}</span>&rdquo;
+          {%- endif -%}
+        </h1>
+      {%- else -%}
+        <h1 class="modulus-search__heading">
+          {{ section.settings.idle_heading | default: 'Search' }}
+        </h1>
+        {%- if section.settings.idle_intro != blank -%}
+          <div class="modulus-search__intro">{{ section.settings.idle_intro }}</div>
+        {%- endif -%}
+      {%- endif -%}
+    </header>
+
+    {%- comment -%} ===== SEARCH FORM ===== {%- endcomment -%}
+    <form
+      class="modulus-search__form"
+      action="{{ routes.search_url }}"
+      method="get"
+      role="search"
+      data-mod-reveal
+      data-mod-reveal-delay="80"
+    >
+      <input type="hidden" name="type" value="{{ current_type_raw | default: default_types | escape }}">
+      <input type="hidden" name="options[prefix]" value="last">
+      <div class="modulus-search__input-wrap">
+        {% render 'modulus-icon', name: 'search', size: 18 %}
+        <input
+          type="search"
+          name="q"
+          value="{{ terms | escape }}"
+          placeholder="{{ section.settings.input_placeholder | default: 'Search products, articles, pages…' | escape }}"
+          class="modulus-search__input"
+          autocomplete="off"
+          autofocus
+          aria-label="{{ section.settings.input_placeholder | default: 'Search' | escape }}"
+        >
+        <button type="submit" class="modulus-search__submit">
+          <span>{{ section.settings.submit_label | default: 'Search' }}</span>
+          {% render 'modulus-icon', name: 'arrow-right', size: 14 %}
+        </button>
+      </div>
+    </form>
+
+    {%- comment -%} ===== TYPE TABS ===== {%- endcomment -%}
+    {%- if search.performed and search.results_count > 0 -%}
+      {%- assign all_url = routes.search_url | append: '?q=' | append: terms | url_encode | append: '&type=' | append: default_types -%}
+      {%- assign product_url = routes.search_url | append: '?q=' | append: terms | url_encode | append: '&type=product' -%}
+      {%- assign article_url = routes.search_url | append: '?q=' | append: terms | url_encode | append: '&type=article' -%}
+      {%- assign page_url = routes.search_url | append: '?q=' | append: terms | url_encode | append: '&type=page' -%}
+
+      <nav class="modulus-search__tabs" aria-label="Filter results by type" data-mod-reveal data-mod-reveal-delay="120">
+        <a href="{{ all_url }}" class="modulus-search__tab{% if current_type == 'all' %} is-active{% endif %}">
+          <span>All</span>
+        </a>
+        <a href="{{ product_url }}" class="modulus-search__tab{% if current_type == 'product' %} is-active{% endif %}">
+          <span>Products</span>
+        </a>
+        <a href="{{ article_url }}" class="modulus-search__tab{% if current_type == 'article' %} is-active{% endif %}">
+          <span>Articles</span>
+        </a>
+        <a href="{{ page_url }}" class="modulus-search__tab{% if current_type == 'page' %} is-active{% endif %}">
+          <span>Pages</span>
+        </a>
+      </nav>
+    {%- endif -%}
+
+    {%- comment -%} ===== RESULTS ===== {%- endcomment -%}
+    {%- if search.performed -%}
+      {%- if search.results_count > 0 -%}
+        {%- paginate search.results by section.settings.results_per_page -%}
+
+          {%- comment -%}
+            Count each type ahead of time so we only render sections that
+            have matching results on this page. (Liquid has no array
+            push/append, so we loop the results list once per type.)
+          {%- endcomment -%}
+          {%- assign product_count = 0 -%}
+          {%- assign article_count = 0 -%}
+          {%- assign page_count = 0 -%}
+          {%- for result in search.results -%}
+            {%- case result.object_type -%}
+              {%- when 'product' -%}{%- assign product_count = product_count | plus: 1 -%}
+              {%- when 'article' -%}{%- assign article_count = article_count | plus: 1 -%}
+              {%- when 'page' -%}{%- assign page_count = page_count | plus: 1 -%}
+            {%- endcase -%}
+          {%- endfor -%}
+
+          <div class="modulus-search__results">
+
+            {%- if product_count > 0 -%}
+              <section class="modulus-search__section" data-mod-reveal>
+                <h2 class="modulus-search__section-title">
+                  Products <span class="modulus-search__section-count">{{ product_count }}</span>
+                </h2>
+                <ul class="modulus-search__products" role="list">
+                  {%- for result in search.results -%}
+                    {%- if result.object_type != 'product' -%}{%- continue -%}{%- endif -%}
+                    {%- assign product = result -%}
+                    <li>
+                      <a href="{{ product.url }}" class="modulus-product{% if product.available == false %} modulus-product--sold-out{% endif %}">
+                        <div class="modulus-product__image-wrap">
+                          {%- if product.featured_image != blank -%}
+                            <img
+                              class="modulus-product__image"
+                              src="{{ product.featured_image | image_url: width: 600 }}"
+                              srcset="
+                                {{ product.featured_image | image_url: width: 300 }} 300w,
+                                {{ product.featured_image | image_url: width: 600 }} 600w,
+                                {{ product.featured_image | image_url: width: 900 }} 900w
+                              "
+                              sizes="(max-width: 768px) 50vw, 25vw"
+                              alt="{{ product.featured_image.alt | escape | default: product.title }}"
+                              width="{{ product.featured_image.width }}"
+                              height="{{ product.featured_image.height }}"
+                              loading="lazy"
+                            >
+                          {%- else -%}
+                            {{ 'product-1' | placeholder_svg_tag: 'modulus-product__image' }}
+                          {%- endif -%}
+                          {%- if product.available == false -%}
+                            <span class="modulus-product__badge modulus-product__badge--sold-out">Sold out</span>
+                          {%- elsif product.compare_at_price > product.price -%}
+                            <span class="modulus-product__badge modulus-product__badge--sale">Sale</span>
+                          {%- endif -%}
+                        </div>
+                        <h3 class="modulus-product__title">{{ product.title | escape }}</h3>
+                        <div class="modulus-product__price">
+                          {%- if product.compare_at_price > product.price -%}
+                            <span class="modulus-product__price--sale">{{ product.price | money }}</span>
+                            <span class="modulus-product__price--compare"><s>{{ product.compare_at_price | money }}</s></span>
+                          {%- else -%}
+                            <span class="modulus-product__price--regular">{{ product.price | money }}</span>
+                          {%- endif -%}
+                        </div>
+                      </a>
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              </section>
+            {%- endif -%}
+
+            {%- if article_count > 0 -%}
+              <section class="modulus-search__section" data-mod-reveal data-mod-reveal-delay="80">
+                <h2 class="modulus-search__section-title">
+                  Articles <span class="modulus-search__section-count">{{ article_count }}</span>
+                </h2>
+                <ul class="modulus-search__rows" role="list">
+                  {%- for result in search.results -%}
+                    {%- if result.object_type != 'article' -%}{%- continue -%}{%- endif -%}
+                    {%- assign article = result -%}
+                    <li class="modulus-search__row">
+                      <a href="{{ article.url }}" class="modulus-search__row-link">
+                        <div class="modulus-search__row-body">
+                          <span class="modulus-search__row-kicker">
+                            {% if article.published_at %}{{ article.published_at | date: '%B %-d, %Y' }}{% endif %}
+                            {% if article.blog.title %} · {{ article.blog.title | escape }}{% endif %}
+                          </span>
+                          <h3 class="modulus-search__row-title">{{ article.title | escape }}</h3>
+                          {%- if article.excerpt_or_content != blank -%}
+                            <p class="modulus-search__row-excerpt">{{ article.excerpt_or_content | strip_html | truncatewords: 30 }}</p>
+                          {%- endif -%}
+                        </div>
+                        <span class="modulus-search__row-arrow" aria-hidden="true">
+                          {% render 'modulus-icon', name: 'arrow-up-right', size: 16 %}
+                        </span>
+                      </a>
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              </section>
+            {%- endif -%}
+
+            {%- if page_count > 0 -%}
+              <section class="modulus-search__section" data-mod-reveal data-mod-reveal-delay="120">
+                <h2 class="modulus-search__section-title">
+                  Pages <span class="modulus-search__section-count">{{ page_count }}</span>
+                </h2>
+                <ul class="modulus-search__rows" role="list">
+                  {%- for result in search.results -%}
+                    {%- if result.object_type != 'page' -%}{%- continue -%}{%- endif -%}
+                    {%- assign page = result -%}
+                    <li class="modulus-search__row">
+                      <a href="{{ page.url }}" class="modulus-search__row-link">
+                        <div class="modulus-search__row-body">
+                          <span class="modulus-search__row-kicker">Page</span>
+                          <h3 class="modulus-search__row-title">{{ page.title | escape }}</h3>
+                          {%- if page.content != blank -%}
+                            <p class="modulus-search__row-excerpt">{{ page.content | strip_html | truncatewords: 30 }}</p>
+                          {%- endif -%}
+                        </div>
+                        <span class="modulus-search__row-arrow" aria-hidden="true">
+                          {% render 'modulus-icon', name: 'arrow-up-right', size: 16 %}
+                        </span>
+                      </a>
+                    </li>
+                  {%- endfor -%}
+                </ul>
+              </section>
+            {%- endif -%}
+
+            {%- if paginate.pages > 1 -%}
+              <nav class="modulus-search__pagination" aria-label="Pagination">
+                {%- if paginate.previous -%}
+                  <a href="{{ paginate.previous.url }}" class="modulus-search__pagination-btn">
+                    {% render 'modulus-icon', name: 'arrow-left', size: 14 %}
+                    <span>Prev</span>
+                  </a>
+                {%- else -%}
+                  <span class="modulus-search__pagination-btn modulus-search__pagination-btn--disabled">
+                    {% render 'modulus-icon', name: 'arrow-left', size: 14 %}
+                    <span>Prev</span>
+                  </span>
+                {%- endif -%}
+                <span class="modulus-search__pagination-info">
+                  Page <strong>{{ paginate.current_page }}</strong> / {{ paginate.pages }}
+                </span>
+                {%- if paginate.next -%}
+                  <a href="{{ paginate.next.url }}" class="modulus-search__pagination-btn">
+                    <span>Next</span>
+                    {% render 'modulus-icon', name: 'arrow-right', size: 14 %}
+                  </a>
+                {%- else -%}
+                  <span class="modulus-search__pagination-btn modulus-search__pagination-btn--disabled">
+                    <span>Next</span>
+                    {% render 'modulus-icon', name: 'arrow-right', size: 14 %}
+                  </span>
+                {%- endif -%}
+              </nav>
+            {%- endif -%}
+          </div>
+
+        {%- endpaginate -%}
+
+      {%- else -%}
+        {%- comment -%} Search performed, zero results {%- endcomment -%}
+        <div class="modulus-search__empty" data-mod-reveal>
+          <p class="modulus-search__empty-text">
+            {{ section.settings.no_results_text | default: "Try a shorter term, check spelling, or explore the catalogue." }}
+          </p>
+          <a href="{{ routes.all_products_collection_url }}" class="mod-btn mod-btn--primary">
+            <span>{{ section.settings.no_results_cta_label | default: 'Browse the catalogue' }}</span>
+            <span class="mod-btn__arrow" aria-hidden="true">{% render 'modulus-icon', name: 'arrow-right', size: 14 %}</span>
+          </a>
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+</div>
+
+{% stylesheet %}
+  .modulus-search {
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--ms-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-search__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  /* ---- head ---- */
+
+  .modulus-search__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+    margin-bottom: var(--mod-gap-lg);
+    padding-bottom: var(--mod-gap-md);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  h1.modulus-search__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4vw, 56px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-search__terms {
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    font-style: italic;
+  }
+
+  .modulus-search__intro {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.1vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    line-height: 1.65;
+    max-width: 560px;
+  }
+
+  .modulus-search__intro p { margin: 0; }
+
+  /* ---- search form ---- */
+
+  .modulus-search__form {
+    margin-bottom: var(--mod-gap-lg);
+  }
+
+  .modulus-search__input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--color-border);
+    padding: 0 20px;
+    transition: border-color 0.2s ease;
+  }
+
+  .modulus-search__input-wrap:focus-within {
+    border-color: var(--color-foreground);
+  }
+
+  .modulus-search__input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    font-family: var(--font-body--family);
+    font-size: clamp(16px, 1.4vw, 20px);
+    color: var(--color-foreground);
+    padding: 20px 0;
+    outline: none;
+  }
+
+  .modulus-search__input::placeholder {
+    color: rgb(var(--color-foreground-rgb) / 0.4);
+  }
+
+  .modulus-search__submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--color-foreground);
+    color: var(--color-background);
+    border: none;
+    padding: 14px 22px;
+    cursor: pointer;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 6px -6px 6px 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .modulus-search__submit:hover {
+    opacity: 0.85;
+  }
+
+  /* ---- type tabs ---- */
+
+  .modulus-search__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    margin-bottom: var(--mod-gap-lg);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-search__tab {
+    padding: 12px 20px;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .modulus-search__tab:hover {
+    color: var(--color-foreground);
+  }
+
+  .modulus-search__tab.is-active {
+    color: var(--color-foreground);
+    border-bottom-color: var(--color-foreground);
+  }
+
+  /* ---- results sections ---- */
+
+  .modulus-search__results {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-xl);
+  }
+
+  .modulus-search__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-md);
+  }
+
+  h2.modulus-search__section-title {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    margin: 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .modulus-search__section-count {
+    color: rgb(var(--color-foreground-rgb) / 0.45);
+    font-size: 10px;
+  }
+
+  /* ---- product grid (reuses modulus-product styles) ---- */
+
+  .modulus-search__products {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px 24px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .modulus-search__products .modulus-product {
+    position: relative;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .modulus-search__products .modulus-product__image-wrap {
+    position: relative;
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.04);
+    aspect-ratio: 3 / 4;
+    margin-bottom: 14px;
+  }
+
+  .modulus-search__products .modulus-product__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 500ms ease;
+  }
+
+  .modulus-search__products .modulus-product:hover .modulus-product__image {
+    transform: scale(1.03);
+  }
+
+  .modulus-search__products .modulus-product__badge {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    z-index: 2;
+    font-family: var(--font-label--family);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    background: var(--color-foreground);
+    color: var(--color-background);
+  }
+
+  .modulus-search__products .modulus-product__badge--sold-out {
+    background: rgb(var(--color-foreground-rgb) / 0.8);
+  }
+
+  .modulus-search__products h3.modulus-product__title {
+    font-family: var(--font-body--family);
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--color-foreground);
+    line-height: 1.3;
+    margin: 0 0 4px;
+  }
+
+  .modulus-search__products .modulus-product__price {
+    font-family: var(--font-body--family);
+    font-size: 14px;
+    color: var(--color-foreground);
+  }
+
+  .modulus-search__products .modulus-product__price--compare {
+    color: rgb(var(--color-foreground-rgb) / 0.5);
+    margin-left: 8px;
+  }
+
+  /* ---- editorial rows (articles + pages) ---- */
+
+  .modulus-search__rows {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .modulus-search__row {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-search__row-link {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 24px;
+    align-items: center;
+    padding: 24px 0;
+    text-decoration: none;
+    color: var(--color-foreground);
+    transition: color 0.2s ease;
+  }
+
+  .modulus-search__row-link:hover {
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+  }
+
+  .modulus-search__row-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .modulus-search__row-kicker {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+  }
+
+  h3.modulus-search__row-title {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(18px, 1.7vw, 26px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+
+  .modulus-search__row-excerpt {
+    font-family: var(--font-body--family);
+    font-size: 15px;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    line-height: 1.6;
+    margin: 4px 0 0;
+    max-width: 720px;
+  }
+
+  .modulus-search__row-arrow {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    color: var(--color-foreground);
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .modulus-search__row-link:hover .modulus-search__row-arrow {
+    background: var(--color-foreground);
+    color: var(--color-background);
+    border-color: var(--color-foreground);
+  }
+
+  /* ---- empty ---- */
+
+  .modulus-search__empty {
+    padding: var(--mod-gap-lg) 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--mod-gap-md);
+  }
+
+  .modulus-search__empty-text {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.1vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 520px;
+  }
+
+  /* ---- pagination ---- */
+
+  .modulus-search__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mod-gap-md);
+    margin-top: var(--mod-gap-lg);
+    padding-top: var(--mod-gap-md);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .modulus-search__pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--color-border);
+    padding: 12px 22px;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-foreground);
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .modulus-search__pagination-btn:hover {
+    background: var(--color-foreground);
+    color: var(--color-background);
+  }
+
+  .modulus-search__pagination-btn--disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .modulus-search__pagination-info {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+
+  /* ---- responsive ---- */
+
+  @media (max-width: 1024px) {
+    .modulus-search__products { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .modulus-search__products {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px 12px;
+    }
+    .modulus-search__products h3.modulus-product__title { font-size: 13px; }
+    .modulus-search__input { font-size: 16px; padding: 16px 0; }
+    .modulus-search__submit { padding: 10px 14px; }
+    .modulus-search__row-link { grid-template-columns: 1fr; gap: 16px; padding: 20px 0; }
+    .modulus-search__row-arrow { display: none; }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Modulus Search",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Search" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "02" },
+    {
+      "type": "text",
+      "id": "idle_heading",
+      "label": "Heading (no search performed)",
+      "default": "Search"
+    },
+    {
+      "type": "richtext",
+      "id": "idle_intro",
+      "label": "Intro (no search performed)",
+      "default": "<p>Find products, articles, and pages across the site.</p>"
+    },
+    { "type": "text", "id": "input_placeholder", "label": "Input placeholder", "default": "Search products, articles, pages…" },
+    { "type": "text", "id": "submit_label", "label": "Submit button label", "default": "Search" },
+    {
+      "type": "richtext",
+      "id": "no_results_text",
+      "label": "No-results text",
+      "default": "<p>Try a shorter term, check spelling, or explore the catalogue.</p>"
+    },
+    { "type": "text", "id": "no_results_cta_label", "label": "No-results button label", "default": "Browse the catalogue" },
+    {
+      "type": "text",
+      "id": "default_types",
+      "label": "Default types to search",
+      "info": "Comma-separated. Valid values: product, article, page.",
+      "default": "product,article,page"
+    },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "range",
+      "id": "results_per_page",
+      "label": "Results per page",
+      "min": 12, "max": 48, "step": 6,
+      "default": 24
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 96
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [{ "name": "Modulus Search" }],
+  "enabled_on": {
+    "templates": ["search"]
+  }
+}
+{% endschema %}

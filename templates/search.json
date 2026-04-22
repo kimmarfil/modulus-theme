@@ -9,12 +9,12 @@
  */
 {
   "sections": {
-    "main": {
-      "type": "search",
+    "search": {
+      "type": "modulus-search",
       "settings": {}
     }
   },
   "order": [
-    "main"
+    "search"
   ]
 }
