@@ -50,8 +50,32 @@
       <nav class="modulus-header__nav" aria-label="Main">
         <ul class="modulus-header__nav-list" role="list">
           {%- for link in section.settings.menu.links -%}
-            <li class="modulus-header__nav-item{% if link.links.size > 0 %} has-dropdown{% endif %}{% if link.active or link.child_active %} is-active{% endif %}">
-              {%- if link.links.size > 0 -%}
+            {%- comment -%}
+              Scan blocks for a mega_menu block whose link_title matches
+              this top-level link (case-insensitive). If one exists, it
+              replaces the simple dropdown for this link.
+            {%- endcomment -%}
+            {%- liquid
+              assign mega_block = null
+              assign link_lower = link.title | downcase | strip
+              for b in section.blocks
+                if b.type == 'mega_menu' and b.settings.link_title != blank
+                  assign candidate = b.settings.link_title | downcase | strip
+                  if candidate == link_lower
+                    assign mega_block = b
+                    break
+                  endif
+                endif
+              endfor
+
+              assign has_children = false
+              if mega_block != null or link.links.size > 0
+                assign has_children = true
+              endif
+            -%}
+
+            <li class="modulus-header__nav-item{% if has_children %} has-dropdown{% endif %}{% if mega_block %} has-mega{% endif %}{% if link.active or link.child_active %} is-active{% endif %}">
+              {%- if has_children -%}
                 <button
                   type="button"
                   class="modulus-header__nav-link modulus-header__nav-trigger"
@@ -62,17 +86,97 @@
                   <span>{{ link.title | escape }}</span>
                   <span class="modulus-header__chev" aria-hidden="true">{% render 'modulus-icon', name: 'chevron-down', size: 10 %}</span>
                 </button>
-                <div class="modulus-header__dropdown" data-mod-dropdown-panel>
-                  <ul role="list">
-                    {%- for child in link.links -%}
-                      <li>
-                        <a href="{{ child.url }}" class="modulus-header__dropdown-link{% if child.active %} is-active{% endif %}">
-                          {{ child.title | escape }}
-                        </a>
-                      </li>
-                    {%- endfor -%}
-                  </ul>
-                </div>
+
+                {%- if mega_block -%}
+                  {%- liquid
+                    assign mb = mega_block.settings
+                    assign mcols = mb.columns | default: 3 | at_most: 4 | at_least: 2
+                  -%}
+                  <div
+                    class="modulus-header__mega"
+                    data-mod-dropdown-panel
+                    data-columns="{{ mcols }}"
+                    {{ mega_block.shopify_attributes }}
+                  >
+                    <div class="modulus-header__mega-inner">
+                      <div class="modulus-header__mega-columns" style="--mega-cols: {{ mcols }};">
+                        {%- comment -%} Render up to 4 columns, skipping empty ones. Liquid has no tuple syntax, so unroll manually. {%- endcomment -%}
+                        {%- for i in (1..4) -%}
+                          {%- if i > mcols -%}{%- break -%}{%- endif -%}
+                          {%- case i -%}
+                            {%- when 1 -%}
+                              {%- assign col_heading = mb.col1_heading -%}
+                              {%- assign col_list = mb.col1_links -%}
+                            {%- when 2 -%}
+                              {%- assign col_heading = mb.col2_heading -%}
+                              {%- assign col_list = mb.col2_links -%}
+                            {%- when 3 -%}
+                              {%- assign col_heading = mb.col3_heading -%}
+                              {%- assign col_list = mb.col3_links -%}
+                            {%- when 4 -%}
+                              {%- assign col_heading = mb.col4_heading -%}
+                              {%- assign col_list = mb.col4_links -%}
+                          {%- endcase -%}
+                          {%- if col_heading != blank or col_list.links.size > 0 -%}
+                            <div class="modulus-header__mega-col">
+                              {%- if col_heading != blank -%}
+                                <span class="modulus-header__mega-col-head">{{ col_heading | escape }}</span>
+                              {%- endif -%}
+                              {%- if col_list.links.size > 0 -%}
+                                <ul class="modulus-header__mega-col-list" role="list">
+                                  {%- for cl in col_list.links -%}
+                                    <li>
+                                      <a href="{{ cl.url }}" class="modulus-header__mega-link{% if cl.active %} is-active{% endif %}">
+                                        {{ cl.title | escape }}
+                                      </a>
+                                    </li>
+                                  {%- endfor -%}
+                                </ul>
+                              {%- endif -%}
+                            </div>
+                          {%- endif -%}
+                        {%- endfor -%}
+                      </div>
+
+                      {%- if mb.featured_image != blank -%}
+                        {%- capture mega_feature_media -%}
+                          <div class="modulus-header__mega-feature-media">
+                            <img
+                              src="{{ mb.featured_image | image_url: width: 600 }}"
+                              srcset="{{ mb.featured_image | image_url: width: 400 }} 400w, {{ mb.featured_image | image_url: width: 600 }} 600w, {{ mb.featured_image | image_url: width: 900 }} 900w"
+                              sizes="320px"
+                              alt="{{ mb.featured_image.alt | default: mb.featured_image_caption | escape }}"
+                              width="{{ mb.featured_image.width }}"
+                              height="{{ mb.featured_image.height }}"
+                              loading="lazy"
+                            >
+                          </div>
+                          {%- if mb.featured_image_caption != blank -%}
+                            <span class="modulus-header__mega-feature-caption">{{ mb.featured_image_caption | escape }}</span>
+                          {%- endif -%}
+                        {%- endcapture -%}
+
+                        {%- if mb.featured_image_link != blank -%}
+                          <a href="{{ mb.featured_image_link }}" class="modulus-header__mega-feature">{{ mega_feature_media }}</a>
+                        {%- else -%}
+                          <div class="modulus-header__mega-feature">{{ mega_feature_media }}</div>
+                        {%- endif -%}
+                      {%- endif -%}
+                    </div>
+                  </div>
+                {%- else -%}
+                  <div class="modulus-header__dropdown" data-mod-dropdown-panel>
+                    <ul role="list">
+                      {%- for child in link.links -%}
+                        <li>
+                          <a href="{{ child.url }}" class="modulus-header__dropdown-link{% if child.active %} is-active{% endif %}">
+                            {{ child.title | escape }}
+                          </a>
+                        </li>
+                      {%- endfor -%}
+                    </ul>
+                  </div>
+                {%- endif -%}
               {%- else -%}
                 <a href="{{ link.url }}" class="modulus-header__nav-link">
                   {{ link.title | escape }}
@@ -404,11 +508,144 @@
 
   .modulus-header__nav-item.has-dropdown:hover > .modulus-header__dropdown,
   .modulus-header__nav-item.has-dropdown:focus-within > .modulus-header__dropdown,
-  .modulus-header__nav-item.has-dropdown.is-open > .modulus-header__dropdown {
+  .modulus-header__nav-item.has-dropdown.is-open > .modulus-header__dropdown,
+  .modulus-header__nav-item.has-mega:hover > .modulus-header__mega,
+  .modulus-header__nav-item.has-mega:focus-within > .modulus-header__mega,
+  .modulus-header__nav-item.has-mega.is-open > .modulus-header__mega {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
     transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s linear 0s;
+  }
+
+  /* ---- mega menu ---- */
+
+  .modulus-header__mega {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translate(-50%, -4px);
+    width: min(1120px, 96vw);
+    max-width: calc(var(--mod-max-width) - 48px);
+    background: var(--color-background);
+    color: var(--color-foreground);
+    border: 1px solid var(--color-border);
+    padding: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
+    z-index: 60;
+  }
+
+  .modulus-header__nav-item.has-mega:hover > .modulus-header__mega,
+  .modulus-header__nav-item.has-mega:focus-within > .modulus-header__mega,
+  .modulus-header__nav-item.has-mega.is-open > .modulus-header__mega {
+    transform: translate(-50%, 0);
+  }
+
+  .modulus-header__mega-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--mod-gap-lg);
+    padding: 32px 40px;
+    align-items: flex-start;
+  }
+
+  .modulus-header__mega-columns {
+    display: grid;
+    grid-template-columns: repeat(var(--mega-cols, 3), minmax(0, 1fr));
+    gap: var(--mod-gap-md);
+  }
+
+  .modulus-header__mega-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modulus-header__mega-col-head {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+    margin-bottom: 2px;
+  }
+
+  .modulus-header__mega-col-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .modulus-header__mega-link {
+    display: inline-block;
+    padding: 4px 0;
+    font-family: var(--font-body--family);
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--color-foreground);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .modulus-header__mega-link:hover,
+  .modulus-header__mega-link.is-active {
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+  }
+
+  .modulus-header__mega-feature {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 260px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .modulus-header__mega-feature-media {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.04);
+  }
+
+  .modulus-header__mega-feature-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  a.modulus-header__mega-feature:hover .modulus-header__mega-feature-media img {
+    transform: scale(1.03);
+  }
+
+  .modulus-header__mega-feature-caption {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.7);
+  }
+
+  @media (max-width: 1024px) {
+    .modulus-header__mega-inner {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .modulus-header__mega-feature {
+      width: 100%;
+      flex-direction: row;
+      align-items: center;
+      gap: 16px;
+    }
+    .modulus-header__mega-feature-media {
+      width: 140px;
+      flex-shrink: 0;
+    }
   }
 
   .modulus-header__dropdown ul {
@@ -1156,6 +1393,52 @@
 
     { "type": "header", "content": "Advanced" },
     { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "mega_menu",
+      "name": "Mega menu panel",
+      "limit": 6,
+      "settings": [
+        { "type": "header", "content": "Target" },
+        {
+          "type": "text",
+          "id": "link_title",
+          "label": "Top-level menu link title",
+          "info": "Matches a link in the main menu, case-insensitive. If no link matches, this panel is ignored."
+        },
+
+        { "type": "header", "content": "Columns" },
+        {
+          "type": "range",
+          "id": "columns",
+          "label": "Number of columns",
+          "min": 2, "max": 4, "step": 1,
+          "default": 3
+        },
+
+        { "type": "header", "content": "Column 1" },
+        { "type": "text", "id": "col1_heading", "label": "Heading" },
+        { "type": "link_list", "id": "col1_links", "label": "Links" },
+
+        { "type": "header", "content": "Column 2" },
+        { "type": "text", "id": "col2_heading", "label": "Heading" },
+        { "type": "link_list", "id": "col2_links", "label": "Links" },
+
+        { "type": "header", "content": "Column 3" },
+        { "type": "text", "id": "col3_heading", "label": "Heading" },
+        { "type": "link_list", "id": "col3_links", "label": "Links" },
+
+        { "type": "header", "content": "Column 4" },
+        { "type": "text", "id": "col4_heading", "label": "Heading" },
+        { "type": "link_list", "id": "col4_links", "label": "Links" },
+
+        { "type": "header", "content": "Featured image (optional)" },
+        { "type": "image_picker", "id": "featured_image", "label": "Image" },
+        { "type": "url", "id": "featured_image_link", "label": "Image link" },
+        { "type": "text", "id": "featured_image_caption", "label": "Caption" }
+      ]
+    }
   ],
   "enabled_on": {
     "groups": ["header"]
