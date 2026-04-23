@@ -1,0 +1,467 @@
+{% comment %}
+  Modulus Video — flexible video container.
+  Source: uploaded file (Shopify CDN), external MP4 URL, YouTube, or Vimeo.
+  Width: full-viewport (section divider) / constrained (page width) /
+         narrow (prose width).
+  Aspect ratio: 16:9 / 21:9 / 4:3 / 1:1 / native.
+
+  YouTube & Vimeo iframes are lazy-loaded via IntersectionObserver so a
+  full-viewport video doesn't block LCP on sections above it.
+{% endcomment %}
+
+{%- liquid
+  assign width_mode = section.settings.width | default: 'constrained'
+  assign source = section.settings.source | default: 'file'
+  assign aspect = section.settings.aspect_ratio | default: '16 / 9'
+  assign autoplay = section.settings.autoplay
+  assign loop = section.settings.loop
+  assign muted = section.settings.muted
+  if autoplay
+    assign muted = true
+  endif
+  assign show_controls = section.settings.show_controls
+
+  comment
+    Parse YouTube / Vimeo IDs from either a bare ID or a URL.
+  endcomment
+  assign youtube_id = ''
+  if section.settings.youtube_id != blank
+    assign yid = section.settings.youtube_id
+    if yid contains 'youtu.be/'
+      assign youtube_id = yid | split: 'youtu.be/' | last | split: '?' | first
+    elsif yid contains 'watch?v='
+      assign youtube_id = yid | split: 'watch?v=' | last | split: '&' | first
+    elsif yid contains 'youtube.com/embed/'
+      assign youtube_id = yid | split: 'youtube.com/embed/' | last | split: '?' | first
+    else
+      assign youtube_id = yid | strip
+    endif
+  endif
+
+  assign vimeo_id = ''
+  if section.settings.vimeo_id != blank
+    assign vid = section.settings.vimeo_id
+    if vid contains 'vimeo.com/'
+      assign vimeo_id = vid | split: 'vimeo.com/' | last | split: '?' | first | split: '/' | first
+    elsif vid contains 'player.vimeo.com/video/'
+      assign vimeo_id = vid | split: 'player.vimeo.com/video/' | last | split: '?' | first
+    else
+      assign vimeo_id = vid | strip
+    endif
+  endif
+-%}
+
+<modulus-video
+  id="modulus-video-{{ section.id }}"
+  class="modulus-video modulus-video--{{ width_mode }} color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  style="
+    --mv-aspect: {{ aspect }};
+    --mv-py-top: {{ section.settings.padding_top }}px;
+    --mv-py-bottom: {{ section.settings.padding_bottom }}px;
+  "
+>
+  <div class="modulus-video__inner">
+    {%- if section.settings.heading != blank or section.settings.intro != blank or section.settings.label_text != blank -%}
+      <header class="modulus-video__head" data-mod-reveal>
+        {%- if section.settings.label_text != blank -%}
+          {% render 'modulus-section-label',
+            text: section.settings.label_text,
+            number: section.settings.label_number
+          %}
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="modulus-video__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.intro != blank -%}
+          <div class="modulus-video__intro">{{ section.settings.intro }}</div>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    <div class="modulus-video__stage{% if aspect == 'native' %} modulus-video__stage--native{% endif %}">
+      {%- comment -%} ===== SOURCE: file ===== {%- endcomment -%}
+      {%- if source == 'file' and section.settings.video_file != blank -%}
+        <video
+          class="modulus-video__el"
+          {% if section.settings.poster != blank %}poster="{{ section.settings.poster | image_url: width: 1600 }}"{% endif %}
+          {% if autoplay %}autoplay{% endif %}
+          {% if muted %}muted{% endif %}
+          {% if loop %}loop{% endif %}
+          {% if show_controls %}controls{% endif %}
+          playsinline
+          preload="metadata"
+        >
+          {%- for src in section.settings.video_file.sources -%}
+            <source src="{{ src.url }}" type="{{ src.mime_type }}">
+          {%- endfor -%}
+        </video>
+
+      {%- elsif source == 'external' and section.settings.external_url != blank -%}
+        <video
+          class="modulus-video__el"
+          {% if section.settings.poster != blank %}poster="{{ section.settings.poster | image_url: width: 1600 }}"{% endif %}
+          {% if autoplay %}autoplay{% endif %}
+          {% if muted %}muted{% endif %}
+          {% if loop %}loop{% endif %}
+          {% if show_controls %}controls{% endif %}
+          playsinline
+          preload="metadata"
+        >
+          <source src="{{ section.settings.external_url }}" type="video/mp4">
+        </video>
+
+      {%- elsif source == 'youtube' and youtube_id != blank -%}
+        {%- liquid
+          assign yt_params = 'modestbranding=1&rel=0&playsinline=1'
+          if autoplay
+            assign yt_params = yt_params | append: '&autoplay=1&mute=1'
+          endif
+          if loop
+            assign yt_params = yt_params | append: '&loop=1&playlist=' | append: youtube_id
+          endif
+          unless show_controls
+            assign yt_params = yt_params | append: '&controls=0'
+          endunless
+          assign yt_embed = 'https://www.youtube-nocookie.com/embed/' | append: youtube_id | append: '?' | append: yt_params
+        -%}
+        {%- if section.settings.poster != blank -%}
+          <img
+            class="modulus-video__poster"
+            src="{{ section.settings.poster | image_url: width: 1600 }}"
+            alt="{{ section.settings.poster.alt | default: section.settings.heading | escape }}"
+            width="{{ section.settings.poster.width }}"
+            height="{{ section.settings.poster.height }}"
+            loading="lazy"
+          >
+        {%- endif -%}
+        <iframe
+          class="modulus-video__el modulus-video__iframe"
+          data-src="{{ yt_embed }}"
+          src="about:blank"
+          title="{{ section.settings.heading | default: 'Video' | escape }}"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+          loading="lazy"
+          data-mod-video-iframe
+        ></iframe>
+
+      {%- elsif source == 'vimeo' and vimeo_id != blank -%}
+        {%- liquid
+          assign vm_params = ''
+          if autoplay
+            assign vm_params = vm_params | append: '&autoplay=1&muted=1'
+          endif
+          if loop
+            assign vm_params = vm_params | append: '&loop=1'
+          endif
+          unless show_controls
+            assign vm_params = vm_params | append: '&controls=0'
+          endunless
+          assign vm_params = vm_params | replace_first: '&', '?'
+          assign vm_embed = 'https://player.vimeo.com/video/' | append: vimeo_id | append: vm_params
+        -%}
+        {%- if section.settings.poster != blank -%}
+          <img
+            class="modulus-video__poster"
+            src="{{ section.settings.poster | image_url: width: 1600 }}"
+            alt="{{ section.settings.poster.alt | default: section.settings.heading | escape }}"
+            width="{{ section.settings.poster.width }}"
+            height="{{ section.settings.poster.height }}"
+            loading="lazy"
+          >
+        {%- endif -%}
+        <iframe
+          class="modulus-video__el modulus-video__iframe"
+          data-src="{{ vm_embed }}"
+          src="about:blank"
+          title="{{ section.settings.heading | default: 'Video' | escape }}"
+          frameborder="0"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen
+          loading="lazy"
+          data-mod-video-iframe
+        ></iframe>
+
+      {%- else -%}
+        {%- comment -%} No valid source configured — show placeholder {%- endcomment -%}
+        <div class="modulus-video__placeholder" role="img" aria-label="No video configured">
+          {% render 'modulus-icon', name: 'play', size: 32 %}
+          <span>Add a video source in the section settings.</span>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</modulus-video>
+
+{% stylesheet %}
+  .modulus-video {
+    display: block;
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding-top: var(--mv-py-top, 96px);
+    padding-bottom: var(--mv-py-bottom, 96px);
+  }
+
+  .modulus-video__inner {
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 var(--mod-section-px, 24px);
+  }
+
+  /* Width variants */
+  .modulus-video--constrained .modulus-video__inner {
+    max-width: var(--mod-max-width);
+  }
+  .modulus-video--narrow .modulus-video__inner {
+    max-width: var(--mod-prose-max-width, 720px);
+  }
+  .modulus-video--full .modulus-video__inner {
+    max-width: none;
+    padding: 0;
+  }
+
+  .modulus-video__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+    margin-bottom: var(--mod-gap-md);
+    max-width: var(--mod-prose-max-width, 720px);
+  }
+
+  /* When full-width, pull the head back into the container so it doesn't go edge-to-edge */
+  .modulus-video--full .modulus-video__head {
+    padding: 0 var(--mod-section-px, 24px);
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    max-width: var(--mod-max-width);
+  }
+
+  h2.modulus-video__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(24px, 3.5vw, 44px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-video__heading p { margin: 0; }
+
+  .modulus-video__intro {
+    font-family: var(--font-body--family);
+    font-size: 15px;
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.65;
+  }
+
+  .modulus-video__intro p { margin: 0; }
+
+  /* Stage */
+
+  .modulus-video__stage {
+    position: relative;
+    aspect-ratio: var(--mv-aspect, 16 / 9);
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.06);
+  }
+
+  .modulus-video__stage--native {
+    aspect-ratio: auto;
+  }
+
+  .modulus-video__el {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border: 0;
+  }
+
+  .modulus-video__stage--native .modulus-video__el {
+    position: relative;
+    inset: auto;
+    height: auto;
+  }
+
+  .modulus-video__poster {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.3s ease;
+  }
+
+  .modulus-video.is-iframe-loaded .modulus-video__poster {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .modulus-video__iframe {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .modulus-video.is-iframe-loaded .modulus-video__iframe {
+    opacity: 1;
+  }
+
+  .modulus-video__placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+    text-align: center;
+    padding: 20px;
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('modulus-video')) {
+    customElements.define('modulus-video', class ModulusVideo extends HTMLElement {
+      connectedCallback() {
+        this.iframe = this.querySelector('[data-mod-video-iframe]');
+        if (!this.iframe) return;
+
+        const src = this.iframe.dataset.src;
+        if (!src) return;
+
+        if ('IntersectionObserver' in window) {
+          const obs = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                this.loadIframe(src);
+                obs.disconnect();
+              }
+            });
+          }, { rootMargin: '200px 0px' });
+          obs.observe(this);
+        } else {
+          // No IO — just load immediately.
+          this.loadIframe(src);
+        }
+      }
+
+      loadIframe(src) {
+        if (!this.iframe || this.iframe.src === src) return;
+        this.iframe.addEventListener('load', () => this.classList.add('is-iframe-loaded'), { once: true });
+        this.iframe.src = src;
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Modulus Video",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content (optional)" },
+    { "type": "text", "id": "label_text", "label": "Section label" },
+    { "type": "text", "id": "label_number", "label": "Section number" },
+    { "type": "richtext", "id": "heading", "label": "Heading" },
+    { "type": "richtext", "id": "intro", "label": "Intro" },
+
+    { "type": "header", "content": "Source" },
+    {
+      "type": "select",
+      "id": "source",
+      "label": "Source",
+      "options": [
+        { "value": "file", "label": "Uploaded file (Shopify CDN)" },
+        { "value": "external", "label": "External MP4 URL" },
+        { "value": "youtube", "label": "YouTube" },
+        { "value": "vimeo", "label": "Vimeo" }
+      ],
+      "default": "file"
+    },
+    { "type": "video", "id": "video_file", "label": "Video file" },
+    { "type": "url", "id": "external_url", "label": "External MP4 URL" },
+    { "type": "text", "id": "youtube_id", "label": "YouTube ID or URL" },
+    { "type": "text", "id": "vimeo_id", "label": "Vimeo ID or URL" },
+    { "type": "image_picker", "id": "poster", "label": "Poster image (recommended)", "info": "Shown while the video loads. For YouTube/Vimeo, significantly improves perceived performance." },
+
+    { "type": "header", "content": "Playback" },
+    { "type": "checkbox", "id": "autoplay", "label": "Autoplay", "info": "Forces muted = true to satisfy browser autoplay policies.", "default": false },
+    { "type": "checkbox", "id": "muted", "label": "Start muted", "default": false },
+    { "type": "checkbox", "id": "loop", "label": "Loop", "default": false },
+    { "type": "checkbox", "id": "show_controls", "label": "Show player controls", "default": true },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "width",
+      "label": "Video width",
+      "options": [
+        { "value": "full", "label": "Full viewport (section divider)" },
+        { "value": "constrained", "label": "Constrained (page width)" },
+        { "value": "narrow", "label": "Narrow (prose width, 720px)" }
+      ],
+      "default": "constrained"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section background width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio",
+      "label": "Aspect ratio",
+      "options": [
+        { "value": "16 / 9", "label": "16:9 (widescreen)" },
+        { "value": "21 / 9", "label": "21:9 (cinemascope)" },
+        { "value": "4 / 3", "label": "4:3 (classic)" },
+        { "value": "1 / 1", "label": "1:1 (square)" },
+        { "value": "native", "label": "Native (uploaded file only)" }
+      ],
+      "default": "16 / 9"
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Padding top",
+      "min": 0, "max": 240, "step": 4, "unit": "px",
+      "default": 96
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Padding bottom",
+      "min": 0, "max": 240, "step": 4, "unit": "px",
+      "default": 96
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [{ "name": "Modulus Video" }],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}

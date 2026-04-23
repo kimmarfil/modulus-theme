@@ -15,3 +15,6 @@ RemoteAsset:
     - "templates/gift_card.liquid"
     # modulus-hero accepts a merchant-provided video URL (expected to be a CDN)
     - "sections/modulus-hero.liquid"
+    # modulus-video loads either a Shopify CDN-hosted file (always remote) or
+    # a merchant-provided external MP4 URL (intentionally remote)
+    - "sections/modulus-video.liquid"
