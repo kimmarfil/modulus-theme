@@ -1,0 +1,709 @@
+{% comment %}
+  Modulus Bundle Builder — customer picks N items from a configured
+  collection, submits as a single add-to-cart, all items land in the
+  cart with a shared _bundle_id line-item property. The cart and
+  cart drawer then render the group as one collapsible bundle tile.
+
+  Discount is passed via _bundle_discount_percent property; the
+  merchant is expected to create a matching automatic Shopify
+  discount in admin so it applies at checkout.
+
+  Layout options:
+    sidebar  — picker grid left, sticky bundle basket right (desktop)
+    stacked  — full-width grid, basket below (mobile-first)
+{% endcomment %}
+
+{%- liquid
+  assign src = section.settings.source_collection
+  assign slot_min = section.settings.slot_min | default: 3
+  assign slot_max = section.settings.slot_max | default: 6
+  if slot_max < slot_min
+    assign slot_max = slot_min
+  endif
+  assign bundle_name = section.settings.bundle_name | default: 'Bundle'
+  assign discount_percent = section.settings.discount_percent | default: 0
+  assign layout = section.settings.layout | default: 'sidebar'
+-%}
+
+<modulus-bundle-builder
+  id="modulus-bundle-{{ section.id }}"
+  class="modulus-bb modulus-bb--{{ layout }} color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  data-slot-min="{{ slot_min }}"
+  data-slot-max="{{ slot_max }}"
+  data-bundle-name="{{ bundle_name | escape }}"
+  data-discount-percent="{{ discount_percent }}"
+  style="--mbb-py: {{ section.settings.padding_y }}px;"
+>
+  <div class="modulus-bb__inner">
+    {%- if section.settings.label_text != blank or section.settings.heading != blank or section.settings.intro != blank -%}
+      <header class="modulus-bb__head" data-mod-reveal>
+        {%- if section.settings.label_text != blank -%}
+          {% render 'modulus-section-label',
+            text: section.settings.label_text,
+            number: section.settings.label_number
+          %}
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="modulus-bb__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.intro != blank -%}
+          <div class="modulus-bb__intro">{{ section.settings.intro }}</div>
+        {%- endif -%}
+      </header>
+    {%- endif -%}
+
+    <div class="modulus-bb__layout">
+      <section class="modulus-bb__picker" aria-label="Pick items">
+        {%- if src.products.size == 0 -%}
+          <p class="modulus-bb__empty-source">
+            {{ section.settings.empty_text | default: 'No products to pick from yet. Pick a source collection in the section settings.' }}
+          </p>
+        {%- else -%}
+          <ul class="modulus-bb__grid" role="list" data-mod-bb-grid>
+            {%- for product in src.products -%}
+              <li
+                class="modulus-bb__card-wrap"
+                data-mod-bb-product
+                data-product-id="{{ product.id }}"
+                data-product-title="{{ product.title | escape }}"
+                data-product-image="{{ product.featured_image | image_url: width: 200 }}"
+                data-product-url="{{ product.url }}"
+                data-product-variant-id="{{ product.selected_or_first_available_variant.id }}"
+                data-product-price="{{ product.selected_or_first_available_variant.price }}"
+                data-product-available="{% if product.available %}true{% else %}false{% endif %}"
+              >
+                {% render 'modulus-bundle-builder-card', product: product %}
+              </li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+      </section>
+
+      <aside class="modulus-bb__basket" aria-label="Your bundle">
+        <div class="modulus-bb__basket-inner" data-mod-reveal data-mod-reveal-delay="80">
+          <div class="modulus-bb__basket-head">
+            <h3 class="modulus-bb__basket-heading">{{ bundle_name | escape }}</h3>
+            <span class="modulus-bb__basket-count" data-mod-bb-count>0 / {{ slot_min }}</span>
+          </div>
+
+          <div class="modulus-bb__progress" aria-hidden="true">
+            <div class="modulus-bb__progress-fill" data-mod-bb-progress style="width: 0%;"></div>
+          </div>
+
+          <div class="modulus-bb__slots" data-mod-bb-slots aria-live="polite">
+            <p class="modulus-bb__slots-empty" data-mod-bb-slots-empty>
+              {{ section.settings.basket_empty_text | default: 'Pick items from the left to start your bundle.' }}
+            </p>
+          </div>
+
+          {%- if discount_percent > 0 -%}
+            <div class="modulus-bb__discount">
+              <span>{{ section.settings.discount_label | default: 'Bundle discount' }}</span>
+              <strong>&minus;{{ discount_percent }}%</strong>
+            </div>
+            <p class="modulus-bb__discount-note">
+              {{ section.settings.discount_note | default: 'Applied automatically at checkout.' }}
+            </p>
+          {%- endif -%}
+
+          <div class="modulus-bb__totals">
+            <span>{{ section.settings.subtotal_label | default: 'Subtotal' }}</span>
+            <span data-mod-bb-subtotal>{{ 0 | money }}</span>
+          </div>
+
+          <button
+            type="button"
+            class="mod-btn mod-btn--primary modulus-bb__submit"
+            data-mod-bb-submit
+            disabled
+          >
+            <span data-mod-bb-submit-label>
+              {{ section.settings.submit_label_incomplete | default: 'Pick at least [n] items' | replace: '[n]', slot_min }}
+            </span>
+            <span class="mod-btn__arrow" aria-hidden="true">
+              {% render 'modulus-icon', name: 'arrow-right', size: 14 %}
+            </span>
+          </button>
+
+          <p class="modulus-bb__error" data-mod-bb-error role="alert" hidden></p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</modulus-bundle-builder>
+
+{% stylesheet %}
+  .modulus-bb {
+    display: block;
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--mbb-py, var(--mod-section-py)) var(--mod-section-px);
+  }
+
+  .modulus-bb__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+  }
+
+  .modulus-bb__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+    margin-bottom: var(--mod-gap-lg);
+    max-width: var(--mod-prose-max-width, 720px);
+  }
+
+  h2.modulus-bb__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4.5vw, 56px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-bb__heading p { margin: 0; }
+
+  .modulus-bb__intro {
+    font-family: var(--font-body--family);
+    font-size: clamp(15px, 1.1vw, 17px);
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    line-height: 1.65;
+  }
+
+  .modulus-bb__intro p { margin: 0; }
+  .modulus-bb__intro p + p { margin-top: 0.6em; }
+
+  /* ---- layouts ---- */
+
+  .modulus-bb--sidebar .modulus-bb__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: var(--mod-gap-lg);
+    align-items: flex-start;
+  }
+
+  .modulus-bb--sidebar .modulus-bb__basket {
+    position: sticky;
+    top: 100px;
+  }
+
+  .modulus-bb--stacked .modulus-bb__layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-lg);
+  }
+
+  /* ---- picker grid ---- */
+
+  .modulus-bb__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--mod-gap-md);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .modulus-bb__empty-source {
+    font-family: var(--font-body--family);
+    font-size: 15px;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+    padding: var(--mod-gap-lg) 0;
+    border: 1px dashed var(--color-border);
+    text-align: center;
+  }
+
+  .modulus-bb__card-wrap {
+    position: relative;
+  }
+
+  .modulus-bb__card-wrap.is-selected .modulus-bb__card {
+    border-color: var(--color-foreground);
+  }
+
+  .modulus-bb__card-wrap.is-disabled .modulus-bb__card {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  /* ---- basket ---- */
+
+  .modulus-bb__basket-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+    padding: 24px;
+    border: 1px solid var(--color-border);
+    background: rgb(var(--color-foreground-rgb) / 0.02);
+  }
+
+  .modulus-bb__basket-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  h3.modulus-bb__basket-heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: 18px;
+    color: var(--color-foreground-heading, var(--color-foreground));
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+
+  .modulus-bb__basket-count {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+  }
+
+  .modulus-bb__progress {
+    height: 3px;
+    background: rgb(var(--color-foreground-rgb) / 0.12);
+    overflow: hidden;
+  }
+
+  .modulus-bb__progress-fill {
+    height: 100%;
+    background: var(--color-foreground);
+    transition: width 0.3s ease;
+  }
+
+  .modulus-bb__slots {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 4px 0;
+    min-height: 60px;
+  }
+
+  .modulus-bb__slots-empty {
+    font-family: var(--font-body--family);
+    font-size: 13px;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    line-height: 1.5;
+    margin: 0;
+    padding: 16px 0;
+    text-align: center;
+  }
+
+  .modulus-bb__slot {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .modulus-bb__slot:last-child { border-bottom: none; }
+
+  .modulus-bb__slot-img {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    background: rgb(var(--color-foreground-rgb) / 0.05);
+  }
+
+  .modulus-bb__slot-title {
+    font-family: var(--font-body--family);
+    font-size: 13px;
+    line-height: 1.3;
+    color: var(--color-foreground);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .modulus-bb__slot-remove {
+    background: transparent;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease;
+  }
+
+  .modulus-bb__slot-remove:hover {
+    color: var(--color-foreground);
+  }
+
+  .modulus-bb__discount {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-top: var(--mod-gap-sm);
+    border-top: 1px solid var(--color-border);
+    font-family: var(--font-body--family);
+    font-size: 14px;
+    color: var(--color-foreground);
+  }
+
+  .modulus-bb__discount strong {
+    font-weight: 600;
+  }
+
+  .modulus-bb__discount-note {
+    font-family: var(--font-body--family);
+    font-size: 11px;
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+    margin: -8px 0 0;
+  }
+
+  .modulus-bb__totals {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-top: var(--mod-gap-sm);
+    border-top: 1px solid var(--color-border);
+    font-family: var(--font-body--family);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-foreground-heading, var(--color-foreground));
+  }
+
+  .modulus-bb__submit {
+    width: 100%;
+    justify-content: center;
+    padding: 16px 24px;
+  }
+
+  .modulus-bb__submit:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .modulus-bb__error {
+    font-family: var(--font-body--family);
+    font-size: 12px;
+    color: var(--color-foreground);
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--color-foreground);
+  }
+
+  .modulus-bb.is-loading .modulus-bb__submit {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  /* ---- responsive ---- */
+
+  @media (max-width: 1024px) {
+    .modulus-bb--sidebar .modulus-bb__layout {
+      grid-template-columns: 1fr;
+    }
+    .modulus-bb--sidebar .modulus-bb__basket {
+      position: static;
+    }
+    .modulus-bb__grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 640px) {
+    .modulus-bb__grid { grid-template-columns: 1fr; gap: 16px; }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('modulus-bundle-builder')) {
+    customElements.define('modulus-bundle-builder', class ModulusBundleBuilder extends HTMLElement {
+      connectedCallback() {
+        this.slotMin = parseInt(this.dataset.slotMin, 10) || 3;
+        this.slotMax = parseInt(this.dataset.slotMax, 10) || 6;
+        this.bundleName = this.dataset.bundleName || 'Bundle';
+        this.discountPercent = parseFloat(this.dataset.discountPercent) || 0;
+
+        this.slotsEl = this.querySelector('[data-mod-bb-slots]');
+        this.slotsEmptyEl = this.querySelector('[data-mod-bb-slots-empty]');
+        this.countEl = this.querySelector('[data-mod-bb-count]');
+        this.progressEl = this.querySelector('[data-mod-bb-progress]');
+        this.subtotalEl = this.querySelector('[data-mod-bb-subtotal]');
+        this.submitEl = this.querySelector('[data-mod-bb-submit]');
+        this.submitLabelEl = this.querySelector('[data-mod-bb-submit-label]');
+        this.errorEl = this.querySelector('[data-mod-bb-error]');
+
+        this.selection = [];
+        this.bindProductClicks();
+        if (this.submitEl) this.submitEl.addEventListener('click', () => this.submit());
+
+        this.incompleteTemplate = this.submitLabelEl ? this.submitLabelEl.textContent : '';
+        this.completeText = 'Add bundle to cart';
+      }
+
+      bindProductClicks() {
+        this.querySelectorAll('[data-mod-bb-product]').forEach((card) => {
+          const addBtn = card.querySelector('[data-mod-bb-add]');
+          if (!addBtn) return;
+          if (card.dataset.productAvailable === 'false') {
+            addBtn.disabled = true;
+            return;
+          }
+          addBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.toggle(card);
+          });
+        });
+      }
+
+      toggle(card) {
+        const id = card.dataset.productId;
+        const existingIdx = this.selection.findIndex((s) => s.productId === id);
+        if (existingIdx !== -1) {
+          this.selection.splice(existingIdx, 1);
+          card.classList.remove('is-selected');
+          this.updateAddLabel(card, 'add');
+        } else {
+          if (this.selection.length >= this.slotMax) {
+            this.showError('Bundle is full — remove an item to add another.');
+            return;
+          }
+          this.selection.push({
+            productId: id,
+            variantId: card.dataset.productVariantId,
+            title: card.dataset.productTitle,
+            image: card.dataset.productImage,
+            price: parseInt(card.dataset.productPrice, 10) || 0,
+            url: card.dataset.productUrl
+          });
+          card.classList.add('is-selected');
+          this.updateAddLabel(card, 'remove');
+        }
+        this.clearError();
+        this.render();
+      }
+
+      updateAddLabel(card, state) {
+        const label = card.querySelector('[data-mod-bb-add-label]');
+        if (!label) return;
+        if (state === 'remove') {
+          label.dataset.originalLabel = label.dataset.originalLabel || label.textContent;
+          label.textContent = 'Added';
+        } else if (label.dataset.originalLabel) {
+          label.textContent = label.dataset.originalLabel;
+        }
+      }
+
+      render() {
+        const count = this.selection.length;
+
+        if (this.countEl) this.countEl.textContent = `${count} / ${this.slotMin}`;
+
+        if (this.progressEl) {
+          const pct = Math.min(100, Math.round((count / this.slotMin) * 100));
+          this.progressEl.style.width = pct + '%';
+        }
+
+        // Slot list
+        if (this.slotsEl && this.slotsEmptyEl) {
+          if (count === 0) {
+            this.slotsEmptyEl.hidden = false;
+            this.slotsEl.querySelectorAll('.modulus-bb__slot').forEach((n) => n.remove());
+          } else {
+            this.slotsEmptyEl.hidden = true;
+            this.slotsEl.querySelectorAll('.modulus-bb__slot').forEach((n) => n.remove());
+            this.selection.forEach((s, i) => {
+              const slot = document.createElement('div');
+              slot.className = 'modulus-bb__slot';
+              slot.innerHTML = `
+                <img class="modulus-bb__slot-img" src="${this.escape(s.image)}" alt="" width="44" height="44" loading="lazy">
+                <span class="modulus-bb__slot-title">${this.escape(s.title)}</span>
+                <button type="button" class="modulus-bb__slot-remove" aria-label="Remove ${this.escape(s.title)} from bundle" data-remove-idx="${i}">✕</button>
+              `;
+              this.slotsEl.appendChild(slot);
+            });
+            this.slotsEl.querySelectorAll('[data-remove-idx]').forEach((btn) => {
+              btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.removeIdx, 10);
+                const productId = this.selection[idx] && this.selection[idx].productId;
+                if (!productId) return;
+                const card = this.querySelector(`[data-mod-bb-product][data-product-id="${productId}"]`);
+                if (card) this.toggle(card);
+              });
+            });
+          }
+        }
+
+        // Subtotal
+        const subtotal = this.selection.reduce((a, s) => a + s.price, 0);
+        if (this.subtotalEl) this.subtotalEl.textContent = this.formatMoney(subtotal);
+
+        // Submit state
+        if (this.submitEl && this.submitLabelEl) {
+          if (count >= this.slotMin) {
+            this.submitEl.disabled = false;
+            this.submitLabelEl.textContent = this.completeText;
+          } else {
+            this.submitEl.disabled = true;
+            const remaining = this.slotMin - count;
+            this.submitLabelEl.textContent = this.incompleteTemplate.replace('[n]', remaining);
+          }
+        }
+      }
+
+      submit() {
+        if (this.selection.length < this.slotMin) return;
+        const bundleId = 'b-' + Math.random().toString(36).slice(2, 12);
+        const items = this.selection.map((s, i) => ({
+          id: s.variantId,
+          quantity: 1,
+          properties: {
+            '_bundle_id': bundleId,
+            '_bundle_name': this.bundleName,
+            '_bundle_position': String(i + 1),
+            '_bundle_discount_percent': String(this.discountPercent)
+          }
+        }));
+
+        this.classList.add('is-loading');
+        fetch('/cart/add.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ items })
+        })
+          .then((r) => r.ok ? r.json() : Promise.reject(r.status))
+          .then(() => {
+            this.selection = [];
+            this.querySelectorAll('[data-mod-bb-product].is-selected').forEach((c) => {
+              c.classList.remove('is-selected');
+              this.updateAddLabel(c, 'add');
+            });
+            this.render();
+            window.dispatchEvent(new CustomEvent('modulus:cart:open'));
+            fetch('/cart.js', { headers: { 'Accept': 'application/json' } })
+              .then((r) => r.json())
+              .then((cart) => window.dispatchEvent(new CustomEvent('modulus:cart:update', { detail: cart })))
+              .catch(() => {});
+          })
+          .catch(() => {
+            this.showError('Something went wrong adding the bundle. Please try again.');
+          })
+          .finally(() => this.classList.remove('is-loading'));
+      }
+
+      showError(msg) {
+        if (!this.errorEl) return;
+        this.errorEl.textContent = msg;
+        this.errorEl.hidden = false;
+      }
+
+      clearError() {
+        if (this.errorEl) this.errorEl.hidden = true;
+      }
+
+      formatMoney(cents) {
+        if (window.Shopify && typeof Shopify.formatMoney === 'function') {
+          return Shopify.formatMoney(cents);
+        }
+        return '$' + (cents / 100).toFixed(2);
+      }
+
+      escape(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Modulus Bundle Builder",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Build a bundle" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "01" },
+    { "type": "richtext", "id": "heading", "label": "Heading", "default": "<p>Build your bundle.</p>" },
+    { "type": "richtext", "id": "intro", "label": "Intro", "default": "<p>Pick your items. Save at checkout when your bundle meets the minimum.</p>" },
+    { "type": "text", "id": "empty_text", "label": "Empty-source text", "default": "No products to pick from yet. Pick a source collection in the section settings." },
+    { "type": "text", "id": "basket_empty_text", "label": "Empty basket text", "default": "Pick items from the left to start your bundle." },
+
+    { "type": "header", "content": "Source" },
+    { "type": "collection", "id": "source_collection", "label": "Source collection" },
+    {
+      "type": "range",
+      "id": "slot_min",
+      "label": "Minimum items",
+      "min": 2, "max": 12, "step": 1,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "slot_max",
+      "label": "Maximum items",
+      "min": 2, "max": 20, "step": 1,
+      "default": 6
+    },
+
+    { "type": "header", "content": "Bundle identity" },
+    { "type": "text", "id": "bundle_name", "label": "Bundle name", "info": "Shown to customers in the cart and attached as the _bundle_name property on every line item.", "default": "Starter Kit" },
+
+    { "type": "header", "content": "Discount" },
+    {
+      "type": "range",
+      "id": "discount_percent",
+      "label": "Discount percent",
+      "info": "Attached as the _bundle_discount_percent property on every line item. Create a matching automatic Shopify discount in admin so it applies at checkout.",
+      "min": 0, "max": 50, "step": 1, "unit": "%",
+      "default": 0
+    },
+    { "type": "text", "id": "discount_label", "label": "Discount row label", "default": "Bundle discount" },
+    { "type": "text", "id": "discount_note", "label": "Discount note", "default": "Applied automatically at checkout." },
+
+    { "type": "header", "content": "Copy" },
+    { "type": "text", "id": "subtotal_label", "label": "Subtotal label", "default": "Subtotal" },
+    { "type": "text", "id": "submit_label_incomplete", "label": "Submit label (incomplete)", "info": "Use [n] as a placeholder for the remaining slot count.", "default": "Pick [n] more" },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "sidebar", "label": "Sidebar (basket sticky right)" },
+        { "value": "stacked", "label": "Stacked (basket below grid)" }
+      ],
+      "default": "sidebar"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "presets": [{ "name": "Modulus Bundle Builder" }],
+  "enabled_on": {
+    "templates": ["index", "page", "collection", "product"]
+  }
+}
+{% endschema %}

@@ -457,6 +457,8 @@
       bindFormIntercepts() {
         if (window.__modulusCartDrawerGlobalBound) return;
         window.__modulusCartDrawerGlobalBound = true;
+
+        // Intercept add-to-cart form submissions
         document.addEventListener('submit', (e) => {
           const form = e.target.closest('form[action$="/cart/add"]');
           if (!form) return;
@@ -487,6 +489,53 @@
             .finally(() => {
               clearTimeout(timeout);
               drawer.classList.remove('is-loading');
+            });
+        });
+
+        // Intercept bundle-remove clicks (fired from cart page or drawer)
+        document.addEventListener('click', (e) => {
+          const btn = e.target.closest('[data-mod-bundle-remove]');
+          if (!btn) return;
+          e.preventDefault();
+          const group = btn.closest('[data-mod-bundle-group]');
+          if (!group) return;
+          const indexes = (group.dataset.lineIndexes || '').split(',').map((s) => parseInt(s, 10)).filter((n) => n > 0);
+          if (!indexes.length) return;
+          const updates = {};
+          indexes.forEach((i) => { updates[i] = 0; });
+
+          const drawer = document.querySelector('modulus-cart-drawer');
+          if (drawer) drawer.classList.add('is-loading');
+          group.style.opacity = '0.4';
+          group.style.pointerEvents = 'none';
+
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 10000);
+          fetch('/cart/update.js', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ updates }),
+            signal: controller.signal
+          })
+            .then((r) => r.ok ? r.json() : Promise.reject(r.status))
+            .then((cart) => {
+              window.dispatchEvent(new CustomEvent('modulus:cart:update', { detail: cart }));
+              if (drawer && typeof drawer.render === 'function') drawer.render(cart);
+              // If we're on the cart page, reload to get the fresh Liquid-
+              // rendered cart (simpler than rebuilding the page DOM).
+              if (document.querySelector('modulus-cart')) {
+                window.location.reload();
+              }
+            })
+            .catch((err) => {
+              if (err && err.name === 'AbortError') return;
+              group.style.opacity = '';
+              group.style.pointerEvents = '';
+              window.location.reload();
+            })
+            .finally(() => {
+              clearTimeout(timeout);
+              if (drawer) drawer.classList.remove('is-loading');
             });
         });
       }

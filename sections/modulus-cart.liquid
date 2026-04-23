@@ -59,8 +59,28 @@
               <span class="modulus-cart__col-head modulus-cart__col-head--total">Total</span>
             </div>
 
+            {%- assign rendered_bundles = '' -%}
             <ul class="modulus-cart__lines" role="list" data-mod-cart-lines>
               {%- for item in cart.items -%}
+                {%- assign item_bundle_id = item.properties._bundle_id -%}
+                {%- if item_bundle_id != blank -%}
+                  {%- assign marker = '|' | append: item_bundle_id | append: '|' -%}
+                  {%- unless rendered_bundles contains marker -%}
+                    {%- assign rendered_bundles = rendered_bundles | append: marker -%}
+                    {%- assign bundle_name = item.properties._bundle_name | default: 'Bundle' -%}
+                    {%- assign bundle_discount = item.properties._bundle_discount_percent | default: '0' -%}
+                    <li class="modulus-cart__line modulus-cart__line--bundle" data-mod-reveal data-mod-reveal-delay="{{ forloop.index0 | times: 60 }}">
+                      {%- render 'modulus-bundle-cart-group',
+                        cart: cart,
+                        bundle_id: item_bundle_id,
+                        bundle_name: bundle_name,
+                        discount_percent: bundle_discount,
+                        context: 'cart'
+                      -%}
+                    </li>
+                  {%- endunless -%}
+                  {%- continue -%}
+                {%- endif -%}
                 <li class="modulus-cart__line" data-mod-cart-line data-key="{{ item.key }}" data-mod-reveal data-mod-reveal-delay="{{ forloop.index0 | times: 60 }}">
                   <div class="modulus-cart__line-product">
                     <a href="{{ item.url }}" class="modulus-cart__line-image-link" tabindex="-1" aria-hidden="true">

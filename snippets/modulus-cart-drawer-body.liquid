@@ -24,8 +24,36 @@
     </a>
   </div>
 {%- else -%}
+  {%- comment -%}
+    Pre-pass: collect the set of _bundle_id values present in the cart.
+    We render each unique bundle once as a grouped tile, and skip the
+    individual line items that belong to a bundle in the main loop.
+  {%- endcomment -%}
+  {%- assign rendered_bundles = '' -%}
+
   <ul class="modulus-cart-drawer__lines" role="list">
     {%- for item in cart.items -%}
+      {%- assign item_bundle_id = item.properties._bundle_id -%}
+
+      {%- if item_bundle_id != blank -%}
+        {%- assign marker = '|' | append: item_bundle_id | append: '|' -%}
+        {%- unless rendered_bundles contains marker -%}
+          {%- assign rendered_bundles = rendered_bundles | append: marker -%}
+          {%- assign bundle_name = item.properties._bundle_name | default: 'Bundle' -%}
+          {%- assign bundle_discount = item.properties._bundle_discount_percent | default: '0' -%}
+          <li class="modulus-cart-drawer__bundle-wrap">
+            {%- render 'modulus-bundle-cart-group',
+              cart: cart,
+              bundle_id: item_bundle_id,
+              bundle_name: bundle_name,
+              discount_percent: bundle_discount,
+              context: 'drawer'
+            -%}
+          </li>
+        {%- endunless -%}
+        {%- continue -%}
+      {%- endif -%}
+
       <li class="modulus-cart-drawer__line" data-mod-drawer-line data-key="{{ item.key }}">
         <a href="{{ item.url }}" class="modulus-cart-drawer__line-img" tabindex="-1" aria-hidden="true">
           {%- if item.image != blank -%}

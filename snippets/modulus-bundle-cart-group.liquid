@@ -1,0 +1,312 @@
+{%- comment -%}
+  Modulus bundle-group rendering for the cart page and the cart drawer.
+
+  Iterates the given cart's items and renders a single bundle tile
+  containing every item whose _bundle_id matches the provided bundle_id:
+    - Montage thumbnail of the first 3 child images
+    - Bundle name + item count + combined subtotal
+    - <details> collapsible list of the child items
+    - One "Remove bundle" button that deletes all children in a
+      single /cart/update.js round-trip (JS reads data-line-indexes)
+
+  Liquid has no array `push` filter, so the snippet takes the full
+  cart + bundle_id and filters inline rather than receiving a
+  pre-built array.
+
+  Accepts:
+    cart             — the Shopify cart object
+    bundle_id        — the shared _bundle_id string to render
+    bundle_name      — from _bundle_name property (fallback: 'Bundle')
+    discount_percent — from _bundle_discount_percent (optional)
+    context          — 'cart' | 'drawer' (visual tweaks per surface)
+{%- endcomment -%}
+
+{%- liquid
+  assign bundle_subtotal = 0
+  assign bundle_count = 0
+  assign line_indexes = ''
+  for li in cart.items
+    if li.properties._bundle_id == bundle_id
+      assign bundle_subtotal = bundle_subtotal | plus: li.final_line_price
+      assign bundle_count = bundle_count | plus: 1
+      if line_indexes == ''
+        assign line_indexes = li.line | prepend: ''
+      else
+        assign line_indexes = line_indexes | append: ',' | append: li.line
+      endif
+    endif
+  endfor
+-%}
+
+<div
+  class="modulus-bundle-group modulus-bundle-group--{{ context | default: 'cart' }}"
+  data-mod-bundle-group
+  data-bundle-id="{{ bundle_id | escape }}"
+  data-line-indexes="{{ line_indexes }}"
+>
+  <details class="modulus-bundle-group__details">
+    <summary class="modulus-bundle-group__summary">
+      <div class="modulus-bundle-group__montage" aria-hidden="true">
+        {%- assign rendered_thumbs = 0 -%}
+        {%- for li in cart.items -%}
+          {%- if li.properties._bundle_id != bundle_id -%}{%- continue -%}{%- endif -%}
+          {%- if rendered_thumbs >= 3 -%}{%- break -%}{%- endif -%}
+          {%- if li.image != blank -%}
+            <img
+              src="{{ li.image | image_url: width: 160 }}"
+              alt=""
+              width="80"
+              height="80"
+              loading="lazy"
+            >
+          {%- else -%}
+            <span class="modulus-bundle-group__montage-empty"></span>
+          {%- endif -%}
+          {%- assign rendered_thumbs = rendered_thumbs | plus: 1 -%}
+        {%- endfor -%}
+        {%- if bundle_count > 3 -%}
+          <span class="modulus-bundle-group__montage-more">+{{ bundle_count | minus: 3 }}</span>
+        {%- endif -%}
+      </div>
+
+      <div class="modulus-bundle-group__info">
+        <div class="modulus-bundle-group__head-row">
+          <h3 class="modulus-bundle-group__name">{{ bundle_name | default: 'Bundle' | escape }}</h3>
+          <span class="modulus-bundle-group__toggle" aria-hidden="true">
+            {% render 'modulus-icon', name: 'chevron-down', size: 12 %}
+          </span>
+        </div>
+        <span class="modulus-bundle-group__meta">
+          {{ bundle_count }} item{% if bundle_count != 1 %}s{% endif %}
+          {%- if discount_percent and discount_percent != '0' -%}
+            &nbsp;·&nbsp;<span class="modulus-bundle-group__discount-badge">{{ discount_percent }}% off at checkout</span>
+          {%- endif -%}
+        </span>
+      </div>
+
+      <div class="modulus-bundle-group__total">
+        <span class="modulus-bundle-group__total-label">Subtotal</span>
+        <span class="modulus-bundle-group__total-value">{{ bundle_subtotal | money }}</span>
+      </div>
+    </summary>
+
+    <ul class="modulus-bundle-group__children" role="list">
+      {%- for li in cart.items -%}
+        {%- if li.properties._bundle_id != bundle_id -%}{%- continue -%}{%- endif -%}
+        <li class="modulus-bundle-group__child">
+          {%- if li.image != blank -%}
+            <a href="{{ li.url }}" class="modulus-bundle-group__child-media" tabindex="-1">
+              <img
+                src="{{ li.image | image_url: width: 120 }}"
+                alt="{{ li.image.alt | default: li.product.title | escape }}"
+                width="60"
+                height="60"
+                loading="lazy"
+              >
+            </a>
+          {%- else -%}
+            <span class="modulus-bundle-group__child-media"></span>
+          {%- endif -%}
+
+          <div class="modulus-bundle-group__child-body">
+            <a href="{{ li.url }}" class="modulus-bundle-group__child-title">{{ li.product.title | escape }}</a>
+            {%- unless li.product_has_only_default_variant -%}
+              <span class="modulus-bundle-group__child-variant">{{ li.variant.title | escape }}</span>
+            {%- endunless -%}
+            <span class="modulus-bundle-group__child-qty">Qty {{ li.quantity }}</span>
+          </div>
+
+          <span class="modulus-bundle-group__child-price">{{ li.final_line_price | money }}</span>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </details>
+
+  <button
+    type="button"
+    class="modulus-bundle-group__remove"
+    data-mod-bundle-remove
+    aria-label="Remove bundle {{ bundle_name | default: 'Bundle' | escape }} from cart"
+  >
+    <span>Remove bundle</span>
+  </button>
+</div>
+
+<style>
+  .modulus-bundle-group {
+    border-bottom: 1px solid var(--color-border);
+    padding: 18px 0;
+  }
+  .modulus-bundle-group--drawer { padding: 16px 0; }
+
+  .modulus-bundle-group__details {
+    margin: 0;
+  }
+
+  .modulus-bundle-group__summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    cursor: pointer;
+    list-style: none;
+    padding: 4px 0;
+  }
+  .modulus-bundle-group__summary::-webkit-details-marker { display: none; }
+  .modulus-bundle-group__summary::marker { content: ''; }
+
+  .modulus-bundle-group__montage {
+    display: inline-flex;
+    width: 80px;
+    height: 80px;
+    background: rgb(var(--color-foreground-rgb) / 0.05);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .modulus-bundle-group__montage img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    display: block;
+    position: absolute;
+    border: 2px solid var(--color-background);
+  }
+  .modulus-bundle-group__montage img:nth-child(1) { left: 0; top: 0; clip-path: inset(0 50% 0 0); }
+  .modulus-bundle-group__montage img:nth-child(2) { left: 0; top: 0; clip-path: inset(0 0 50% 50%); }
+  .modulus-bundle-group__montage img:nth-child(3) { left: 0; top: 0; clip-path: inset(50% 0 0 50%); }
+  .modulus-bundle-group__montage:has(img:only-child) img { clip-path: none; }
+  .modulus-bundle-group__montage-empty {
+    position: absolute; inset: 0;
+    background: rgb(var(--color-foreground-rgb) / 0.08);
+  }
+  .modulus-bundle-group__montage-more {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    padding: 2px 5px;
+    background: var(--color-foreground);
+    color: var(--color-background);
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    z-index: 1;
+  }
+
+  .modulus-bundle-group__info { min-width: 0; }
+  .modulus-bundle-group__head-row { display: flex; align-items: center; gap: 8px; }
+  h3.modulus-bundle-group__name {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: 15px;
+    color: var(--color-foreground-heading, var(--color-foreground));
+    margin: 0;
+  }
+  .modulus-bundle-group__toggle {
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+    transition: transform 0.2s ease;
+    display: inline-flex;
+  }
+  .modulus-bundle-group__details[open] .modulus-bundle-group__toggle { transform: rotate(180deg); }
+
+  .modulus-bundle-group__meta {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+    display: block;
+    margin-top: 4px;
+  }
+  .modulus-bundle-group__discount-badge {
+    color: var(--color-foreground);
+    font-weight: 600;
+  }
+
+  .modulus-bundle-group__total {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    text-align: right;
+    font-family: var(--font-body--family);
+  }
+  .modulus-bundle-group__total-label {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+  }
+  .modulus-bundle-group__total-value {
+    font-size: 15px;
+    color: var(--color-foreground);
+    font-weight: 500;
+  }
+
+  .modulus-bundle-group__children {
+    list-style: none;
+    padding: 12px 0 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-top: 1px dashed var(--color-border);
+    margin-top: 12px;
+  }
+
+  .modulus-bundle-group__child {
+    display: grid;
+    grid-template-columns: 60px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .modulus-bundle-group__child-media {
+    width: 60px;
+    height: 60px;
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.04);
+    display: block;
+  }
+  .modulus-bundle-group__child-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .modulus-bundle-group__child-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .modulus-bundle-group__child-title {
+    font-family: var(--font-body--family);
+    font-size: 13px;
+    color: var(--color-foreground);
+    text-decoration: none;
+    line-height: 1.3;
+  }
+  .modulus-bundle-group__child-variant,
+  .modulus-bundle-group__child-qty {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.6);
+  }
+  .modulus-bundle-group__child-price {
+    font-family: var(--font-body--family);
+    font-size: 13px;
+    color: var(--color-foreground);
+    white-space: nowrap;
+  }
+
+  .modulus-bundle-group__remove {
+    margin-top: 10px;
+    background: transparent;
+    border: none;
+    padding: 4px 0;
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.65);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    align-self: flex-start;
+  }
+  .modulus-bundle-group__remove:hover { color: var(--color-foreground); }
+</style>
