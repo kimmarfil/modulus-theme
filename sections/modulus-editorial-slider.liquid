@@ -1,0 +1,468 @@
+{% comment %}
+  Modulus Editorial Slider — image-first horizontal scroll-snap gallery.
+  Ported visual language from the stManufacturing "modulus slider":
+  full-width track, large slides (configurable 50–100% viewport width),
+  below-image captions with a numbered counter ("02 / 04"), and a live
+  progress bar beneath the track. Arrow controls disable at boundaries.
+
+  Coexists with the richer modulus-slider (which carries eyebrow + title
+  + description + link per slide). This one is intentionally simpler —
+  picture and caption only.
+{% endcomment %}
+
+{%- liquid
+  assign slide_w = section.settings.slide_width | default: 75
+  assign total_slides = section.blocks.size
+-%}
+
+<modulus-editorial-slider
+  id="modulus-editorial-slider-{{ section.id }}"
+  class="modulus-esl color-{{ section.settings.color_scheme.id }} {% if section.settings.section_width == 'full' %}full-width{% endif %}{% if section.settings.custom_class != blank %} {{ section.settings.custom_class }}{% endif %}"
+  data-total="{{ total_slides }}"
+  style="
+    --esl-slide-width: {{ slide_w }}vw;
+    --esl-aspect: {{ section.settings.image_aspect }};
+    --esl-gap: {{ section.settings.gap }}px;
+    --esl-py: {{ section.settings.padding_y }}px;
+  "
+>
+  <div class="modulus-esl__inner">
+    <div class="modulus-esl__head" data-mod-reveal>
+      <div class="modulus-esl__head-text">
+        {%- if section.settings.label_text != blank -%}
+          {% render 'modulus-section-label',
+            text: section.settings.label_text,
+            number: section.settings.label_number
+          %}
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="modulus-esl__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+      </div>
+
+      {%- if total_slides > 1 -%}
+        <div class="modulus-esl__controls" aria-label="Slider controls">
+          <button type="button" class="modulus-esl__arrow" data-esl-prev aria-label="Previous slide">
+            {% render 'modulus-icon', name: 'arrow-left', size: 16 %}
+          </button>
+          <button type="button" class="modulus-esl__arrow" data-esl-next aria-label="Next slide">
+            {% render 'modulus-icon', name: 'arrow-right', size: 16 %}
+          </button>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  <div
+    class="modulus-esl__track"
+    data-esl-track
+    tabindex="0"
+    role="region"
+    aria-label="{{ section.settings.label_text | default: 'Editorial gallery' | escape }}"
+  >
+    {%- for block in section.blocks -%}
+      {%- assign slide_no = forloop.index -%}
+      <figure class="modulus-esl__slide" {{ block.shopify_attributes }}>
+        <div class="modulus-esl__slide-media">
+          {%- if block.settings.image != blank -%}
+            <img
+              src="{{ block.settings.image | image_url: width: 1600 }}"
+              srcset="
+                {{ block.settings.image | image_url: width: 800 }} 800w,
+                {{ block.settings.image | image_url: width: 1200 }} 1200w,
+                {{ block.settings.image | image_url: width: 1600 }} 1600w,
+                {{ block.settings.image | image_url: width: 2000 }} 2000w
+              "
+              sizes="{{ slide_w }}vw"
+              alt="{{ block.settings.image.alt | default: block.settings.caption | escape }}"
+              loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+              width="{{ block.settings.image.width }}"
+              height="{{ block.settings.image.height }}"
+            >
+          {%- else -%}
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'modulus-esl__placeholder' }}
+          {%- endif -%}
+        </div>
+
+        {%- if block.settings.caption != blank or section.settings.show_counter -%}
+          <figcaption class="modulus-esl__caption">
+            {%- if block.settings.caption != blank -%}
+              <span class="modulus-esl__caption-text">{{ block.settings.caption | escape }}</span>
+            {%- else -%}
+              <span></span>
+            {%- endif -%}
+            {%- if section.settings.show_counter -%}
+              <span class="modulus-esl__counter">
+                <span class="modulus-esl__counter-current">{{ slide_no | prepend: '00' | slice: -2, 2 }}</span>
+                <span class="modulus-esl__counter-total"> / {{ total_slides | prepend: '00' | slice: -2, 2 }}</span>
+              </span>
+            {%- endif -%}
+          </figcaption>
+        {%- endif -%}
+      </figure>
+    {%- endfor -%}
+  </div>
+
+  {%- if section.settings.show_progress_bar and total_slides > 1 -%}
+    <div class="modulus-esl__progress" aria-hidden="true">
+      <div class="modulus-esl__progress-fill" data-esl-progress style="width: 0%;"></div>
+    </div>
+  {%- endif -%}
+</modulus-editorial-slider>
+
+{% stylesheet %}
+  .modulus-esl {
+    display: block;
+    background: var(--color-background);
+    color: var(--color-foreground);
+    padding: var(--esl-py, var(--mod-section-py)) 0;
+  }
+
+  .modulus-esl__inner {
+    width: 100%;
+    max-width: var(--mod-max-width);
+    margin: 0 auto;
+    padding: 0 var(--mod-section-px, 24px);
+  }
+
+  .modulus-esl__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--mod-gap-lg);
+    margin-bottom: var(--mod-gap-lg);
+  }
+
+  .modulus-esl__head-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mod-gap-sm);
+    max-width: var(--mod-prose-max-width, 720px);
+  }
+
+  h2.modulus-esl__heading {
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: clamp(28px, 4vw, 56px);
+    color: var(--color-foreground-heading, var(--color-foreground));
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .modulus-esl__heading p { margin: 0; }
+
+  .modulus-esl__controls {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .modulus-esl__arrow {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--color-foreground);
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .modulus-esl__arrow:hover {
+    background: var(--color-foreground);
+    color: var(--color-background);
+    border-color: var(--color-foreground);
+  }
+
+  .modulus-esl__arrow:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: transparent;
+    color: var(--color-foreground);
+    border-color: var(--color-border);
+  }
+
+  .modulus-esl__arrow:focus-visible {
+    outline: 2px solid var(--color-foreground);
+    outline-offset: 3px;
+  }
+
+  /* ---- Track ---- */
+
+  .modulus-esl__track {
+    display: flex;
+    gap: var(--esl-gap, 16px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 0 var(--mod-section-px, 24px);
+  }
+
+  .modulus-esl__track::-webkit-scrollbar { display: none; }
+
+  .modulus-esl__track:focus-visible {
+    outline: 2px solid var(--color-foreground);
+    outline-offset: 4px;
+  }
+
+  .modulus-esl__slide {
+    flex: 0 0 var(--esl-slide-width, 75vw);
+    max-width: 1200px;
+    scroll-snap-align: start;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .modulus-esl__slide-media {
+    aspect-ratio: var(--esl-aspect, 3 / 2);
+    overflow: hidden;
+    background: rgb(var(--color-foreground-rgb) / 0.05);
+  }
+
+  .modulus-esl__slide-media img,
+  .modulus-esl__slide-media svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+
+  .modulus-esl__slide:hover .modulus-esl__slide-media img {
+    transform: scale(1.02);
+  }
+
+  /* ---- Caption ---- */
+
+  .modulus-esl__caption {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    margin: 0;
+  }
+
+  .modulus-esl__caption-text {
+    font-family: var(--font-body--family);
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgb(var(--color-foreground-rgb) / 0.75);
+    max-width: 540px;
+  }
+
+  .modulus-esl__counter {
+    font-family: var(--font-label--family, var(--font-body--family));
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgb(var(--color-foreground-rgb) / 0.55);
+    white-space: nowrap;
+  }
+
+  .modulus-esl__counter-current {
+    color: var(--color-foreground);
+    font-weight: 600;
+  }
+
+  /* ---- Progress bar ---- */
+
+  .modulus-esl__progress {
+    max-width: var(--mod-max-width);
+    margin: var(--mod-gap-md) auto 0;
+    padding: 0 var(--mod-section-px, 24px);
+    height: 1px;
+    background: transparent;
+    position: relative;
+  }
+
+  .modulus-esl__progress::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: 0 var(--mod-section-px, 24px);
+    background: rgb(var(--color-foreground-rgb) / 0.12);
+  }
+
+  .modulus-esl__progress-fill {
+    position: absolute;
+    top: 0;
+    left: var(--mod-section-px, 24px);
+    height: 1px;
+    background: var(--color-foreground);
+    transition: width 0.2s ease-out;
+    max-width: calc(100% - var(--mod-section-px, 24px) * 2);
+    z-index: 1;
+  }
+
+  /* ---- Responsive ---- */
+
+  @media (max-width: 768px) {
+    .modulus-esl__head {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: var(--mod-gap-md);
+      margin-bottom: var(--mod-gap-md);
+    }
+    .modulus-esl__slide {
+      flex-basis: min(var(--esl-slide-width, 85vw), 85vw);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .modulus-esl__slide {
+      flex-basis: 88vw;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .modulus-esl__track { scroll-behavior: auto; }
+    .modulus-esl__slide-media img { transition: none; }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  if (!customElements.get('modulus-editorial-slider')) {
+    customElements.define('modulus-editorial-slider', class ModulusEditorialSlider extends HTMLElement {
+      connectedCallback() {
+        this.track = this.querySelector('[data-esl-track]');
+        if (!this.track) return;
+        this.prevBtn = this.querySelector('[data-esl-prev]');
+        this.nextBtn = this.querySelector('[data-esl-next]');
+        this.progressEl = this.querySelector('[data-esl-progress]');
+
+        if (this.prevBtn) this.prevBtn.addEventListener('click', () => this.scrollByCard(-1));
+        if (this.nextBtn) this.nextBtn.addEventListener('click', () => this.scrollByCard(1));
+
+        this.track.addEventListener('scroll', () => this.update(), { passive: true });
+        if ('onscrollend' in window) {
+          this.track.addEventListener('scrollend', () => this.update());
+        }
+        window.addEventListener('resize', () => this.update());
+
+        this.update();
+      }
+
+      scrollByCard(direction) {
+        const slide = this.track.querySelector('.modulus-esl__slide');
+        if (!slide) return;
+        const gap = parseFloat(getComputedStyle(this.track).columnGap || getComputedStyle(this.track).gap || '0') || 0;
+        const step = slide.getBoundingClientRect().width + gap;
+        this.track.scrollBy({ left: step * direction, behavior: 'smooth' });
+      }
+
+      update() {
+        const { scrollLeft, scrollWidth, clientWidth } = this.track;
+        const max = Math.max(1, scrollWidth - clientWidth);
+        const pct = Math.max(0, Math.min(100, (scrollLeft / max) * 100));
+        if (this.progressEl) this.progressEl.style.width = pct + '%';
+        if (this.prevBtn) this.prevBtn.disabled = scrollLeft <= 2;
+        if (this.nextBtn) this.nextBtn.disabled = scrollLeft + clientWidth >= scrollWidth - 2;
+      }
+    });
+  }
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Modulus Editorial Slider",
+  "tag": "section",
+  "settings": [
+    { "type": "header", "content": "Content" },
+    { "type": "text", "id": "label_text", "label": "Section label", "default": "Gallery" },
+    { "type": "text", "id": "label_number", "label": "Section number", "default": "04" },
+    { "type": "richtext", "id": "heading", "label": "Heading", "default": "<p>In the studio.</p>" },
+
+    { "type": "header", "content": "Display" },
+    { "type": "checkbox", "id": "show_counter", "label": "Show slide counter (01 / N)", "default": true },
+    { "type": "checkbox", "id": "show_progress_bar", "label": "Show progress bar", "default": true },
+
+    { "type": "header", "content": "Colors" },
+    { "type": "color_scheme", "id": "color_scheme", "label": "Color scheme", "default": "scheme-1" },
+
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "constrained", "label": "Constrained to page width" },
+        { "value": "full", "label": "Full viewport" }
+      ],
+      "default": "full"
+    },
+    {
+      "type": "range",
+      "id": "slide_width",
+      "label": "Slide width (desktop)",
+      "min": 50, "max": 100, "step": 5, "unit": "%",
+      "default": 75
+    },
+    {
+      "type": "range",
+      "id": "gap",
+      "label": "Gap between slides",
+      "min": 0, "max": 48, "step": 2, "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "image_aspect",
+      "label": "Image aspect ratio",
+      "options": [
+        { "value": "16 / 9", "label": "Wide (16:9)" },
+        { "value": "3 / 2", "label": "Landscape (3:2)" },
+        { "value": "4 / 3", "label": "Landscape (4:3)" },
+        { "value": "21 / 9", "label": "Cinemascope (21:9)" },
+        { "value": "1 / 1", "label": "Square (1:1)" }
+      ],
+      "default": "3 / 2"
+    },
+
+    { "type": "header", "content": "Spacing" },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "label": "Vertical padding",
+      "min": 40, "max": 240, "step": 4, "unit": "px",
+      "default": 120
+    },
+
+    { "type": "header", "content": "Advanced" },
+    { "type": "text", "id": "custom_class", "label": "Custom CSS class" }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "caption", "label": "Caption (optional)" }
+      ]
+    }
+  ],
+  "max_blocks": 20,
+  "presets": [
+    {
+      "name": "Modulus Editorial Slider",
+      "blocks": [
+        { "type": "slide", "settings": { "caption": "A first slide \u2014 swap the image and caption." } },
+        { "type": "slide", "settings": { "caption": "A second slide \u2014 pick your aspect ratio." } },
+        { "type": "slide", "settings": { "caption": "A third slide \u2014 arrows handle the navigation." } },
+        { "type": "slide", "settings": { "caption": "A fourth slide \u2014 progress bar tracks position." } }
+      ]
+    }
+  ],
+  "enabled_on": {
+    "templates": ["index", "page", "product", "collection", "article", "blog"]
+  }
+}
+{% endschema %}
